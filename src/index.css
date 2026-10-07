@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+/* Single source of colours, fonts and radii: copied from prototipo/theme.css, do not edit colours elsewhere. */
+@import './styles/theme.css';
+
+@theme static {
+  /* Corners: cards from 6 to 10px (PROMPT §11); pills use --radius-pill from the theme. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+
+  /* Spring used by buttons on hover. */
+  --ease-spring: cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 18px;
+    line-height: 1.45;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-normal;
+  }
+}
+
+/* Every animation and transition yields to the user's preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-slot='button'] {
+    transform: none !important;
+  }
+}

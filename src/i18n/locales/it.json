@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "Battaglia dei Comuni",
+    "provisionalName": "nome provvisorio"
+  },
+  "nav": {
+    "account": "Accesso e registrazione",
+    "accountUnavailable": "Accesso e registrazione non sono ancora disponibili."
+  },
+  "home": {
+    "title": "Conquista i comuni, uno alla volta",
+    "intro": "Scegli un comune di partenza, annetti i vicini e difendi la tua capitale dagli altri imperi.",
+    "status": {
+      "title": "Stato del sistema",
+      "api": "Servizio di gioco",
+      "database": "Database",
+      "jobs": "Elaborazione dei turni",
+      "battleQueue": "Coda delle battaglie",
+      "ok": "attivo",
+      "down": "non raggiungibile",
+      "waiting": "in attesa",
+      "loading": "verifica in corso",
+      "retry": "Riprova"
+    }
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "back": "Torna alla homepage"
+  }
+}
