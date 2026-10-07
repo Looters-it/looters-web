@@ -16,23 +16,41 @@ interface RequestOptions {
   signal?: AbortSignal
 }
 
-/** GET on the API. The session cookie travels with the request (same origin). */
-export async function apiGet<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  method: string,
+  path: string,
+  body: unknown,
+  options: RequestOptions,
+): Promise<T> {
   const response = await fetch(`/api${path}`, {
+    method,
+    // The session cookie travels with the request (same origin).
     credentials: 'same-origin',
     signal: options.signal,
+    ...(body === undefined
+      ? {}
+      : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
   })
+  if (response.status === 204) return undefined as T
   if (response.ok || options.accept?.includes(response.status)) {
     return (await response.json()) as T
   }
-  const body = (await response.json().catch(() => null)) as {
+  const payload = (await response.json().catch(() => null)) as {
     error?: { code?: string; message?: string }
   } | null
   throw new ApiError(
     response.status,
-    body?.error?.code ?? 'UNKNOWN',
-    body?.error?.message ?? response.statusText,
+    payload?.error?.code ?? 'UNKNOWN',
+    payload?.error?.message ?? response.statusText,
   )
+}
+
+export function apiGet<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return request<T>('GET', path, undefined, options)
+}
+
+export function apiPost<T>(path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
+  return request<T>('POST', path, body, options)
 }
 
 export interface SystemStatus {

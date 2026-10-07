@@ -5,7 +5,9 @@
   },
   "nav": {
     "account": "Accesso e registrazione",
-    "accountUnavailable": "Accesso e registrazione non sono ancora disponibili."
+    "accountOf": "Account di {{username}}",
+    "online_one": "giocatore connesso",
+    "online_other": "giocatori connessi"
   },
   "home": {
     "title": "Conquista i comuni, uno alla volta",
@@ -26,5 +28,30 @@
   "notFound": {
     "title": "Pagina non trovata",
     "back": "Torna alla homepage"
+  },
+  "auth": {
+    "username": "Nome utente",
+    "usernameHint": "Da 3 a 20 caratteri: lettere, cifre e trattino basso.",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Almeno {{min}} caratteri.",
+    "login": {
+      "tab": "Accedi",
+      "submit": "Accedi"
+    },
+    "register": {
+      "tab": "Registrati",
+      "submit": "Crea l'account"
+    },
+    "signedInAs": "Hai effettuato l'accesso come",
+    "logout": "Esci",
+    "sessionEnded": "La tua sessione è terminata. Accedi di nuovo per continuare.",
+    "errors": {
+      "INVALID_CREDENTIALS": "Nome utente o password non corretti.",
+      "USERNAME_TAKEN": "Questo nome utente è già in uso.",
+      "RATE_LIMITED": "Troppi tentativi. Riprova tra qualche minuto.",
+      "VALIDATION": "Controlla i dati inseriti.",
+      "UNKNOWN": "Qualcosa non ha funzionato. Riprova."
+    }
   }
 }
