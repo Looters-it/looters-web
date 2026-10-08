@@ -135,6 +135,22 @@ export interface AreaOutlines {
   }[]
 }
 
+/** One entry of the board: a typed event; the interface writes its text. */
+export interface BoardEntry {
+  id: string
+  type: string
+  turn: number
+  createdAt: string
+  empireId: string | null
+  territoryId: string | null
+  /** A municipality of the territory it is about, to centre the map on it. */
+  geoUnitId: number | null
+  data: Record<string, string>
+}
+
+export type BoardKind =
+  'messages' | 'empires' | 'annexations' | 'battles' | 'capitals' | 'areas' | 'alliances' | 'match'
+
 export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER' | 'CANCELLED'
 
 export interface Battle {
@@ -257,6 +273,15 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/annex`, body),
   allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  board: (id: string, filters: { kind?: BoardKind; empireId?: string }) => {
+    const query = new URLSearchParams()
+    if (filters.kind) query.set('kind', filters.kind)
+    if (filters.empireId) query.set('empireId', filters.empireId)
+    return apiGet<BoardEntry[]>(`/matches/${id}/board?${query.toString()}`)
+  },
+  postMessage: (id: string, text: string) =>
+    apiPost<{ id: string }>(`/matches/${id}/board`, { text }),
+  removeMessage: (id: string, eventId: string) => apiDelete(`/matches/${id}/board/${eventId}`),
   catalogue: (id: string) => apiGet<CatalogueEntry[]>(`/matches/${id}/structures/catalogue`),
   build: (id: string, body: { type: string; territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/structures`, body),

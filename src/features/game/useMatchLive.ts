@@ -36,6 +36,7 @@ export function useMatchLive(matchId: string) {
         if (message.t === 'match.update') {
           void queryClient.invalidateQueries({ queryKey: ['matches', 'state', matchId] })
           void queryClient.invalidateQueries({ queryKey: ['matches', 'unit', matchId] })
+          void queryClient.invalidateQueries({ queryKey: ['matches', 'board', matchId] })
         }
       }),
     // The socket is reopened when the session changes: follow again as the new user.

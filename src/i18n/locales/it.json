@@ -281,7 +281,8 @@
       "blockCooldownTurns": "Blocco militare: pausa in turni",
       "allianceMaxMembers": "Membri massimi di un'alleanza",
       "allianceLeaveNoticeTurns": "Preavviso di uscita, in turni",
-      "boardMaxChars": "Lunghezza massima di un messaggio"
+      "boardMaxChars": "Lunghezza massima di un messaggio",
+      "boardMessageIntervalSec": "Secondi di attesa tra due messaggi di un impero"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -413,7 +414,9 @@
       "MERGE_IN_BATTLE": "Uno dei comuni è in uno scontro.",
       "MERGE_TOO_MANY": "Troppi comuni per una sola area.",
       "MERGE_NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
-      "MERGE_NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse."
+      "MERGE_NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse.",
+      "MESSAGE_TOO_LONG": "Il messaggio è troppo lungo.",
+      "RATE_LIMITED": "Devi aspettare qualche secondo prima di scrivere ancora."
     }
   },
   "game": {
@@ -435,7 +438,8 @@
       "tabs": "Viste della partita",
       "battles": "Scontri",
       "merge": "Unisci territori",
-      "build": "Costruzioni"
+      "build": "Costruzioni",
+      "phoneBoard": "Bacheca"
     },
     "leaderboard": {
       "title": "Classifica",
@@ -626,6 +630,54 @@
         "TOO_MANY": "Un'area può contenere al massimo {{max}} comuni.",
         "NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
         "NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse per pagare l'unione."
+      }
+    },
+    "board": {
+      "title": "Bacheca",
+      "open": "Apri la bacheca",
+      "close": "Chiudi la bacheca",
+      "empty": "Ancora nessun annuncio.",
+      "new_one": "{{count}} nuovo",
+      "new_other": "{{count}} nuovi",
+      "kind": "Mostra",
+      "empire": "Impero",
+      "allKinds": "Tutto",
+      "allEmpires": "Tutti gli imperi",
+      "kinds": {
+        "messages": "Comunicazioni",
+        "empires": "Imperi",
+        "annexations": "Annessioni",
+        "battles": "Conflitti",
+        "capitals": "Capitali",
+        "areas": "Aree",
+        "alliances": "Alleanze",
+        "match": "Partita"
+      },
+      "write": "Scrivi a nome del tuo impero",
+      "send": "Invia",
+      "left": "{{count}} caratteri rimasti",
+      "readOnly": "Puoi leggere la bacheca, non scriverci.",
+      "remove": "Rimuovi il messaggio di {{name}}",
+      "turn": "turno {{turn}}",
+      "goTo": "Mostra {{name}} sulla mappa",
+      "events": {
+        "EMPIRE_CREATED": "{{empireName}} è nato a {{territoryName}}.",
+        "ANNEXED": "{{empireName}} ha annesso {{territoryName}}.",
+        "BATTLE_RESOLVED_ATTACKER_WON": "{{attackerName}} ha conquistato {{territoryName}}, difeso da {{defenderName}}.",
+        "BATTLE_RESOLVED_DEFENDER_WON": "{{defenderName}} ha difeso {{territoryName}} dall'attacco di {{attackerName}}.",
+        "BATTLE_RESOLVED_SURRENDER": "{{defenderName}} ha ceduto {{territoryName}} a {{attackerName}}.",
+        "EMPIRE_FALLEN": "{{empireName}} è caduto, sconfitto da {{byEmpireName}}.",
+        "CAPITAL_BUILT": "{{empireName}} ha costruito una seconda capitale a {{territoryName}}.",
+        "CAPITAL_MOVED": "{{empireName}} ha spostato la capitale a {{territoryName}}.",
+        "CAPITAL_PROMOTED": "{{territoryName}} è la nuova capitale di {{empireName}}.",
+        "AREA_CREATED": "{{empireName}} ha unito i suoi territori nell'area {{territoryName}}.",
+        "AREA_RENAMED": "{{empireName}} ha rinominato una sua area: ora è {{territoryName}}.",
+        "ALLIANCE_FORMED": "{{empireName}} e {{otherName}} hanno stretto un'alleanza.",
+        "ALLIANCE_JOINED": "{{empireName}} è entrato nell'alleanza di {{otherName}}.",
+        "ALLIANCE_LEFT": "{{empireName}} ha annunciato l'uscita dalla sua alleanza.",
+        "MATCH_STARTED": "La partita è iniziata.",
+        "MATCH_FINISHED": "La partita è finita. Ha vinto {{winnerName}}.",
+        "UNKNOWN": "È successo qualcosa."
       }
     }
   }

@@ -1286,3 +1286,234 @@ describe('merging territories', () => {
     expect(await screen.findByText(/Fa parte dell'area Contado di Monza/)).toBeInTheDocument()
   })
 })
+
+// ---------- Board ----------
+
+describe('board', () => {
+  const entry = (id: string, type: string, data: object, extra: object = {}) => ({
+    id,
+    type,
+    turn: 3,
+    createdAt: `2026-10-08T10:00:0${id.slice(-1)}.000Z`,
+    empireId: 'bruno',
+    territoryId: null,
+    geoUnitId: null,
+    data,
+    ...extra,
+  })
+  const entries = [
+    entry('e4', 'MESSAGE', {
+      empireName: 'Repubblica Ambrosiana',
+      text: 'Di qua dal fiume non si passa.',
+    }),
+    entry(
+      'e3',
+      'BATTLE_RESOLVED',
+      {
+        attackerName: 'Ducato del Ticino',
+        defenderName: 'Repubblica Ambrosiana',
+        territoryName: 'Lodi',
+        outcome: 'DEFENDER_WON',
+        defenderEmpireId: 'bruno',
+      },
+      { empireId: 'anna', territoryId: 'tb', geoUnitId: 9 },
+    ),
+    entry(
+      'e2',
+      'ANNEXED',
+      { empireName: 'Ducato del Ticino', territoryName: 'Monza' },
+      { empireId: 'anna', territoryId: 'ta2', geoUnitId: 2 },
+    ),
+    entry('e1', 'EMPIRE_FALLEN', {
+      empireName: 'Contea di Rho',
+      byEmpireName: 'Ducato del Ticino',
+    }),
+  ]
+  const boardOf = (state: object, list: () => object[] = () => entries, extra: object = {}) => ({
+    ...asAnna,
+    ...mapRoutes,
+    'GET /api/matches/m1/state': () => ({ body: state }),
+    'GET /api/matches/m1/board?': () => ({ body: list() }),
+    ...extra,
+  })
+  const board = () => screen.getByRole('region', { name: 'Bacheca' })
+
+  beforeEach(() => localStorage.clear())
+
+  it('shows the latest entry and how many are new, then the whole list when opened', async () => {
+    stubApi(boardOf(running(mine)))
+    renderApp('/partite/m1')
+    await loadedMap()
+
+    // Closed: only the latest entry, and the badge of what is new.
+    expect(await within(board()).findByText('Di qua dal fiume non si passa.')).toBeInTheDocument()
+    expect(within(board()).getByText('4 nuovi')).toBeInTheDocument()
+    expect(within(board()).queryByText(/ha annesso/)).not.toBeInTheDocument()
+
+    await userEvent.click(within(board()).getByRole('button', { name: 'Apri la bacheca' }))
+    // Announcements are written from the events, in Italian, with no number in them.
+    expect(within(board()).getByText('Ducato del Ticino ha annesso Monza.')).toBeInTheDocument()
+    expect(
+      within(board()).getByText(
+        "Repubblica Ambrosiana ha difeso Lodi dall'attacco di Ducato del Ticino.",
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(board()).getByText('Contea di Rho è caduto, sconfitto da Ducato del Ticino.'),
+    ).toBeInTheDocument()
+
+    // Read: closing it again shows no badge.
+    await userEvent.click(within(board()).getByRole('button', { name: 'Chiudi la bacheca' }))
+    expect(within(board()).queryByText(/nuov/)).not.toBeInTheDocument()
+  })
+
+  it('centres the map on the municipality an announcement names', async () => {
+    stubApi(
+      boardOf(running(mine), () => entries, {
+        'GET /api/matches/m1/units/2': () => ({
+          body: {
+            geoUnitId: 2,
+            name: 'Monza',
+            territory: {
+              id: 'ta2',
+              name: 'Monza',
+              ownerEmpireId: 'anna',
+              protected: false,
+              inBattle: false,
+              resources: 100,
+            },
+            neighbours: [],
+            annex: null,
+            attack: null,
+          },
+        }),
+      }),
+    )
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+
+    await userEvent.click(within(board()).getByRole('button', { name: 'Mostra Monza sulla mappa' }))
+    expect(map.easedTo).toMatchObject({ center: [9.27, 45.58] })
+    expect(map.state.get(2)).toMatchObject({ selected: true })
+  })
+
+  it('filters by kind and by empire', async () => {
+    const calls = stubApi(
+      boardOf(running(mine), () => entries, {
+        'GET /api/matches/m1/board?kind=battles': () => ({ body: [entries[1]] }),
+        'GET /api/matches/m1/board?kind=battles&empireId=bruno': () => ({ body: [] }),
+      }),
+    )
+    renderApp('/partite/m1')
+    await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+
+    await userEvent.click(within(board()).getByRole('combobox', { name: 'Mostra' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Conflitti' }))
+    await waitFor(() => expect(within(board()).queryByText(/ha annesso/)).not.toBeInTheDocument())
+    expect(within(board()).getByText(/ha difeso Lodi/)).toBeInTheDocument()
+
+    await userEvent.click(within(board()).getByRole('combobox', { name: 'Impero' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Repubblica Ambrosiana' }))
+    expect(await within(board()).findByText('Ancora nessun annuncio.')).toBeInTheDocument()
+    expect(
+      calls.some((call) => call.key === 'GET /api/matches/m1/board?kind=battles&empireId=bruno'),
+    ).toBe(true)
+  })
+
+  it('posts a message in the name of the empire and shows it', async () => {
+    let list = [...entries]
+    const calls = stubApi(
+      boardOf(running(mine), () => list, {
+        'POST /api/matches/m1/board': (body: unknown) => {
+          list = [
+            entry(
+              'e5',
+              'MESSAGE',
+              { empireName: 'Ducato del Ticino', text: (body as { text: string }).text },
+              { empireId: 'anna' },
+            ),
+            ...list,
+          ]
+          return { status: 201, body: { id: 'e5' } }
+        },
+      }),
+    )
+    renderApp('/partite/m1')
+    await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+
+    await userEvent.type(
+      within(board()).getByRole('textbox', { name: 'Scrivi a nome del tuo impero' }),
+      'Pace a chi la vuole.',
+    )
+    await userEvent.click(within(board()).getByRole('button', { name: 'Invia' }))
+
+    expect(await within(board()).findByText('Pace a chi la vuole.')).toBeInTheDocument()
+    expect(calls.find((call) => call.key === 'POST /api/matches/m1/board')?.body).toEqual({
+      text: 'Pace a chi la vuole.',
+    })
+    expect(
+      within(board()).getByRole('textbox', { name: 'Scrivi a nome del tuo impero' }),
+    ).toHaveValue('')
+  })
+
+  it('says when the empire has to wait before writing again', async () => {
+    stubApi(
+      boardOf(running(mine), () => entries, {
+        'POST /api/matches/m1/board': () => ({
+          status: 429,
+          body: { error: { code: 'RATE_LIMITED', message: 'x' } },
+        }),
+      }),
+    )
+    renderApp('/partite/m1')
+    await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+    await userEvent.type(within(board()).getByRole('textbox'), 'Ancora io')
+    await userEvent.click(within(board()).getByRole('button', { name: 'Invia' }))
+
+    expect(await within(board()).findByRole('alert')).toHaveTextContent(
+      'Devi aspettare qualche secondo',
+    )
+  })
+
+  it('is read-only for spectators', async () => {
+    stubApi(boardOf(running([mine[2]!], { status: 'FALLEN' })))
+    renderApp('/partite/m1')
+    await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+
+    expect(within(board()).getByText('Puoi leggere la bacheca, non scriverci.')).toBeInTheDocument()
+    expect(within(board()).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(board()).getByText('Di qua dal fiume non si passa.')).toBeInTheDocument()
+  })
+
+  it('lets the owner of the match remove a message, and only a message', async () => {
+    let list = [...entries]
+    const owned = running(mine)
+    owned.match = { ...owned.match, isOwner: true }
+    const calls = stubApi(
+      boardOf(owned, () => list, {
+        'DELETE /api/matches/m1/board/e4': () => {
+          list = list.filter((candidate) => candidate.id !== 'e4')
+          return { status: 204 }
+        },
+      }),
+    )
+    renderApp('/partite/m1')
+    await loadedMap()
+    await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
+
+    // One removable entry: the message. Announcements have no such button.
+    const remove = within(board()).getAllByRole('button', { name: /Rimuovi il messaggio/ })
+    expect(remove).toHaveLength(1)
+    await userEvent.click(remove[0]!)
+
+    await waitFor(() =>
+      expect(within(board()).queryByText('Di qua dal fiume non si passa.')).not.toBeInTheDocument(),
+    )
+    expect(calls.some((call) => call.key === 'DELETE /api/matches/m1/board/e4')).toBe(true)
+  })
+})

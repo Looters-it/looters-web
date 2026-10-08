@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { BattlesPage } from '@/features/game/BattlesPage'
+import { Board } from '@/features/game/Board'
 import { BuildPage } from '@/features/game/BuildPage'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
@@ -106,7 +107,7 @@ export function MatchPage() {
   const [hoveredEmpire, setHoveredEmpire] = useState<string | null>(null)
   const [card, setCard] = useState<UnitCardData | null>(null)
   const [focus, setFocus] = useState<{ lon: number; lat: number } | null>(null)
-  const [phoneTab, setPhoneTab] = useState<'map' | 'panel'>('map')
+  const [phoneTab, setPhoneTab] = useState<'map' | 'panel' | 'board'>('map')
   // The attack being prepared: its target and the own territories chosen so far.
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
@@ -278,6 +279,12 @@ export function MatchPage() {
     [units.data],
   )
 
+  // An announcement names a municipality: select it and bring it into view.
+  const goTo = (geoUnitId: number, name: string) => {
+    selectFromList({ id: geoUnitId, name })
+    setPhoneTab('map')
+  }
+
   if (stateQuery.error) {
     const missing = stateQuery.error instanceof ApiError && stateQuery.error.status === 404
     return missing ? (
@@ -390,51 +397,63 @@ export function MatchPage() {
       />
 
       {hasMap && area.data ? (
-        <LazyGameMap
-          area={area.data}
-          colors={ownership.colors}
-          empireLabels={labels}
-          markers={markers}
-          areas={hasAreas ? (areas.data ?? null) : null}
-          selected={selected}
-          highlightedIds={highlighted}
-          attackedIds={attacked}
-          focus={focus}
-          onSelect={onMapSelect}
-          renderInfo={(unit) => {
-            const territory = ownership.byUnit.get(unit.id)
-            const empire = territory && ownership.empires.get(territory.ownerEmpireId)
-            return (
-              <UnitCard name={unit.name}>
-                {empire && territory ? (
-                  <>
-                    <p className="flex items-center gap-2">
-                      <EmpireShield
-                        color={empire.color}
-                        emblem={empire.emblem}
-                        className="size-6"
-                      />
-                      {t('match.unit.owned', { name: empire.name })}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {territory.resources === null
-                        ? t('match.unit.hidden')
-                        : t('match.unit.resources', { count: territory.resources })}
-                    </p>
-                    {empire.capitalTerritoryId === territory.id && <p>{t('match.unit.capital')}</p>}
-                    {territory.protected && <p>{t('match.unit.protected')}</p>}
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">{t('match.unit.free')}</p>
-                )}
-              </UnitCard>
-            )
-          }}
+        <div
           className={cn(
-            'h-[calc(100dvh-7rem)] flex-none md:h-auto md:flex-1',
+            'relative h-[calc(100dvh-7rem)] flex-none md:h-auto md:flex-1',
             phoneTab !== 'map' && 'hidden md:block',
           )}
-        />
+        >
+          <LazyGameMap
+            area={area.data}
+            colors={ownership.colors}
+            empireLabels={labels}
+            markers={markers}
+            areas={hasAreas ? (areas.data ?? null) : null}
+            selected={selected}
+            highlightedIds={highlighted}
+            attackedIds={attacked}
+            focus={focus}
+            onSelect={onMapSelect}
+            renderInfo={(unit) => {
+              const territory = ownership.byUnit.get(unit.id)
+              const empire = territory && ownership.empires.get(territory.ownerEmpireId)
+              return (
+                <UnitCard name={unit.name}>
+                  {empire && territory ? (
+                    <>
+                      <p className="flex items-center gap-2">
+                        <EmpireShield
+                          color={empire.color}
+                          emblem={empire.emblem}
+                          className="size-6"
+                        />
+                        {t('match.unit.owned', { name: empire.name })}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {territory.resources === null
+                          ? t('match.unit.hidden')
+                          : t('match.unit.resources', { count: territory.resources })}
+                      </p>
+                      {empire.capitalTerritoryId === territory.id && (
+                        <p>{t('match.unit.capital')}</p>
+                      )}
+                      {territory.protected && <p>{t('match.unit.protected')}</p>}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">{t('match.unit.free')}</p>
+                  )}
+                </UnitCard>
+              )
+            }}
+            className="h-full"
+          />
+          {/* The board sits over the map, bottom left; on a phone it has its own tab. */}
+          <Board
+            state={state}
+            onGoTo={goTo}
+            className="absolute bottom-3 left-3 z-10 hidden md:flex"
+          />
+        </div>
       ) : (
         <div className="bg-muted hidden flex-1 border-r md:block" />
       )}
@@ -517,14 +536,20 @@ export function MatchPage() {
         )}
       </aside>
 
-      {/* On a phone the map and the panel take the whole screen in turn. */}
+      {hasMap && phoneTab === 'board' && (
+        <div className="h-[calc(100dvh-7rem)] md:hidden">
+          <Board state={state} onGoTo={goTo} full />
+        </div>
+      )}
+
+      {/* On a phone the map, the panel and the board take the whole screen in turn. */}
       {hasMap && (
         <div
           role="tablist"
           aria-label={t('game.menu.tabs')}
-          className="bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-2 border-t md:hidden"
+          className="bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t md:hidden"
         >
-          {(['map', 'panel'] as const).map((tab) => (
+          {(['map', 'panel', 'board'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -536,7 +561,13 @@ export function MatchPage() {
                 phoneTab === tab && 'bg-primary text-primary-foreground',
               )}
             >
-              {t(tab === 'map' ? 'game.menu.phoneMap' : 'game.menu.phonePanel')}
+              {t(
+                tab === 'map'
+                  ? 'game.menu.phoneMap'
+                  : tab === 'panel'
+                    ? 'game.menu.phonePanel'
+                    : 'game.menu.phoneBoard',
+              )}
             </button>
           ))}
         </div>

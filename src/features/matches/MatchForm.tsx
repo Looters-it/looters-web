@@ -45,7 +45,7 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
     ],
   ],
   ['alliances', ['allianceMaxMembers', 'allianceLeaveNoticeTurns']],
-  ['board', ['boardMaxChars']],
+  ['board', ['boardMaxChars', 'boardMessageIntervalSec']],
 ]
 
 /** "Italia › Nord › Lombardia" for every folder that has municipalities. */

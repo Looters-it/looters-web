@@ -12,6 +12,7 @@ export function stubApi(routes: Record<string, Handler>) {
     'GET /api/geo/areas': () => ({ body: [] }),
     'GET /api/matches?page=1': () => ({ body: { page: 1, pageSize: 6, total: 0, matches: [] } }),
     'GET /api/matches/mine': () => ({ body: [] }),
+    'GET /api/matches/m1/board?': () => ({ body: [] }),
   }
   const calls: { key: string; body: unknown }[] = []
   vi.stubGlobal(
