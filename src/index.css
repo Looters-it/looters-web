@@ -12,7 +12,7 @@
   --radius-xl: 10px;
 
   /* A gentle rise and fall, for what floats under the pointer. */
-  --animate-bob: bob 0.9s ease-in-out infinite;
+  --animate-bob: bob 0.5s ease-in-out infinite;
   @keyframes bob {
     0%,
     100% {

@@ -1,4 +1,4 @@
-import { CircleUserRound, LogIn, LogOut, Menu } from 'lucide-react'
+import { CircleUserRound, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useMatch } from 'react-router'
@@ -94,7 +94,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 void logout()
               }}
             >
-              <LogOut aria-hidden />
               {t('auth.logout')}
             </Button>
           </>
@@ -115,7 +114,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                     onNavigate?.()
                   }}
                 >
-                  <LogIn aria-hidden />
                   {t('auth.login.submit')}
                 </Link>
               </Button>
