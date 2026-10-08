@@ -57,6 +57,8 @@ export interface Territory {
   resources: number | null
   /** Weight in the split of the income; null unless the territory is the viewer's. */
   weight: number | null
+  /** The open battle it is the target or a source of, if any. */
+  battleId: string | null
 }
 
 export interface MatchState {
@@ -74,6 +76,37 @@ export interface MatchState {
   territories: Territory[]
   /** Players of the match watching it now, out of those still in play. */
   online: { connected: number; total: number }
+  /** Open battles (public) and, for a player, their own battles just resolved. */
+  battles: Battle[]
+}
+
+export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER'
+
+export interface Battle {
+  id: string
+  turn: number
+  status: 'OPEN' | 'RESOLVED'
+  outcome: BattleOutcome | null
+  targetTerritoryId: string
+  targetName: string
+  attackerEmpireId: string
+  defenderEmpireId: string
+  role: 'attacker' | 'defender' | null
+  // Each side receives its own numbers only.
+  fromTerritoryIds?: string[]
+  attackCost?: number
+  attackForce?: number
+  response?: 'DEFEND' | 'SURRENDER' | null
+  /** Resources on the attacked territory when the attack was declared. */
+  defenseForce?: number
+  defenseCost?: number
+}
+
+export interface AttackPreview {
+  pct: number
+  totalCost: number
+  force: number
+  from: { territoryId: string; name: string; resources: number; cost: number }[]
 }
 
 /** The card of a municipality (api: GET /matches/:id/units/:geoUnitId). */
@@ -99,6 +132,11 @@ export interface UnitCardData {
     cost: number
     left: number
     payFrom: { territoryId: string; name: string; resources: number; usable: boolean }[]
+  } | null
+  /** Present for a player looking at a territory of another empire in a running match. */
+  attack: {
+    blocked: 'PROTECTED' | 'IN_BATTLE' | 'NOT_ADJACENT' | null
+    from: { territoryId: string; name: string; resources: number; usable: boolean }[]
   } | null
 }
 
@@ -164,6 +202,14 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/annex`, body),
   allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  previewAttack: (id: string, body: { targetGeoUnitId: number; fromTerritoryIds: string[] }) =>
+    apiPost<AttackPreview>(`/matches/${id}/attacks/preview`, body),
+  attack: (
+    id: string,
+    body: { targetGeoUnitId: number; fromTerritoryIds: string[]; turn: number },
+  ) => apiPost<MatchState>(`/matches/${id}/attacks`, body),
+  respond: (id: string, battleId: string, action: 'DEFEND' | 'SURRENDER') =>
+    apiPost<MatchState>(`/matches/${id}/battles/${battleId}/respond`, { action }),
   setAllocationRule: (
     id: string,
     body: { mode: 'EQUAL' | 'WEIGHTED'; weights?: Record<string, number> },

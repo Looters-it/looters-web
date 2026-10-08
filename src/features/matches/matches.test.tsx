@@ -75,9 +75,12 @@ const brunoCapital = {
   isArea: false,
   protected: true,
   resources: null,
+  weight: null,
+  battleId: null,
 }
 
 const online = { connected: 0, total: 1 }
+const battles: object[] = []
 
 const mapOf = {
   'GET /api/matches/m1/map': () => ({
@@ -193,6 +196,7 @@ describe('new match', () => {
           empires: [],
           territories: [],
           online,
+          battles,
         },
       }),
       ...mapOf,
@@ -245,7 +249,14 @@ describe('match page', () => {
       ...asAnna,
       ...options,
       ...mapOf,
-      ...open({ match: match(), me: null, empires: [bruno], territories: [brunoCapital], online }),
+      ...open({
+        match: match(),
+        me: null,
+        empires: [bruno],
+        territories: [brunoCapital],
+        online,
+        battles,
+      }),
     })
     renderApp('/partite/m1')
 
@@ -292,6 +303,7 @@ describe('match page', () => {
       empires: [bruno],
       territories: [brunoCapital],
       online,
+      battles,
     }
     const after = {
       match: match({ players: 2 }),
@@ -299,6 +311,7 @@ describe('match page', () => {
       empires: [bruno, mine],
       territories: [brunoCapital, myCapital],
       online,
+      battles,
     }
     let joined = false
     const calls = stubApi({
@@ -350,6 +363,7 @@ describe('match page', () => {
         empires: [],
         territories: [],
         online,
+        battles,
       }),
       'POST /api/matches/m1/join': () => ({
         status: 403,
@@ -374,7 +388,7 @@ describe('match page', () => {
       ...guest,
       ...options,
       ...mapOf,
-      ...open({ match: match(), me: null, empires: [], territories: [], online }),
+      ...open({ match: match(), me: null, empires: [], territories: [], online, battles }),
     })
     renderApp('/partite/m1')
     expect(await screen.findByText('Accedi per partecipare a questa partita.')).toBeInTheDocument()
@@ -392,7 +406,7 @@ describe('match page', () => {
         body: [{ id: 'a1', name: 'Provincia di Milano', parentId: null, unitCount: 133 }],
       }),
       'GET /api/matches/m1/state': () => ({
-        body: { match: current(), me: null, empires: [], territories: [], online },
+        body: { match: current(), me: null, empires: [], territories: [], online, battles },
       }),
       'PATCH /api/matches/m1': () => ({ body: current() }),
       'POST /api/matches/m1/open': () => {

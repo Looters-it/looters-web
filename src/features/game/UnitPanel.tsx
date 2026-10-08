@@ -110,6 +110,8 @@ export function UnitPanel(props: {
   onSelect: (unit: MapUnit) => void
   /** Reports the neighbours that could be annexed from here, to light them on the map. */
   onCard?: (card: UnitCardData) => void
+  /** Opens the preparation of an attack on this municipality. */
+  onPrepareAttack?: (card: UnitCardData) => void
 }) {
   const { t } = useTranslation()
   const { state, unit } = props
@@ -164,6 +166,35 @@ export function UnitPanel(props: {
             state={state}
             card={card.data}
           />
+
+          {card.data.attack && (
+            <section
+              className="flex flex-col gap-2 rounded-md border p-3"
+              aria-labelledby="attack-box"
+            >
+              <h3 id="attack-box" className="text-base">
+                {t('game.unit.attackTitle')}
+              </h3>
+              {/* The reason is always spelled out when the action is not possible. */}
+              {card.data.attack.blocked === 'PROTECTED' ? (
+                <p className="text-muted-foreground">{t('game.unit.attackProtected')}</p>
+              ) : card.data.attack.blocked === 'IN_BATTLE' ? (
+                <p className="text-muted-foreground">{t('game.unit.attackInBattle')}</p>
+              ) : card.data.attack.blocked === 'NOT_ADJACENT' ? (
+                <p className="text-muted-foreground">{t('game.unit.attackNotAdjacent')}</p>
+              ) : !card.data.attack.from.some((source) => source.usable) ? (
+                <p className="text-muted-foreground">{t('game.unit.attackNoForce')}</p>
+              ) : (
+                <Button
+                  variant="destructive"
+                  className="self-start"
+                  onClick={() => card.data && props.onPrepareAttack?.(card.data)}
+                >
+                  {t('game.unit.prepareAttack')}
+                </Button>
+              )}
+            </section>
+          )}
 
           <div className="flex flex-col gap-2">
             <h3 className="text-base">{t('game.unit.neighbours')}</h3>

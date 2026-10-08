@@ -391,7 +391,12 @@
       "NOT_ADJACENT": "Quel comune non confina con il comune che paga.",
       "TERRITORY_IN_BATTLE": "Un comune coinvolto in uno scontro è bloccato.",
       "NOT_ENOUGH_RESOURCES": "Il comune che paga non ha abbastanza risorse.",
-      "ALLOCATION_SUM": "Il totale delle risorse è cambiato. Ricontrolla la ripartizione."
+      "ALLOCATION_SUM": "Il totale delle risorse è cambiato. Ricontrolla la ripartizione.",
+      "TARGET_IS_FREE": "Un comune libero si annette, non si attacca.",
+      "TARGET_IS_YOURS": "Non puoi attaccare un tuo comune.",
+      "TARGET_PROTECTED": "Quel comune è protetto fino alla fine del turno.",
+      "NOT_THE_DEFENDER": "Solo l'impero attaccato può rispondere.",
+      "BATTLE_ANSWERED": "Hai già risposto a questo attacco."
     }
   },
   "game": {
@@ -410,7 +415,8 @@
       "resources": "Risorse per comune",
       "phoneMap": "Mappa",
       "phonePanel": "Pannello",
-      "tabs": "Viste della partita"
+      "tabs": "Viste della partita",
+      "battles": "Scontri"
     },
     "leaderboard": {
       "title": "Classifica",
@@ -430,7 +436,8 @@
       "rule": "Guadagno di ogni turno (ora {{count}})",
       "ruleEqual": "Diviso in parti uguali tra i comuni",
       "ruleWeighted": "In proporzione alle risorse di adesso",
-      "ruleHint": "La regola vale per tutti i turni finché non la cambi. Scegliendo la proporzione, i pesi restano quelli di questo momento."
+      "ruleHint": "La regola vale per tutti i turni finché non la cambi. Scegliendo la proporzione, i pesi restano quelli di questo momento.",
+      "locked": "bloccato: in uno scontro"
     },
     "unit": {
       "title": "Scheda del comune",
@@ -449,7 +456,70 @@
       "annexNoFunds": "Nessun tuo comune confinante ha {{count}} risorse. Spostane lì da \"Risorse per comune\".",
       "payFrom": "Paga da",
       "payOption": "{{name}} ({{count}} risorse)",
-      "annexed": "Annesso."
+      "annexed": "Annesso.",
+      "attackTitle": "Attacco",
+      "prepareAttack": "Prepara attacco",
+      "attackProtected": "Questo comune è stato appena acquisito: è protetto fino alla fine del turno.",
+      "attackInBattle": "Questo comune è già coinvolto in uno scontro.",
+      "attackNotAdjacent": "Non confina con nessun tuo comune: non puoi attaccarlo.",
+      "attackNoForce": "Nessun tuo comune confinante può attaccare: servono risorse e non deve essere in uno scontro."
+    },
+    "attack": {
+      "title": "Attacco a {{name}}",
+      "from": "Da quali comuni parte",
+      "fromHint": "Scegli uno o più tuoi comuni confinanti, dall'elenco o toccandoli sulla mappa. Più comuni danno più forza, ma ognuno paga una quota più alta.",
+      "option": "{{name}} ({{count}} risorse)",
+      "unusable": "non disponibile",
+      "force": "Forza in campo",
+      "pct": "Quota pagata da ogni comune",
+      "cost": "Costo totale",
+      "costOf": "{{name}}: {{count}}",
+      "hidden": "Le risorse del nemico sono nascoste: non puoi sapere quanto è difeso questo comune.",
+      "reserved": "Il costo viene pagato subito. Se il nemico si arrende, metà ti viene restituita.",
+      "confirm": "Dichiara l'attacco",
+      "back": "Annulla",
+      "pick": "Scegli almeno un comune da cui attaccare."
+    },
+    "battles": {
+      "title": "Scontri",
+      "none": "Nessuno scontro in corso.",
+      "open": "In corso",
+      "recent": "Appena conclusi",
+      "attacking": "Attacchi {{name}} ({{empire}})",
+      "defending": "{{empire}} attacca {{name}}",
+      "watching": "{{attacker}} attacca {{name}} ({{defender}})",
+      "waiting": "In attesa della risposta del difensore. Senza risposta, si combatte alla fine del turno.",
+      "yourCost": "Hai impegnato {{count}} risorse.",
+      "answered": "Hai risposto: in attesa dell'esito.",
+      "respond": "Rispondi",
+      "outcome": {
+        "attacker": {
+          "ATTACKER_WON": "Hai conquistato {{name}}.",
+          "DEFENDER_WON": "Il tuo attacco a {{name}} è stato respinto.",
+          "SURRENDER": "{{name}} si è arreso: è tuo, e metà del costo ti è stata restituita."
+        },
+        "defender": {
+          "ATTACKER_WON": "Hai perso {{name}}.",
+          "DEFENDER_WON": "Hai difeso {{name}}.",
+          "SURRENDER": "Hai ceduto {{name}}."
+        }
+      }
+    },
+    "alert": {
+      "button_one": "Sotto attacco",
+      "button_other": "Sotto attacco ({{count}})",
+      "title": "{{empire}} attacca {{name}}",
+      "intro": "Devi scegliere prima della fine del turno. Se non rispondi, il comune si difende da solo e paghi il costo della difesa.",
+      "resources": "Risorse nel comune",
+      "defenseCost": "Costo della difesa",
+      "capital": "È la tua capitale: se la perdi, il tuo impero cade.",
+      "defend": "Difenditi",
+      "surrender": "Arrenditi",
+      "defendHint": "Paghi {{count}} risorse e si combatte subito.",
+      "surrenderHint": "Cedi il comune con tutte le sue risorse, senza spendere nulla.",
+      "resolving": "Risposta inviata. In attesa dell'esito…",
+      "close": "Chiudi",
+      "next": "Prossimo attacco"
     }
   }
 }

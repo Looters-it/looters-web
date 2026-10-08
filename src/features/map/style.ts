@@ -8,6 +8,7 @@ export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
 export const EMPIRES_SOURCE = 'empires'
 export const FILL_LAYER = 'units-fill'
+export const ATTACKED_LAYER = 'units-attacked'
 
 const UNIT_FONT = 'Sorts Mill Goudy'
 const EMPIRE_FONT = 'Alfa Slab One'
@@ -111,6 +112,20 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: {
           'line-color': colors.selected,
           'line-width': ['case', featureFlag('selected'), 3, 0],
+        },
+      },
+      {
+        // A territory under attack: a red border, visible to everyone, that pulses
+        // (the width is animated by the component unless motion is reduced).
+        id: ATTACKED_LAYER,
+        type: 'line',
+        source: UNITS_SOURCE,
+        'source-layer': UNITS_LAYER,
+        layout: { 'line-join': 'round' },
+        paint: {
+          'line-color': colors.attacked,
+          'line-width': ['case', featureFlag('attacked'), 3.5, 0],
+          'line-dasharray': [2, 1.5],
         },
       },
       {

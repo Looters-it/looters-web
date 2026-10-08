@@ -37,10 +37,19 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
   const total = totalOf(saved)
   const [draft, setDraft] = useState(saved)
   const unallocated = total - totalOf(draft)
+  const locked = territories.filter((territory) => territory.battleId !== null)
+  const free = territories.filter((territory) => territory.battleId === null)
   const dirty = !sameAmounts(draft, saved)
 
   const apply = useMutation({
-    mutationFn: () => matchApi.allocate(matchId, { amounts: draft, turn: state.match.currentTurn }),
+    mutationFn: () =>
+      matchApi.allocate(matchId, {
+        // Only what can move is sent: the api refuses a territory in a battle.
+        amounts: Object.fromEntries(
+          free.map((territory) => [territory.id, draft[territory.id] ?? 0]),
+        ),
+        turn: state.match.currentTurn,
+      }),
     onSuccess: (next) => queryClient.setQueryData(['matches', 'state', matchId], next),
   })
   const change = (next: Amounts) => {
@@ -75,6 +84,9 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
               <div className="flex items-baseline justify-between gap-3">
                 <span className="truncate">
                   {territory.name}
+                  {territory.battleId && (
+                    <span className="text-danger"> · {t('game.resources.locked')}</span>
+                  )}
                   {territory.id === props.capitalId && (
                     <span className="text-muted-foreground"> · {t('match.unit.capital')}</span>
                   )}
@@ -88,6 +100,8 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
                 max={Math.max(total, 1)}
                 step={1}
                 value={[amount]}
+                // A municipality in a battle can neither give nor receive resources.
+                disabled={territory.battleId !== null}
                 onValueChange={([wanted]) =>
                   change(setAmount(draft, total, territory.id, wanted ?? 0))
                 }
@@ -112,13 +126,15 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
           variant="outline"
           size="sm"
           onClick={() =>
-            change(
-              splitEqually(
-                territories.map((territory) => territory.id),
-                total,
+            change({
+              // Municipalities in a battle keep what they have; the rest is divided.
+              ...draft,
+              ...splitEqually(
+                free.map((territory) => territory.id),
+                total - locked.reduce((sum, territory) => sum + (territory.resources ?? 0), 0),
                 props.capitalId,
               ),
-            )
+            })
           }
         >
           {t('game.resources.equal')}

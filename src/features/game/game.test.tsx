@@ -100,6 +100,7 @@ const territory = (
   protected: false,
   resources,
   weight: resources === null ? null : 1,
+  battleId: null,
   ...extra,
 })
 
@@ -129,6 +130,7 @@ function running(territories: object[], me: object = {}, turn = 3) {
     ],
     territories,
     online: { connected: 1, total: 2 },
+    battles: [] as object[],
   }
 }
 const mine = [
@@ -374,6 +376,7 @@ describe('municipality card and annexation', () => {
       { geoUnitId: 9, name: 'Lodi', territoryId: 'tb', ownerEmpireId: 'bruno' },
     ],
     annex,
+    attack: null,
   })
   const milano = {
     geoUnitId: 1,
@@ -391,6 +394,7 @@ describe('municipality card and annexation', () => {
       { geoUnitId: 9, name: 'Lodi', territoryId: 'tb', ownerEmpireId: 'bruno' },
     ],
     annex: null,
+    attack: null,
   }
   const payers = [
     { territoryId: 'ta1', name: 'Milano', resources: 200, usable: true },
@@ -506,5 +510,318 @@ describe('municipality card and annexation', () => {
       expect(screen.queryByRole('button', { name: 'Annetti' })).not.toBeInTheDocument()
       view.unmount()
     }
+  })
+})
+
+// ---------- Battles ----------
+
+describe('attack', () => {
+  const lodi = (attack: object | null) => ({
+    geoUnitId: 9,
+    name: 'Lodi',
+    territory: {
+      id: 'tb',
+      name: 'Lodi',
+      ownerEmpireId: 'bruno',
+      protected: false,
+      inBattle: false,
+      resources: null,
+    },
+    neighbours: [
+      { geoUnitId: 1, name: 'Milano', territoryId: 'ta1', ownerEmpireId: 'anna' },
+      { geoUnitId: 2, name: 'Monza', territoryId: 'ta2', ownerEmpireId: 'anna' },
+    ],
+    annex: null,
+    attack,
+  })
+  const sources = [
+    { territoryId: 'ta1', name: 'Milano', resources: 200, usable: true },
+    { territoryId: 'ta2', name: 'Monza', resources: 100, usable: true },
+  ]
+  /** The api's answer for a set of territories: 50%, plus 10% for each further one. */
+  const previewFor = (ids: string[]) => {
+    const pct = 50 + 10 * (ids.length - 1)
+    const from = sources
+      .filter((source) => ids.includes(source.territoryId))
+      .map((source) => ({ ...source, cost: Math.ceil((source.resources * pct) / 100) }))
+    return {
+      pct,
+      totalCost: from.reduce((sum, source) => sum + source.cost, 0),
+      force: from.reduce((sum, source) => sum + source.resources, 0),
+      from,
+    }
+  }
+
+  it('prepares an attack from one or more territories, chosen in the list or on the map', async () => {
+    let declared = false
+    const battle = {
+      id: 'b1',
+      turn: 3,
+      status: 'OPEN',
+      outcome: null,
+      targetTerritoryId: 'tb',
+      targetName: 'Lodi',
+      attackerEmpireId: 'anna',
+      defenderEmpireId: 'bruno',
+      role: 'attacker',
+      fromTerritoryIds: ['ta1', 'ta2'],
+      attackCost: 180,
+      attackForce: 300,
+    }
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({
+        body: declared ? { ...running(mine), battles: [battle] } : running(mine),
+      }),
+      'GET /api/matches/m1/units/9': () => ({ body: lodi({ blocked: null, from: sources }) }),
+      'POST /api/matches/m1/attacks/preview': (body) => ({
+        body: previewFor((body as { fromTerritoryIds: string[] }).fromTerritoryIds),
+      }),
+      'POST /api/matches/m1/attacks': () => {
+        declared = true
+        return { status: 201, body: { ...running(mine), battles: [battle] } }
+      },
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    act(() => map.click({ id: 9, name: 'Lodi' }))
+
+    // The card of an enemy municipality never shows what it holds.
+    expect(await screen.findAllByText('Risorse: nascoste')).not.toHaveLength(0)
+    await userEvent.click(await screen.findByRole('button', { name: 'Prepara attacco' }))
+    expect(screen.getByRole('heading', { name: 'Attacco a Lodi' })).toBeInTheDocument()
+
+    // The strongest territory is proposed: strength 200, half of it as cost.
+    expect(screen.getByRole('checkbox', { name: /Milano \(200 risorse\)/ })).toBeChecked()
+    const figure = (label: string) => screen.getByText(label).nextSibling
+    await waitFor(() => expect(figure('Forza in campo')).toHaveTextContent('200'))
+    expect(figure('Costo totale')).toHaveTextContent('100')
+    // The territories that can join are lit on the map.
+    await waitFor(() => expect(map.state.get(2)).toMatchObject({ highlight: true }))
+
+    // Tapping Monza on the map adds it: more strength, a higher share for each.
+    act(() => map.click({ id: 2, name: 'Monza' }))
+    await waitFor(() => expect(figure('Forza in campo')).toHaveTextContent('300'))
+    expect(figure('Quota pagata da ogni comune')).toHaveTextContent('60%')
+    expect(figure('Costo totale')).toHaveTextContent('180')
+    expect(screen.getByRole('checkbox', { name: /Monza/ })).toBeChecked()
+    // No chance of victory: the enemy's resources are hidden.
+    expect(screen.getByText(/Le risorse del nemico sono nascoste/)).toBeInTheDocument()
+    expect(screen.queryByText(/probabilit/i)).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: "Dichiara l'attacco" }))
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'POST /api/matches/m1/attacks')?.body).toEqual({
+        targetGeoUnitId: 9,
+        fromTerritoryIds: ['ta1', 'ta2'],
+        turn: 3,
+      }),
+    )
+    // The attacked municipality is marked on the map.
+    await waitFor(() => expect(map.state.get(9)).toMatchObject({ attacked: true }))
+  })
+
+  it('says why a territory cannot be attacked', async () => {
+    const cases: [object, string][] = [
+      [{ blocked: 'PROTECTED', from: sources }, 'è protetto fino alla fine del turno'],
+      [{ blocked: 'IN_BATTLE', from: sources }, 'è già coinvolto in uno scontro'],
+      [
+        { blocked: 'NOT_ADJACENT', from: [] },
+        'Non confina con nessun tuo comune: non puoi attaccarlo.',
+      ],
+      [
+        { blocked: null, from: [{ ...sources[0], resources: 0, usable: false }] },
+        'Nessun tuo comune confinante può attaccare',
+      ],
+    ]
+    for (const [attack, reason] of cases) {
+      resetFakeMaplibre()
+      stubApi({
+        ...asAnna,
+        ...mapRoutes,
+        'GET /api/matches/m1/state': () => ({ body: running(mine) }),
+        'GET /api/matches/m1/units/9': () => ({ body: lodi(attack) }),
+      })
+      const view = renderApp('/partite/m1')
+      const map = await loadedMap()
+      act(() => map.click({ id: 9, name: 'Lodi' }))
+
+      expect(await screen.findByText(reason, { exact: false })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Prepara attacco' })).not.toBeInTheDocument()
+      view.unmount()
+    }
+  })
+})
+
+describe('answering an attack', () => {
+  const incoming = (extra: object = {}) => ({
+    id: 'b7',
+    turn: 3,
+    status: 'OPEN',
+    outcome: null,
+    targetTerritoryId: 'ta2',
+    targetName: 'Monza',
+    attackerEmpireId: 'bruno',
+    defenderEmpireId: 'anna',
+    role: 'defender',
+    response: null,
+    defenseForce: 100,
+    defenseCost: 50,
+    ...extra,
+  })
+  const attackedState = (battle: object) => ({
+    ...running(mine.map((t) => (t.id === 'ta2' ? { ...t, battleId: 'b7' } : t))),
+    battles: [battle],
+  })
+
+  it('raises a red alert in the navbar and answers in a dialog, where the outcome is read', async () => {
+    let battle: object = incoming()
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: attackedState(battle) }),
+      'POST /api/matches/m1/battles/b7/respond': () => {
+        battle = incoming({ response: 'DEFEND' })
+        return { body: attackedState(battle) }
+      },
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+
+    const alert = await within(await screen.findByRole('banner')).findByRole('button', {
+      name: 'Sotto attacco',
+    })
+    await waitFor(() => expect(map.state.get(2)).toMatchObject({ attacked: true }))
+    await userEvent.click(alert)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('Repubblica Ambrosiana attacca Monza')
+    expect(within(dialog).getByText('Risorse nel comune').nextSibling).toHaveTextContent('100')
+    expect(within(dialog).getByText('Costo della difesa').nextSibling).toHaveTextContent('50')
+    // Nothing about the attacker's strength.
+    expect(dialog).not.toHaveTextContent(/forza/i)
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Difenditi' }))
+    await waitFor(() =>
+      expect(
+        calls.find((call) => call.key === 'POST /api/matches/m1/battles/b7/respond')?.body,
+      ).toEqual({
+        action: 'DEFEND',
+      }),
+    )
+    expect(await within(dialog).findByText(/In attesa dell'esito/)).toBeInTheDocument()
+    // Answered: the alert is gone, the dialog stays for the outcome.
+    // (While a dialog is open the rest of the page is hidden from assistive technology.)
+    expect(
+      screen.queryByRole('button', { name: 'Sotto attacco', hidden: true }),
+    ).not.toBeInTheDocument()
+
+    // jobs resolves the battle and the server says so.
+    battle = incoming({ response: 'DEFEND', status: 'RESOLVED', outcome: 'DEFENDER_WON' })
+    act(() => {
+      FakeWebSocket.latest.open()
+      FakeWebSocket.latest.receive({ t: 'match.update', matchId: 'm1', kinds: ['battle.resolved'] })
+    })
+    expect(await within(dialog).findByText('Hai difeso Monza.')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Chiudi' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('surrenders, and warns when the capital is at stake', async () => {
+    let battle: object = incoming({
+      targetTerritoryId: 'ta1',
+      targetName: 'Milano',
+      defenseForce: 200,
+      defenseCost: 100,
+    })
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: attackedState(battle) }),
+      'POST /api/matches/m1/battles/b7/respond': () => {
+        battle = { ...battle, response: 'SURRENDER', status: 'RESOLVED', outcome: 'SURRENDER' }
+        return { body: attackedState(battle) }
+      },
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Sotto attacco' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('È la tua capitale: se la perdi, il tuo impero cade.')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Arrenditi' }))
+
+    expect(await within(dialog).findByText('Hai ceduto Milano.')).toBeInTheDocument()
+    expect(
+      calls.find((call) => call.key === 'POST /api/matches/m1/battles/b7/respond')?.body,
+    ).toEqual({
+      action: 'SURRENDER',
+    })
+  })
+
+  it('locks the resources of a municipality in a battle', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: attackedState(incoming()) }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Risorse per comune' }))
+
+    expect(screen.getByText(/bloccato: in uno scontro/)).toBeInTheDocument()
+    expect(screen.getByRole('slider', { name: 'Risorse a Monza' })).toHaveAttribute('data-disabled')
+    expect(screen.getByRole('slider', { name: 'Risorse a Milano' })).not.toHaveAttribute(
+      'data-disabled',
+    )
+  })
+
+  it('lists the battles in progress and the latest outcomes', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({
+        body: {
+          ...running(mine),
+          battles: [
+            incoming(),
+            {
+              id: 'b8',
+              turn: 3,
+              status: 'OPEN',
+              outcome: null,
+              targetTerritoryId: 'tb',
+              targetName: 'Lodi',
+              attackerEmpireId: 'anna',
+              defenderEmpireId: 'bruno',
+              role: 'attacker',
+              fromTerritoryIds: ['ta1'],
+              attackCost: 100,
+              attackForce: 200,
+            },
+            {
+              ...incoming(),
+              id: 'b6',
+              status: 'RESOLVED',
+              outcome: 'ATTACKER_WON',
+              role: 'attacker',
+              targetName: 'Crema',
+            },
+          ],
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Scontri' }))
+
+    expect(screen.getByText('Repubblica Ambrosiana attacca Monza')).toBeInTheDocument()
+    expect(screen.getByText('Attacchi Lodi (Repubblica Ambrosiana)')).toBeInTheDocument()
+    expect(screen.getByText(/Hai impegnato 100 risorse/)).toBeInTheDocument()
+    expect(screen.getByText('Hai conquistato Crema.')).toBeInTheDocument()
+
+    // "Rispondi" opens the same dialog as the alert.
+    await userEvent.click(screen.getByRole('button', { name: 'Rispondi' }))
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      'Repubblica Ambrosiana attacca Monza',
+    )
   })
 })

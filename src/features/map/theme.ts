@@ -16,6 +16,7 @@ export interface MapColors {
   halo: string
   selected: string
   highlight: string
+  attacked: string
 }
 
 export function mapColors(): MapColors {
@@ -27,6 +28,7 @@ export function mapColors(): MapColors {
     halo: themeColor('parchment'),
     selected: themeColor('hunter-green-800'),
     highlight: themeColor('hunter-green-500'),
+    attacked: themeColor('crushed-berry-600'),
   }
 }
 

@@ -5,6 +5,9 @@ import { useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { Button } from '@/components/ui/button'
+import { AttackPanel } from '@/features/game/AttackPanel'
+import { BattleAlert } from '@/features/game/BattleAlert'
+import { BattlesPage } from '@/features/game/BattlesPage'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
@@ -24,7 +27,7 @@ import { MyEmpire } from './MyEmpire'
 import { OwnerPanel } from './OwnerPanel'
 
 /** What the panel shows. Inside an entry the menu gives way to a single "Menu" button. */
-type View = 'menu' | 'match' | 'leaderboard' | 'resources' | 'unit'
+type View = 'menu' | 'match' | 'leaderboard' | 'resources' | 'battles' | 'unit' | 'attack'
 
 function MatchInfo({ state }: { state: MatchState }) {
   const { t } = useTranslation()
@@ -82,6 +85,9 @@ export function MatchPage() {
   const [card, setCard] = useState<UnitCardData | null>(null)
   const [focus, setFocus] = useState<{ lon: number; lat: number } | null>(null)
   const [phoneTab, setPhoneTab] = useState<'map' | 'panel'>('map')
+  // The attack being prepared: its target and the own territories chosen so far.
+  const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
+  const [alertOpen, setAlertOpen] = useState(false)
 
   const hasMap = state !== undefined && state.match.status !== 'DRAFT'
   const area = useQuery({
@@ -133,11 +139,30 @@ export function MatchPage() {
         .filter((territory) => territory.ownerEmpireId === hoveredEmpire)
         .flatMap((territory) => territory.geoUnitIds)
     }
+    // While an attack is prepared: the own territories that can join it.
+    if (attack) {
+      const usable = new Set(
+        attack.card.attack?.from.filter((source) => source.usable).map((s) => s.territoryId),
+      )
+      return (state?.territories ?? [])
+        .filter((territory) => usable.has(territory.id))
+        .flatMap((territory) => territory.geoUnitIds)
+    }
     if (card && selected?.id === card.geoUnitId && card.territory.ownerEmpireId === mineId) {
       return card.neighbours.filter((n) => n.ownerEmpireId === null).map((n) => n.geoUnitId)
     }
     return []
-  }, [card, hoveredEmpire, mineId, selected?.id, state?.territories])
+  }, [attack, card, hoveredEmpire, mineId, selected?.id, state?.territories])
+
+  // Territories that are the target of an open battle are marked for everyone.
+  const attacked = useMemo(() => {
+    const targets = new Set(
+      state?.battles.filter((b) => b.status === 'OPEN').map((b) => b.targetTerritoryId),
+    )
+    return (state?.territories ?? [])
+      .filter((territory) => targets.has(territory.id))
+      .flatMap((territory) => territory.geoUnitIds)
+  }, [state?.battles, state?.territories])
 
   const selectFromList = useCallback(
     (unit: MapUnit) => {
@@ -170,8 +195,24 @@ export function MatchPage() {
   const open = (next: View) => {
     setView(next)
     setHoveredEmpire(null)
+    if (next !== 'attack') setAttack(null)
   }
   const onMapSelect = (unit: MapUnit | null) => {
+    // While an attack is prepared, tapping an own territory that can join it adds or
+    // removes it; any other tap is ignored, so the target is not lost by mistake.
+    if (attack) {
+      const territory = unit ? ownership.byUnit.get(unit.id) : undefined
+      const source = attack.card.attack?.from.find((s) => s.territoryId === territory?.id)
+      if (source?.usable) {
+        setAttack({
+          ...attack,
+          from: attack.from.includes(source.territoryId)
+            ? attack.from.filter((id) => id !== source.territoryId)
+            : [...attack.from, source.territoryId],
+        })
+      }
+      return
+    }
     setSelected(unit)
     // A player who taps a municipality gets its card; someone registering keeps the form.
     if (unit && !joining) setView('unit')
@@ -183,6 +224,9 @@ export function MatchPage() {
       <MenuButton onClick={() => open('match')}>{t('game.menu.match')}</MenuButton>
       {hasMap && (
         <MenuButton onClick={() => open('leaderboard')}>{t('game.menu.leaderboard')}</MenuButton>
+      )}
+      {match.status === 'RUNNING' && (
+        <MenuButton onClick={() => open('battles')}>{t('game.menu.battles')}</MenuButton>
       )}
       {mine && (
         <>
@@ -214,7 +258,11 @@ export function MatchPage() {
 
   return (
     <div className="flex flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
-      <MatchBar state={state} connected={connected} />
+      <MatchBar
+        state={state}
+        connected={connected}
+        alert={<BattleAlert state={state} open={alertOpen} onOpenChange={setAlertOpen} />}
+      />
 
       {hasMap && area.data ? (
         <LazyGameMap
@@ -223,6 +271,7 @@ export function MatchPage() {
           empireLabels={labels}
           selected={selected}
           highlightedIds={highlighted}
+          attackedIds={attacked}
           focus={focus}
           onSelect={onMapSelect}
           renderInfo={(unit) => {
@@ -302,7 +351,25 @@ export function MatchPage() {
                 unit={selected}
                 onSelect={selectFromList}
                 onCard={setCard}
+                onPrepareAttack={(target) => {
+                  // The strongest usable territory is proposed; the player adds or removes.
+                  const first = target.attack?.from.find((source) => source.usable)
+                  setAttack({ card: target, from: first ? [first.territoryId] : [] })
+                  setView('attack')
+                }}
               />
+            )}
+            {view === 'attack' && attack && (
+              <AttackPanel
+                state={state}
+                card={attack.card}
+                chosen={attack.from}
+                onChoose={(from) => setAttack({ ...attack, from })}
+                onDone={() => open('unit')}
+              />
+            )}
+            {view === 'battles' && (
+              <BattlesPage state={state} onRespond={() => setAlertOpen(true)} />
             )}
           </>
         )}

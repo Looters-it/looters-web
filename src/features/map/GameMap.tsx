@@ -18,7 +18,14 @@ import { cn } from '@/lib/utils'
 
 import type { AreaMap } from './api'
 import { diffFlags, diffState } from './feature-state'
-import { buildStyle, EMPIRES_SOURCE, FILL_LAYER, UNITS_LAYER, UNITS_SOURCE } from './style'
+import {
+  ATTACKED_LAYER,
+  buildStyle,
+  EMPIRES_SOURCE,
+  FILL_LAYER,
+  UNITS_LAYER,
+  UNITS_SOURCE,
+} from './style'
 import { mapColors } from './theme'
 
 export interface MapUnit {
@@ -51,6 +58,8 @@ interface Props {
   empireLabels?: readonly EmpireLabel[]
   selected?: MapUnit | null
   highlightedIds?: readonly number[]
+  /** Municipalities under attack, marked for everyone with a pulsing red border. */
+  attackedIds?: readonly number[]
   onSelect?: (unit: MapUnit | null) => void
   /** Content of the box shown for the selected municipality. */
   renderInfo?: (unit: MapUnit) => ReactNode
@@ -75,6 +84,7 @@ export function GameMap({
   empireLabels = NO_LABELS,
   selected = null,
   highlightedIds = NO_IDS,
+  attackedIds = NO_IDS,
   onSelect,
   renderInfo,
   focus = null,
@@ -88,6 +98,7 @@ export function GameMap({
   const applied = useRef({
     colors: NO_COLORS,
     highlighted: new Set<number>(),
+    attacked: new Set<number>(),
     selectedId: null as number | null,
   })
   const onSelectRef = useRef(onSelect)
@@ -131,7 +142,12 @@ export function GameMap({
     map.keyboard.disableRotation()
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     mapRef.current = map
-    applied.current = { colors: NO_COLORS, highlighted: new Set(), selectedId: null }
+    applied.current = {
+      colors: NO_COLORS,
+      highlighted: new Set(),
+      attacked: new Set(),
+      selectedId: null,
+    }
 
     let hovered: number | null = null
     const setHover = (id: number | null) => {
@@ -190,6 +206,31 @@ export function GameMap({
     for (const id of diff.off) map.setFeatureState({ ...target, id }, { highlight: false })
     applied.current.highlighted = next
   }, [highlightedIds, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const target = { source: UNITS_SOURCE, sourceLayer: UNITS_LAYER }
+    const next = new Set(attackedIds)
+    const diff = diffFlags(applied.current.attacked, next)
+    for (const id of diff.on) map.setFeatureState({ ...target, id }, { attacked: true })
+    for (const id of diff.off) map.setFeatureState({ ...target, id }, { attacked: false })
+    applied.current.attacked = next
+
+    // The border pulses while something is under attack, unless motion is reduced.
+    if (next.size === 0 || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    let wide = false
+    const timer = setInterval(() => {
+      wide = !wide
+      map.setPaintProperty(ATTACKED_LAYER, 'line-width', [
+        'case',
+        ['boolean', ['feature-state', 'attacked'], false],
+        wide ? 5.5 : 3.5,
+        0,
+      ])
+    }, 700)
+    return () => clearInterval(timer)
+  }, [attackedIds, ready])
 
   const selectedId = selected?.id ?? null
   useEffect(() => {

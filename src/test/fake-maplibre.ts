@@ -71,6 +71,9 @@ export class FakeMap {
   remove() {
     this.removed = true
   }
+  setPaintProperty() {
+    return this
+  }
   getZoom() {
     return 6
   }
