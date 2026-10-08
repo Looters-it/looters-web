@@ -144,6 +144,8 @@ function running(territories: object[], me: object = {}, turn = 3) {
     online: { connected: 1, total: 2 },
     battles: [] as object[],
     structures: [] as object[],
+    alliances: [] as object[],
+    invites: [] as object[],
   }
 }
 const mine = [
@@ -1515,5 +1517,225 @@ describe('board', () => {
       expect(within(board()).queryByText('Di qua dal fiume non si passa.')).not.toBeInTheDocument(),
     )
     expect(calls.some((call) => call.key === 'DELETE /api/matches/m1/board/e4')).toBe(true)
+  })
+})
+
+describe('alliances', () => {
+  const carla = empire('carla', 'Contea di Pavia', 'carla', '#0000aa', 'tc', 1)
+  const board = { 'GET /api/matches/m1/board': () => ({ body: [] }) }
+  const withAlly = (extra: object = {}) => {
+    const base = running([
+      ...mine,
+      territory('tb2', 'Crema', 'bruno', 3, 40),
+      territory('tc', 'Pavia', 'carla', 8, null),
+    ])
+    return {
+      ...base,
+      empires: [...base.empires, carla],
+      alliances: [
+        {
+          id: 'al1',
+          members: [
+            { empireId: 'anna', leavesAtTurn: null },
+            { empireId: 'bruno', leavesAtTurn: null },
+          ],
+        },
+      ],
+      ...extra,
+    }
+  }
+
+  it('proposes an alliance and answers the proposals received', async () => {
+    const base = running(mine)
+    const state = {
+      ...base,
+      empires: [...base.empires, carla],
+      invites: [{ id: 'i1', fromEmpireId: 'carla', toEmpireId: 'anna' }],
+    }
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({ body: state }),
+      'POST /api/matches/m1/alliances/invites': () => ({
+        body: { ...state, invites: [{ id: 'i2', fromEmpireId: 'anna', toEmpireId: 'bruno' }] },
+      }),
+      'POST /api/matches/m1/alliances/invites/i1/accept': () => ({
+        body: {
+          ...state,
+          invites: [],
+          alliances: [
+            {
+              id: 'al1',
+              members: [
+                { empireId: 'carla', leavesAtTurn: null },
+                { empireId: 'anna', leavesAtTurn: null },
+              ],
+            },
+          ],
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+
+    expect(screen.getByText('Non fai parte di nessuna alleanza.')).toBeInTheDocument()
+    expect(screen.getByText("Contea di Pavia ti propone un'alleanza.")).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'A quale impero' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Repubblica Ambrosiana' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Invia la proposta' }))
+    expect(
+      await screen.findByText('In attesa della risposta di Repubblica Ambrosiana.'),
+    ).toBeInTheDocument()
+    expect(
+      calls.find((call) => call.key === 'POST /api/matches/m1/alliances/invites')?.body,
+    ).toEqual({ toEmpireId: 'bruno' })
+  })
+
+  it('accepts a proposal and lists the members', async () => {
+    const base = running(mine)
+    const state = {
+      ...base,
+      empires: [...base.empires, carla],
+      invites: [{ id: 'i1', fromEmpireId: 'carla', toEmpireId: 'anna' }],
+    }
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/alliances/chat': () => ({ body: [] }),
+      'GET /api/matches/m1/state': () => ({ body: state }),
+      'POST /api/matches/m1/alliances/invites/i1/accept': () => ({
+        body: {
+          ...state,
+          invites: [],
+          alliances: [
+            {
+              id: 'al1',
+              members: [
+                { empireId: 'carla', leavesAtTurn: null },
+                { empireId: 'anna', leavesAtTurn: null },
+              ],
+            },
+          ],
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Accetta' }))
+
+    const members = await screen.findByRole('heading', { name: 'Membri' })
+    const list = members.nextElementSibling as HTMLElement
+    expect(within(list).getByText('Contea di Pavia')).toBeInTheDocument()
+    expect(within(list).getByText(/Ducato del Ticino/)).toHaveTextContent('(tu)')
+    // A third member may still be invited: the limit is three.
+    expect(screen.getByRole('heading', { name: "Invita nell'alleanza" })).toBeInTheDocument()
+  })
+
+  it('sends resources to a territory of an ally and writes in the private chat', async () => {
+    let messages = [{ id: 'c1', empireId: 'bruno', text: 'Tieni Monza', createdAt: '2026-01-01' }]
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({ body: withAlly() }),
+      'GET /api/matches/m1/alliances/chat': () => ({ body: messages }),
+      'POST /api/matches/m1/alliances/chat': (body) => {
+        messages = [
+          { id: 'c2', empireId: 'anna', text: (body as { text: string }).text, createdAt: 'x' },
+          ...messages,
+        ]
+        return { body: messages }
+      },
+      'POST /api/matches/m1/alliances/transfer': () => ({ body: withAlly() }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Dal tuo comune' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Milano (200 risorse)' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Al comune alleato' }))
+    // Only the allies' territories are offered, with the resources an ally may see.
+    expect(screen.queryByRole('option', { name: /Pavia/ })).not.toBeInTheDocument()
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Crema di Repubblica Ambrosiana (40 risorse)' }),
+    )
+    await userEvent.type(screen.getByLabelText('Quante risorse'), '50')
+    await userEvent.click(screen.getByRole('button', { name: 'Invia le risorse' }))
+    await waitFor(() =>
+      expect(
+        calls.find((call) => call.key === 'POST /api/matches/m1/alliances/transfer')?.body,
+      ).toEqual({ fromTerritoryId: 'ta1', toTerritoryId: 'tb2', amount: 50, turn: 3 }),
+    )
+
+    expect(await screen.findByText('Tieni Monza')).toBeInTheDocument()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Scrivi agli alleati' }), 'Arrivo')
+    await userEvent.click(screen.getByRole('button', { name: 'Invia' }))
+    expect(await screen.findByText('Arrivo')).toBeInTheDocument()
+  })
+
+  it('leaves with a notice, after a confirmation', async () => {
+    const leaving = withAlly({
+      alliances: [
+        {
+          id: 'al1',
+          members: [
+            { empireId: 'anna', leavesAtTurn: 4 },
+            { empireId: 'bruno', leavesAtTurn: null },
+          ],
+        },
+      ],
+    })
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({ body: withAlly() }),
+      'GET /api/matches/m1/alliances/chat': () => ({ body: [] }),
+      'POST /api/matches/m1/alliances/leave': () => ({ body: leaving }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+    await userEvent.click(await screen.findByRole('button', { name: "Esci dall'alleanza" }))
+    expect(calls.some((call) => call.key === 'POST /api/matches/m1/alliances/leave')).toBe(false)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('fino ad allora resti alleato')
+    await userEvent.click(within(dialog).getByRole('button', { name: "Esci dall'alleanza" }))
+
+    expect(
+      await screen.findByText("Hai annunciato l'uscita: avrà effetto alla fine del turno 4."),
+    ).toBeInTheDocument()
+    expect(screen.getByText('esce alla fine del turno 4')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: "Esci dall'alleanza" })).not.toBeInTheDocument()
+  })
+
+  it('colours the map by alliance or by resources', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({ body: withAlly() }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    const colorOf = (id: number) => map.state.get(id)?.color
+
+    await waitFor(() => expect(colorOf(1)).toBe('#00aa00'))
+    expect(colorOf(9)).toBe('#aa0000')
+
+    const views = screen.getByRole('group', { name: 'Vista della mappa' })
+    await userEvent.click(within(views).getByRole('button', { name: 'Alleanze' }))
+    // Allies share a colour; an empire outside any alliance is neutral.
+    await waitFor(() => expect(colorOf(9)).toBe(colorOf(1)))
+    expect(colorOf(8)).not.toBe(colorOf(1))
+
+    await userEvent.click(within(views).getByRole('button', { name: 'Risorse' }))
+    // Deeper where there is more; what the viewer may not see stays neutral.
+    await waitFor(() => expect(colorOf(1)).toBe('#2c4224'))
+    expect(colorOf(3)).not.toBe(colorOf(1))
+    expect(colorOf(8)).toBe('#d9ccbf')
   })
 })

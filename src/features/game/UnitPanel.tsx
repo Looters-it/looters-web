@@ -239,6 +239,14 @@ export function UnitPanel(props: {
     : undefined
   const mine = state.me?.empireId
   const isMine = mine !== undefined && card.data?.territory.ownerEmpireId === mine
+  const isAlly =
+    !isMine &&
+    owner !== undefined &&
+    state.alliances.some(
+      (alliance) =>
+        alliance.members.some((member) => member.empireId === mine) &&
+        alliance.members.some((member) => member.empireId === owner.id),
+    )
   const territoryState = state.territories.find((t) => t.id === card.data?.territory.id)
   const structuresHere = state.structures.filter(
     (structure) => structure.territoryId === card.data?.territory.id,
@@ -267,6 +275,7 @@ export function UnitPanel(props: {
                   : t('match.unit.resources', { count: card.data.territory.resources })}
               </p>
             )}
+            {isAlly && <p>{t('game.unit.ally')}</p>}
             <p className="text-muted-foreground">
               {t('game.unit.state')}:{' '}
               {card.data.territory.inBattle ? t('game.unit.war') : t('game.unit.peace')}

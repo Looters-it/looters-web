@@ -90,10 +90,27 @@ export interface MatchState {
   territories: Territory[]
   /** Players of the match watching it now, out of those still in play. */
   online: { connected: number; total: number }
+  /** Alliances are public: everyone sees who is allied with whom. */
+  alliances: Alliance[]
+  /** Proposals waiting for an answer, made by the viewer or to them. */
+  invites: { id: string; fromEmpireId: string; toEmpireId: string }[]
   /** Active structures: public, like what they do. */
   structures: Structure[]
   /** Open battles (public) and, for a player, their own battles just resolved. */
   battles: Battle[]
+}
+
+export interface Alliance {
+  id: string
+  /** `leavesAtTurn`: the turn at whose end an announced exit takes effect. */
+  members: { empireId: string; leavesAtTurn: number | null }[]
+}
+
+export interface ChatMessage {
+  id: string
+  empireId: string
+  text: string
+  createdAt: string
 }
 
 export interface Structure {
@@ -273,6 +290,18 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/annex`, body),
   allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  invite: (id: string, toEmpireId: string) =>
+    apiPost<MatchState>(`/matches/${id}/alliances/invites`, { toEmpireId }),
+  answerInvite: (id: string, inviteId: string, action: 'accept' | 'decline' | 'withdraw') =>
+    apiPost<MatchState>(`/matches/${id}/alliances/invites/${inviteId}/${action}`),
+  leaveAlliance: (id: string) => apiPost<MatchState>(`/matches/${id}/alliances/leave`),
+  transfer: (
+    id: string,
+    body: { fromTerritoryId: string; toTerritoryId: string; amount: number; turn: number },
+  ) => apiPost<MatchState>(`/matches/${id}/alliances/transfer`, body),
+  chat: (id: string) => apiGet<ChatMessage[]>(`/matches/${id}/alliances/chat`),
+  say: (id: string, text: string) =>
+    apiPost<ChatMessage[]>(`/matches/${id}/alliances/chat`, { text }),
   board: (id: string, filters: { kind?: BoardKind; empireId?: string }) => {
     const query = new URLSearchParams()
     if (filters.kind) query.set('kind', filters.kind)

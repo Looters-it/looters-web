@@ -199,6 +199,8 @@ describe('new match', () => {
           online,
           battles,
           structures: [],
+          alliances: [],
+          invites: [],
         },
       }),
       ...mapOf,
@@ -259,6 +261,8 @@ describe('match page', () => {
         online,
         battles,
         structures: [],
+        alliances: [],
+        invites: [],
       }),
     })
     renderApp('/partite/m1')
@@ -308,6 +312,8 @@ describe('match page', () => {
       online,
       battles,
       structures: [],
+      alliances: [],
+      invites: [],
     }
     const after = {
       match: match({ players: 2 }),
@@ -317,6 +323,8 @@ describe('match page', () => {
       online,
       battles,
       structures: [],
+      alliances: [],
+      invites: [],
     }
     let joined = false
     const calls = stubApi({
@@ -370,6 +378,8 @@ describe('match page', () => {
         online,
         battles,
         structures: [],
+        alliances: [],
+        invites: [],
       }),
       'POST /api/matches/m1/join': () => ({
         status: 403,
@@ -402,6 +412,8 @@ describe('match page', () => {
         online,
         battles,
         structures: [],
+        alliances: [],
+        invites: [],
       }),
     })
     renderApp('/partite/m1')
@@ -428,6 +440,8 @@ describe('match page', () => {
           online,
           battles,
           structures: [],
+          alliances: [],
+          invites: [],
         },
       }),
       'PATCH /api/matches/m1': () => ({ body: current() }),

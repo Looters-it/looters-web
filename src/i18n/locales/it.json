@@ -416,7 +416,17 @@
       "MERGE_NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
       "MERGE_NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse.",
       "MESSAGE_TOO_LONG": "Il messaggio è troppo lungo.",
-      "RATE_LIMITED": "Devi aspettare qualche secondo prima di scrivere ancora."
+      "RATE_LIMITED": "Devi aspettare qualche secondo prima di scrivere ancora.",
+      "TARGET_IS_ALLY": "Non puoi attaccare un alleato.",
+      "TARGET_IN_ALLIANCE": "Quell'impero fa già parte di un'alleanza.",
+      "LEAVING_ALLIANCE": "Hai già annunciato l'uscita dall'alleanza.",
+      "ALLIANCE_FULL": "L'alleanza è al completo.",
+      "ALREADY_INVITED": "Gli hai già inviato una proposta.",
+      "ALREADY_IN_ALLIANCE": "Fai già parte di un'alleanza.",
+      "PROPOSAL_EXPIRED": "La proposta non è più valida.",
+      "ALLIANCE_AT_WAR": "Sei in guerra con un membro di quell'alleanza.",
+      "NOT_IN_ALLIANCE": "Non fai parte di un'alleanza.",
+      "NOT_AN_ALLY": "Quell'impero non è tuo alleato."
     }
   },
   "game": {
@@ -439,7 +449,8 @@
       "battles": "Scontri",
       "merge": "Unisci territori",
       "build": "Costruzioni",
-      "phoneBoard": "Bacheca"
+      "phoneBoard": "Bacheca",
+      "alliance": "Alleanza"
     },
     "leaderboard": {
       "title": "Classifica",
@@ -498,7 +509,8 @@
       "area": "Area di {{count}} comuni",
       "renameArea": "Nome dell'area",
       "rename": "Rinomina",
-      "partOf": "Fa parte dell'area {{name}}."
+      "partOf": "Fa parte dell'area {{name}}.",
+      "ally": "Impero alleato: non potete attaccarvi."
     },
     "attack": {
       "title": "Attacco a {{name}}",
@@ -572,7 +584,11 @@
     "map": {
       "legendCapital": "Capitale",
       "legendAlert": "Allerta di accumulo",
-      "legendAttack": "Sotto attacco"
+      "legendAttack": "Sotto attacco",
+      "view": "Vista della mappa",
+      "political": "Politica",
+      "alliances": "Alleanze",
+      "resources": "Risorse"
     },
     "structures": {
       "title": "Costruzioni",
@@ -679,6 +695,43 @@
         "MATCH_FINISHED": "La partita è finita. Ha vinto {{winnerName}}.",
         "UNKNOWN": "È successo qualcosa."
       }
+    },
+    "alliance": {
+      "title": "Alleanza",
+      "none": "Non fai parte di nessuna alleanza.",
+      "intro": "Gli alleati non possono attaccarsi, vedono le risorse l'uno dell'altro e possono scambiarsele. Un'alleanza ha al massimo {{max}} membri e non vince: il vincitore è sempre un solo impero.",
+      "members": "Membri",
+      "you": "tu",
+      "leaving": "esce alla fine del turno {{turn}}",
+      "propose": "Proponi un'alleanza",
+      "invite": "Invita nell'alleanza",
+      "to": "A quale impero",
+      "choose": "Scegli un impero",
+      "send": "Invia la proposta",
+      "noCandidates": "Nessun impero disponibile: sono tutti già in un'alleanza.",
+      "incoming": "Proposte ricevute",
+      "outgoing": "Proposte inviate",
+      "from": "{{name}} ti propone un'alleanza.",
+      "sentTo": "In attesa della risposta di {{name}}.",
+      "accept": "Accetta",
+      "decline": "Rifiuta",
+      "withdraw": "Ritira",
+      "leave": "Esci dall'alleanza",
+      "leaveTitle": "Uscire dall'alleanza?",
+      "leaveText": "L'uscita ha effetto alla fine del prossimo turno: fino ad allora resti alleato e non potete attaccarvi.",
+      "leavingYou": "Hai annunciato l'uscita: avrà effetto alla fine del turno {{turn}}.",
+      "transfer": "Invia risorse a un alleato",
+      "transferFrom": "Dal tuo comune",
+      "transferTo": "Al comune alleato",
+      "amount": "Quante risorse",
+      "transferSend": "Invia le risorse",
+      "transferHint": "Non si può inviare da o verso un comune in uno scontro: l'aiuto è solo preventivo.",
+      "territoryOption": "{{name}} ({{count}} risorse)",
+      "allyOption": "{{name}} di {{empire}} ({{count}} risorse)",
+      "chat": "Chat dell'alleanza",
+      "chatEmpty": "Ancora nessun messaggio.",
+      "chatWrite": "Scrivi agli alleati",
+      "chatSend": "Invia"
     }
   }
 }

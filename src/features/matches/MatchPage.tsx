@@ -9,7 +9,9 @@ import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { BattlesPage } from '@/features/game/BattlesPage'
 import { Board } from '@/features/game/Board'
+import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
+import { colorsFor, type MapView } from '@/features/game/map-views'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
 import { MergePage } from '@/features/game/MergePage'
@@ -31,10 +33,26 @@ import { OwnerPanel } from './OwnerPanel'
 
 /** What the panel shows. Inside an entry the menu gives way to a single "Menu" button. */
 type View =
-  'menu' | 'match' | 'leaderboard' | 'resources' | 'merge' | 'build' | 'battles' | 'unit' | 'attack'
+  | 'menu'
+  | 'match'
+  | 'leaderboard'
+  | 'resources'
+  | 'merge'
+  | 'build'
+  | 'alliance'
+  | 'battles'
+  | 'unit'
+  | 'attack'
 
 /** The pages of the empire, which share a bar with their links. */
-const EMPIRE_PAGES = ['resources', 'merge', 'build'] as const
+const EMPIRE_PAGES = ['resources', 'merge', 'build', 'alliance'] as const
+
+const MAP_VIEWS: MapView[] = ['political', 'alliances', 'resources']
+/** Map paint needs literal colours: the neutral tone and the scale of the resources view. */
+const MAP_TONES = {
+  neutral: '#d9ccbf',
+  scale: ['#e2edde', '#c5dbbd', '#a9c99c', '#8cb87a', '#6fa659', '#598547', '#436336', '#2c4224'],
+}
 
 function MatchInfo({ state }: { state: MatchState }) {
   const { t } = useTranslation()
@@ -105,6 +123,7 @@ export function MatchPage() {
   const [selected, setSelected] = useState<MapUnit | null>(null)
   const [chosenView, setView] = useState<View | null>(null)
   const [hoveredEmpire, setHoveredEmpire] = useState<string | null>(null)
+  const [mapView, setMapView] = useState<MapView>('political')
   const [card, setCard] = useState<UnitCardData | null>(null)
   const [focus, setFocus] = useState<{ lon: number; lat: number } | null>(null)
   const [phoneTab, setPhoneTab] = useState<'map' | 'panel' | 'board'>('map')
@@ -152,16 +171,12 @@ export function MatchPage() {
   const ownership = useMemo(() => {
     const empires = new Map(state?.empires.map((empire) => [empire.id, empire]))
     const byUnit = new Map<number, MatchState['territories'][number]>()
-    const colors = new Map<number, string>()
     for (const territory of state?.territories ?? []) {
-      const empire = empires.get(territory.ownerEmpireId)
-      for (const unitId of territory.geoUnitIds) {
-        byUnit.set(unitId, territory)
-        if (empire) colors.set(unitId, empire.color)
-      }
+      for (const unitId of territory.geoUnitIds) byUnit.set(unitId, territory)
     }
+    const colors = state ? colorsFor(state, mapView, MAP_TONES) : new Map<number, string>()
     return { empires, byUnit, colors }
-  }, [state])
+  }, [state, mapView])
 
   // Each empire is named at its capital.
   const labels = useMemo<EmpireLabel[]>(() => {
@@ -447,6 +462,26 @@ export function MatchPage() {
             }}
             className="h-full"
           />
+          <div
+            role="group"
+            aria-label={t('game.map.view')}
+            className="bg-background absolute top-3 left-3 z-10 flex overflow-hidden rounded-md border"
+          >
+            {MAP_VIEWS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={mapView === option}
+                onClick={() => setMapView(option)}
+                className={cn(
+                  'cursor-pointer px-3 py-1.5 text-base font-bold transition-colors',
+                  mapView === option ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                )}
+              >
+                {t(`game.map.${option}`)}
+              </button>
+            ))}
+          </div>
           {/* The board sits over the map, bottom left; on a phone it has its own tab. */}
           <Board
             state={state}
@@ -505,6 +540,7 @@ export function MatchPage() {
             {view === 'build' && (
               <BuildPage state={state} picking={building} onPicking={setBuilding} />
             )}
+            {view === 'alliance' && <AlliancePage state={state} />}
             {view === 'unit' && selected && (
               <UnitPanel
                 key={selected.id}
