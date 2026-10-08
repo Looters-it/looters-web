@@ -108,11 +108,17 @@
     "passwordHint": "At least {{min}} characters.",
     "login": {
       "tab": "Sign in",
-      "submit": "Sign in"
+      "submit": "Sign in",
+      "title": "Sign in",
+      "intro": "Enter with your username and password.",
+      "other": "No account yet?"
     },
     "register": {
       "tab": "Register",
-      "submit": "Create account"
+      "submit": "Create account",
+      "title": "Register",
+      "intro": "A username, an email and a password are enough.",
+      "other": "Already have an account?"
     },
     "signedInAs": "You are signed in as",
     "logout": "Sign out",
@@ -124,9 +130,12 @@
       "VALIDATION": "Check the details you entered.",
       "UNKNOWN": "Something went wrong. Try again."
     },
-    "page": {
-      "title": "Enter Looters",
-      "intro": "Sign in with your account or create one: a username and a password are enough."
+    "invalid": {
+      "required": "This field is required.",
+      "username": "3 to 20 characters: letters, digits and underscore only.",
+      "email": "Enter a valid email address.",
+      "password": "At least {{min}} characters are needed.",
+      "tooLong": "Too long."
     }
   },
   "admin": {

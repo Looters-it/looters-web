@@ -139,14 +139,14 @@ describe('accessibility', () => {
 
   it('sign-in page', async () => {
     stubApi({ ...guest })
-    renderApp('/accesso')
+    renderApp('/auth/login')
     await screen.findByRole('heading', { name: 'Entra in Looters' })
     await expectAccessible()
   })
 
   it('new match form', async () => {
     stubApi({ ...asAnna })
-    renderApp('/partite/nuova')
+    renderApp('/match/new')
     await screen.findByRole('heading', { name: 'Nuova partita' })
     await expectAccessible()
   })

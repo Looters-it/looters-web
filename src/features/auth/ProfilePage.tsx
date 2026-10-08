@@ -15,7 +15,7 @@ export function ProfilePage() {
 
   // A guest has no profile: they are sent to sign in, and brought back.
   useEffect(() => {
-    if (user === null) void navigate('/accesso?poi=%2Fprofilo', { replace: true })
+    if (user === null) void navigate('/auth/login?next=%2Fprofilo', { replace: true })
   }, [user, navigate])
   if (!user) return null
 

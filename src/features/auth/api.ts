@@ -13,6 +13,8 @@ export interface Credentials {
 
 export interface Registration extends Credentials {
   email: string
+  /** The honeypot of the form: empty for a person. */
+  contactTime?: string
 }
 
 /** The signed-in user, or null for a guest. */

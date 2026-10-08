@@ -131,7 +131,7 @@ describe('match list', () => {
         body: [match({ id: 'm3', name: 'La mia', status: 'RUNNING', currentTurn: 4 })],
       }),
     })
-    renderApp('/partite')
+    renderApp('/matches')
 
     // The player's own matches come first, in a row of their own.
     const own = await screen.findByRole('region', { name: 'Le tue partite' })
@@ -164,7 +164,7 @@ describe('match list', () => {
       'GET /api/matches?page=2': () => page([match({ id: 'm9', name: 'Seconda pagina' })], 13),
       'GET /api/matches?page=1&name=brian': () => page([]),
     })
-    renderApp('/partite')
+    renderApp('/matches')
 
     expect(await screen.findByText('Pagina 1 di 3')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Successiva' }))
@@ -192,7 +192,7 @@ describe('new match', () => {
 
   it('asks guests to sign in', async () => {
     stubApi({ ...guest, ...options, ...tree })
-    renderApp('/partite/nuova')
+    renderApp('/match/new')
     expect(await screen.findByText('Accedi per creare una partita.')).toBeInTheDocument()
   })
 
@@ -218,7 +218,7 @@ describe('new match', () => {
       }),
       ...mapOf,
     })
-    renderApp('/partite/nuova')
+    renderApp('/match/new')
 
     await userEvent.type(await screen.findByLabelText('Nome'), 'Lombardia in guerra')
     await userEvent.click(screen.getByRole('combobox', { name: 'Area di gioco' }))

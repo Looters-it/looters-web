@@ -12,7 +12,7 @@ import { MatchList } from '@/features/home/MatchList'
 import { ErrorPage } from './ErrorPage'
 import { Layout } from './Layout'
 import { NotFoundPage } from './NotFoundPage'
-import { OldMatchAddress } from './OldMatchAddress'
+import { Redirect } from './Redirect'
 
 export const routes: RouteObject[] = [
   {
@@ -24,15 +24,19 @@ export const routes: RouteObject[] = [
         errorElement: <ErrorPage />,
         children: [
           { path: '/', element: <HomePage /> },
-          { path: '/accesso', element: <AuthPage /> },
+          { path: '/auth/login', element: <AuthPage mode="login" /> },
+          { path: '/auth/register', element: <AuthPage mode="register" /> },
           { path: '/profilo', element: <ProfilePage /> },
           { path: '/admin', element: <AdminPage /> },
-          { path: '/partite', element: <MatchList /> },
+          { path: '/matches', element: <MatchList /> },
           { path: '/come-funziona', element: <HowItWorks /> },
-          { path: '/partite/nuova', element: <NewMatchPage /> },
+          { path: '/match/new', element: <NewMatchPage /> },
           { path: '/match/:id', element: <MatchPage /> },
-          // The address matches had before: links already shared keep working.
-          { path: '/partite/:id', element: <OldMatchAddress /> },
+          // The addresses the site had before: links already shared keep working.
+          { path: '/partite', element: <Redirect to="/matches" /> },
+          { path: '/partite/nuova', element: <Redirect to="/match/new" /> },
+          { path: '/partite/:id', element: <Redirect to="/match/:id" /> },
+          { path: '/accesso', element: <Redirect to="/auth/login" /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

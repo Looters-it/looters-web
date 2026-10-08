@@ -46,13 +46,13 @@ export function HomePage() {
           <p className="max-w-prose text-lg sm:text-xl">{t('home.intro')}</p>
           {user ? (
             <Button asChild size="lg" variant="secondary">
-              <Link to="/partite/nuova">{t('home.create')}</Link>
+              <Link to="/match/new">{t('home.create')}</Link>
             </Button>
           ) : (
             // Unknown while the session is being read: no button that would change under the finger.
             user === null && (
               <Button asChild size="lg" variant="secondary">
-                <Link to="/accesso">{t('home.createGuest')}</Link>
+                <Link to="/auth/login">{t('home.createGuest')}</Link>
               </Button>
             )
           )}

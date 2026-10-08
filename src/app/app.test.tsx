@@ -45,7 +45,7 @@ describe('homepage', () => {
       },
     })
     // An address from outside is never followed: only a path of this site.
-    renderApp('/accesso?poi=https://altrove.example')
+    renderApp('/auth/login?next=https://altrove.example')
     await userEvent.type(await screen.findByLabelText('Nome utente'), 'anna')
     await userEvent.type(screen.getByLabelText('Password'), 'password-123')
     await userEvent.click(screen.getByRole('button', { name: 'Accedi' }))
@@ -61,7 +61,7 @@ describe('homepage', () => {
 
   it('opens the sign-in page on registration when asked to', async () => {
     stubApi({ ...guest })
-    renderApp('/accesso?modo=registrati')
+    renderApp('/auth/register')
     expect(await screen.findByRole('tab', { name: 'Registrati' })).toHaveAttribute(
       'aria-selected',
       'true',

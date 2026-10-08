@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,9 +9,31 @@ import { ApiError } from '@/lib/api'
 
 import { useSession } from './session-context'
 
-// Mirrors the api's rules so most mistakes are caught before the request.
-const USERNAME_PATTERN = '[A-Za-z0-9_]{3,20}'
 const PASSWORD_MIN = 8
+
+/** What makes a field wrong, as the key of the sentence that says so. */
+type Problem = 'required' | 'username' | 'email' | 'password' | 'tooLong'
+
+// The same rules the api applies, checked here first with the same library: a mistake
+// is said next to its field, without a round trip. The api still decides.
+const loginSchema = z.object({
+  username: z.string().trim().min(1, 'required').max(100, 'tooLong'),
+  password: z.string().min(1, 'required').max(200, 'tooLong'),
+})
+const registerSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, 'required')
+    .regex(/^[A-Za-z0-9_]{3,20}$/, 'username'),
+  email: z.string().trim().min(1, 'required').max(254, 'tooLong').pipe(z.email('email')),
+  password: z.string().min(1, 'required').min(PASSWORD_MIN, 'password').max(200, 'tooLong'),
+  /**
+   * The honeypot: a field no person sees or fills. A programme that fills
+   * every field it finds gives itself away, here and again on the server.
+   */
+  contactTime: z.string().max(200).default(''),
+})
 
 const KNOWN_ERRORS = [
   'INVALID_CREDENTIALS',
@@ -31,56 +54,86 @@ function Field(props: {
   name: string
   type?: string
   autoComplete: string
-  pattern?: string
-  minLength?: number
   maxLength?: number
+  problem?: Problem
 }) {
+  const { t } = useTranslation()
   const id = useId()
-  const { label, hint, ...input } = props
+  const { label, hint, problem, ...input } = props
+  const described = [hint && `${id}-hint`, problem && `${id}-problem`].filter(Boolean).join(' ')
   return (
     <div className="flex flex-col gap-1">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} required aria-describedby={hint ? `${id}-hint` : undefined} {...input} />
-      {hint && (
-        <p id={`${id}-hint`} className="text-muted-foreground text-sm">
-          {hint}
+      <Input
+        id={id}
+        aria-invalid={problem ? true : undefined}
+        aria-describedby={described || undefined}
+        {...input}
+      />
+      {problem ? (
+        <p id={`${id}-problem`} className="text-danger text-base">
+          {t(`auth.invalid.${problem}`, { min: PASSWORD_MIN })}
         </p>
+      ) : (
+        hint && (
+          <p id={`${id}-hint`} className="text-muted-foreground text-sm">
+            {hint}
+          </p>
+        )
       )}
     </div>
   )
 }
 
-function AuthForm(props: {
+function AuthForm<Values>(props: {
+  schema: z.ZodType<Values>
   submitLabel: string
-  onSubmit: (values: Record<string, string>) => Promise<void>
+  onSubmit: (values: Values) => Promise<void>
   onSuccess?: () => void
-  children: ReactNode
+  children: (problems: Record<string, Problem | undefined>) => ReactNode
 }) {
   const { t } = useTranslation()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<KnownError | 'UNKNOWN' | null>(null)
+  const [problems, setProblems] = useState<Record<string, Problem | undefined>>({})
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const values = Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>
-    setPending(true)
+    const parsed = props.schema.safeParse(Object.fromEntries(new FormData(event.currentTarget)))
     setError(null)
+    if (!parsed.success) {
+      // The first thing wrong with each field.
+      const found: Record<string, Problem> = {}
+      for (const issue of parsed.error.issues) {
+        const field = String(issue.path[0])
+        found[field] ??= issue.message as Problem
+      }
+      setProblems(found)
+      // The first field that is wrong takes the focus, so that it can be put right at once.
+      const first = Object.keys(found)[0]
+      const input = first ? event.currentTarget.elements.namedItem(first) : null
+      if (input instanceof HTMLElement) input.focus()
+      return
+    }
+    setProblems({})
+    setPending(true)
     props
-      .onSubmit(values)
+      .onSubmit(parsed.data)
       .then(() => props.onSuccess?.())
       .catch((reason: unknown) => setError(errorKey(reason)))
       .finally(() => setPending(false))
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3">
-      {props.children}
+    // Checked by the schema above, not by the browser: one voice for every mistake.
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      {props.children(problems)}
       {error && (
         <p role="alert" className="text-danger">
           {t(`auth.errors.${error}`)}
         </p>
       )}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="lg" className="self-start" disabled={pending}>
         {props.submitLabel}
       </Button>
     </form>
@@ -92,17 +145,29 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
   const { login } = useSession()
   return (
     <AuthForm
+      schema={loginSchema}
       submitLabel={t('auth.login.submit')}
       onSuccess={onSuccess}
-      onSubmit={({ username, password }) => login({ username, password })}
+      onSubmit={(values) => login(values)}
     >
-      <Field label={t('auth.username')} name="username" autoComplete="username" maxLength={20} />
-      <Field
-        label={t('auth.password')}
-        name="password"
-        type="password"
-        autoComplete="current-password"
-      />
+      {(problems) => (
+        <>
+          <Field
+            label={t('auth.username')}
+            name="username"
+            autoComplete="username"
+            maxLength={100}
+            problem={problems.username}
+          />
+          <Field
+            label={t('auth.password')}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            problem={problems.password}
+          />
+        </>
+      )}
     </AuthForm>
   )
 }
@@ -112,27 +177,46 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
   const { register } = useSession()
   return (
     <AuthForm
+      schema={registerSchema}
       submitLabel={t('auth.register.submit')}
       onSuccess={onSuccess}
-      onSubmit={({ username, email, password }) => register({ username, email, password })}
+      onSubmit={(values) => register(values)}
     >
-      <Field
-        label={t('auth.username')}
-        hint={t('auth.usernameHint')}
-        name="username"
-        autoComplete="username"
-        pattern={USERNAME_PATTERN}
-        maxLength={20}
-      />
-      <Field label={t('auth.email')} name="email" type="email" autoComplete="email" />
-      <Field
-        label={t('auth.password')}
-        hint={t('auth.passwordHint', { min: PASSWORD_MIN })}
-        name="password"
-        type="password"
-        autoComplete="new-password"
-        minLength={PASSWORD_MIN}
-      />
+      {(problems) => (
+        <>
+          <Field
+            label={t('auth.username')}
+            hint={t('auth.usernameHint')}
+            name="username"
+            autoComplete="username"
+            maxLength={20}
+            problem={problems.username}
+          />
+          <Field
+            label={t('auth.email')}
+            name="email"
+            type="email"
+            autoComplete="email"
+            problem={problems.email}
+          />
+          <Field
+            label={t('auth.password')}
+            hint={t('auth.passwordHint', { min: PASSWORD_MIN })}
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            problem={problems.password}
+          />
+          {/* The honeypot. Out of sight, out of the tab order and out of the reach of
+              screen readers and of autofill: only a programme finds it. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
+            <label>
+              Leave this field empty
+              <input type="text" name="contactTime" tabIndex={-1} autoComplete="off" />
+            </label>
+          </div>
+        </>
+      )}
     </AuthForm>
   )
 }

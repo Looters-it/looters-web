@@ -108,11 +108,17 @@
     "passwordHint": "Almeno {{min}} caratteri.",
     "login": {
       "tab": "Accedi",
-      "submit": "Accedi"
+      "submit": "Accedi",
+      "title": "Accedi",
+      "intro": "Entra con il tuo nome utente e la tua password.",
+      "other": "Non hai un account?"
     },
     "register": {
       "tab": "Registrati",
-      "submit": "Crea l'account"
+      "submit": "Crea l'account",
+      "title": "Registrati",
+      "intro": "Bastano un nome utente, un'email e una password.",
+      "other": "Hai già un account?"
     },
     "signedInAs": "Hai effettuato l'accesso come",
     "logout": "Esci",
@@ -124,9 +130,12 @@
       "VALIDATION": "Controlla i dati inseriti.",
       "UNKNOWN": "Qualcosa non ha funzionato. Riprova."
     },
-    "page": {
-      "title": "Entra in Looters",
-      "intro": "Accedi con il tuo account oppure creane uno: basta un nome utente e una password."
+    "invalid": {
+      "required": "Questo campo è obbligatorio.",
+      "username": "Da 3 a 20 caratteri: solo lettere, cifre e trattino basso.",
+      "email": "Scrivi un indirizzo email valido.",
+      "password": "Servono almeno {{min}} caratteri.",
+      "tooLong": "Troppo lungo."
     }
   },
   "admin": {

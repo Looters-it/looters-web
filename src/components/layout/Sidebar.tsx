@@ -39,9 +39,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const inMatch = useMatch('/match/:id') !== null
   // After signing in, back to the page the guest was on (a match, for instance).
   const signIn =
-    pathname === '/' || pathname === '/accesso'
-      ? '/accesso'
-      : `/accesso?poi=${encodeURIComponent(pathname)}`
+    pathname === '/' || pathname === '/auth/login'
+      ? '/auth/login'
+      : `/auth/login?next=${encodeURIComponent(pathname)}`
 
   return (
     <>
@@ -53,7 +53,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
         {user ? (
           <>
-            <Item to="/partite" onClick={onNavigate}>
+            <Item to="/matches" onClick={onNavigate}>
               {t('nav.myMatches')}
             </Item>
             <Item to="/profilo" onClick={onNavigate}>
@@ -70,7 +70,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Item to="/come-funziona" onClick={onNavigate}>
               {t('nav.how')}
             </Item>
-            <Item to="/partite" onClick={onNavigate}>
+            <Item to="/matches" onClick={onNavigate}>
               {t('nav.matches')}
             </Item>
           </>

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { LanguageSelect } from '@/i18n/LanguageSelect'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { LoginForm, RegisterForm } from './AuthForms'
 import { useSession } from './session-context'
@@ -13,17 +12,18 @@ const safeNext = (value: string | null) =>
   value && value.startsWith('/') && !value.startsWith('//') ? value : '/'
 
 /**
- * Sign-in and registration on a page of their own (`/accesso`), where the
- * homepage sends who wants to play. Once in, the player goes on to where
- * they were headed.
+ * Signing in (`/auth/login`) and registering (`/auth/register`): two pages,
+ * each with its form standing on the page itself and a way to the other.
+ * Once in, the player goes on to where they were headed (`?next=`).
  */
-export function AuthPage() {
+export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const { t } = useTranslation()
   const { user } = useSession()
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
-  const next = safeNext(params.get('poi'))
-  const tab = params.get('modo') === 'registrati' ? 'register' : 'login'
+  const [params] = useSearchParams()
+  const next = safeNext(params.get('next'))
+  // The other page keeps where the player was headed.
+  const query = params.get('next') ? `?next=${encodeURIComponent(next)}` : ''
 
   // Already in, or just in: nothing to do here.
   useEffect(() => {
@@ -32,42 +32,27 @@ export function AuthPage() {
 
   return (
     <section
-      className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 py-10 sm:py-16"
+      className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-10 sm:py-16"
       aria-labelledby="auth-title"
     >
       <div className="flex flex-col gap-2">
         <h1 id="auth-title" className="text-3xl leading-tight sm:text-4xl">
-          {t('auth.page.title')}
+          {t(`auth.${mode}.title`)}
         </h1>
-        <p className="text-muted-foreground text-lg">{t('auth.page.intro')}</p>
+        <p className="text-muted-foreground text-lg">{t(`auth.${mode}.intro`)}</p>
       </div>
-      <div className="bg-card text-card-foreground rounded-lg border p-4 sm:p-6">
-        <Tabs
-          value={tab}
-          onValueChange={(value) => {
-            const query = new URLSearchParams(params)
-            if (value === 'register') query.set('modo', 'registrati')
-            else query.delete('modo')
-            setParams(query, { replace: true })
-          }}
+      {mode === 'login' ? <LoginForm /> : <RegisterForm />}
+      <p>
+        {t(`auth.${mode}.other`)}{' '}
+        <Link
+          to={mode === 'login' ? `/auth/register${query}` : `/auth/login${query}`}
+          className="font-bold underline underline-offset-4"
         >
-          <TabsList className="w-full">
-            <TabsTrigger value="login">{t('auth.login.tab')}</TabsTrigger>
-            <TabsTrigger value="register">{t('auth.register.tab')}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="login">
-            <LoginForm />
-          </TabsContent>
-          <TabsContent value="register">
-            <RegisterForm />
-          </TabsContent>
-        </Tabs>
-      </div>
-      {/* A guest has no account panel: the language is chosen here. */}
+          {t(`auth.${mode === 'login' ? 'register' : 'login'}.tab`)}
+        </Link>
+      </p>
+      {/* A guest has no profile: the language is chosen here. */}
       <LanguageSelect />
-      <Link to="/" className="hover:text-primary self-start underline underline-offset-2">
-        {t('notFound.back')}
-      </Link>
     </section>
   )
 }
