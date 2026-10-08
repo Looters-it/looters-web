@@ -12,15 +12,15 @@ import { Crest } from './Crest'
 import { OnlineCounter } from './OnlineCounter'
 
 /**
- * An entry of the menu: plain words in the heading font, which turn into a
- * floating button under the pointer.
+ * An entry of the menu: a button in the primary colour and the heading font,
+ * which bobs up and down under the pointer and changes nothing else.
  */
 function Item(props: { to: string; children: string; onClick?: () => void }) {
   return (
     <Link
       to={props.to}
       onClick={props.onClick}
-      className="font-display rounded-pill hover:bg-secondary focus-visible:bg-secondary px-4 pt-2.5 pb-1.5 text-lg tracking-[0.02em] transition-[scale,background-color,color,box-shadow] duration-300 ease-in-out outline-none hover:scale-[1.04] hover:text-white hover:shadow-lg focus-visible:scale-[1.04] focus-visible:text-white focus-visible:shadow-lg"
+      className="font-display rounded-pill bg-deep-space-blue hover:animate-bob focus-visible:animate-bob px-4 pt-2.5 pb-1.5 text-lg tracking-[0.02em] text-white shadow-md outline-none"
     >
       {props.children}
     </Link>
