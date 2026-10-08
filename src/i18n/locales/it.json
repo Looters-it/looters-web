@@ -349,7 +349,10 @@
         "scacchi": "scacchi",
         "monte": "monte",
         "luna": "luna"
-      }
+      },
+      "withdraw": "Ritirati dalla partita",
+      "withdrawTitle": "Ritirarti dalla partita?",
+      "withdrawText": "Il tuo impero viene cancellato e il comune di partenza torna libero. Finché la partita non inizia puoi iscriverti di nuovo, anche scegliendo un altro comune."
     },
     "players": {
       "title": "Imperi",
@@ -384,7 +387,7 @@
       "TERRITORY_TAKEN": "Un altro impero è arrivato prima in quel comune. Scegline un altro.",
       "EMPIRE_NAME_TAKEN": "Un altro impero ha già questo nome.",
       "EMPIRE_COLOR_TAKEN": "Un altro impero ha già questo colore.",
-      "MATCH_STARTED": "La partita è iniziata: l'impero non si può più modificare.",
+      "MATCH_STARTED": "La partita è già iniziata: non ci si può più ritirare.",
       "MATCH_NOT_RUNNING": "La partita non è in corso.",
       "TURN_CHANGED": "Il turno è cambiato nel frattempo. Riguarda la mappa e riprova.",
       "NOT_A_PLAYER": "Non hai un impero in questa partita.",
@@ -714,7 +717,8 @@
         "MATCH_FINISHED_TIE": "La partita è finita in parità. Hanno vinto {{winnerName}}.",
         "ALLIANCE_ENDING": "{{empireName}} ha annunciato la fine dell'alleanza con {{otherName}}.",
         "ALLIANCE_KEPT": "{{empireName}} ha confermato l'alleanza con {{otherName}}.",
-        "ALLIANCE_ENDED": "L'alleanza tra {{empireName}} e {{otherName}} è finita."
+        "ALLIANCE_ENDED": "L'alleanza tra {{empireName}} e {{otherName}} è finita.",
+        "EMPIRE_WITHDRAWN": "{{empireName}} si è ritirato: {{territoryName}} è di nuovo libero."
       }
     },
     "alliance": {

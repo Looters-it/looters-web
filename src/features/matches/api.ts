@@ -303,6 +303,8 @@ export const matchApi = {
   units: (id: string) => apiGet<UnitPoint[]>(`/matches/${id}/units`),
   join: (id: string, body: { geoUnitId: number; empire: EmpireIdentity; inviteCode?: string }) =>
     apiPost<MatchState>(`/matches/${id}/join`, body),
+  /** Leaves a match that has not started: the starting municipality is free again. */
+  withdraw: (id: string) => apiDelete<MatchState>(`/matches/${id}/empire`),
   updateEmpire: (id: string, empire: EmpireIdentity) =>
     apiPatch<MatchState>(`/matches/${id}/empire`, empire),
   unit: (id: string, geoUnitId: number) =>

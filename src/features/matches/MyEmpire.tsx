@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/features/admin/shared'
 
 import { matchApi, type Empire, type EmpireIdentity, type MatchState } from './api'
 import { EmpireShield } from './Emblem'
@@ -15,6 +16,7 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<EmpireIdentity | null>(null)
+  const [leaving, setLeaving] = useState(false)
   const { match } = state
 
   const options = useQuery({ queryKey: ['matches', 'options'], queryFn: matchApi.options })
@@ -29,6 +31,13 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
     onSuccess: (next) => {
       queryClient.setQueryData(['matches', 'state', match.id], next)
       setEditing(null)
+    },
+  })
+  const withdraw = useMutation({
+    mutationFn: () => matchApi.withdraw(match.id),
+    onSuccess: (next) => {
+      queryClient.setQueryData(['matches', 'state', match.id], next)
+      setLeaving(false)
     },
   })
   const submit = (event: FormEvent) => {
@@ -85,27 +94,49 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
             </p>
           )}
           {match.status === 'OPEN' ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="self-start"
-              onClick={() => {
-                save.reset()
-                setEditing({
-                  name: empire.name,
-                  color: empire.color,
-                  emblem: empire.emblem,
-                  motto: empire.motto,
-                })
-              }}
-            >
-              {t('match.empire.edit')}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onClick={() => {
+                  save.reset()
+                  setEditing({
+                    name: empire.name,
+                    color: empire.color,
+                    emblem: empire.emblem,
+                    motto: empire.motto,
+                  })
+                }}
+              >
+                {t('match.empire.edit')}
+              </Button>
+              <Button
+                variant="quiet"
+                size="sm"
+                onClick={() => {
+                  withdraw.reset()
+                  setLeaving(true)
+                }}
+              >
+                {t('match.empire.withdraw')}
+              </Button>
+            </div>
           ) : (
             <p className="text-muted-foreground text-base">{t('match.empire.editLocked')}</p>
           )}
         </>
       )}
+      <ConfirmDialog
+        open={leaving}
+        title={t('match.empire.withdrawTitle')}
+        description={t('match.empire.withdrawText')}
+        confirmLabel={t('match.empire.withdraw')}
+        pending={withdraw.isPending}
+        error={withdraw.error ? errorText(withdraw.error) : null}
+        onConfirm={() => withdraw.mutate()}
+        onClose={() => setLeaving(false)}
+      />
     </section>
   )
 }

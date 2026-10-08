@@ -337,6 +337,10 @@ describe('match page', () => {
         joined = true
         return { status: 201, body: after }
       },
+      'DELETE /api/matches/m1/empire': () => {
+        joined = false
+        return { body: before }
+      },
     })
     renderApp('/partite/m1')
     const map = await loadedMap()
@@ -364,6 +368,19 @@ describe('match page', () => {
     expect(screen.getByText(/Risorse in capitale: 263/)).toBeInTheDocument()
     await waitFor(() => expect(map.state.get(2)).toMatchObject({ color: '#00aa00' }))
     expect(FakeMap.instances).toHaveLength(1)
+
+    // Until the match starts the player can walk away, after confirming.
+    await userEvent.click(screen.getByRole('button', { name: 'Ritirati dalla partita' }))
+    expect(calls.some((call) => call.key === 'DELETE /api/matches/m1/empire')).toBe(false)
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('il comune di partenza torna libero')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Ritirati dalla partita' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: 'Il tuo impero' })).not.toBeInTheDocument(),
+    )
+    expect(calls.some((call) => call.key === 'DELETE /api/matches/m1/empire')).toBe(true)
+    // The municipality is free again on the map.
+    await waitFor(() => expect(map.state.get(2)?.color).toBeUndefined())
   })
 
   it('explains a refused registration and asks for the invite code when needed', async () => {
