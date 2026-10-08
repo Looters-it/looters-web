@@ -21,10 +21,10 @@ export function HowItWorks() {
               key={step}
               className="bg-card text-card-foreground flex flex-col gap-2 rounded-lg border p-4"
             >
-              <span aria-hidden="true" className="font-display text-3xl">
+              <span aria-hidden="true" className="text-3xl font-bold">
                 {index + 1}
               </span>
-              <b className="font-display text-lg font-normal">{t(`home.how.${step}.title`)}</b>
+              <b className="text-lg">{t(`home.how.${step}.title`)}</b>
               <p>{t(`home.how.${step}.text`)}</p>
             </li>
           ))}

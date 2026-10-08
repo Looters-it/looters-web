@@ -86,7 +86,7 @@
   --color-input: var(--color-key);
   --color-ring: var(--color-focus);
 
-  --font-display: "Chango", "Alfa Slab One", "Rockwell", Georgia, serif;
+  --font-display: "Luckiest Guy", "Chango", "Alfa Slab One", Impact, sans-serif;
   /* body and interface text; the token keeps the name Tailwind and shadcn/ui read */
   --font-sans: "Cantarell", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Overpass Mono", ui-monospace, Menlo, monospace;

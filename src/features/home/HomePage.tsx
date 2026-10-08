@@ -42,7 +42,7 @@ export function HomePage() {
           className="from-surface pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t to-transparent lg:inset-y-0 lg:right-0 lg:left-auto lg:h-auto lg:w-[58%] lg:bg-gradient-to-l lg:from-45%"
         />
         <section className="relative z-20 flex flex-col items-start gap-5 px-4 py-8 sm:px-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[42%] lg:max-w-2xl lg:justify-center lg:py-10 lg:pr-12 lg:pl-0">
-          <h1 className="text-3xl leading-[1.1] text-balance sm:text-4xl xl:text-5xl">
+          <h1 className="text-4xl leading-[1.05] text-balance sm:text-5xl xl:text-6xl">
             {t('home.title')}
           </h1>
           <p className="max-w-prose text-lg sm:text-xl">{t('home.intro')}</p>

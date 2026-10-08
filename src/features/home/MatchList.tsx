@@ -40,7 +40,8 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
     <li className="bg-card text-card-foreground flex w-[17.5rem] flex-none snap-start flex-col gap-3 rounded-lg border p-4 sm:w-80">
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <b className="font-display truncate text-lg font-normal">{match.name}</b>
+          {/* In a card the title is the text font, bold: the display font is for headings. */}
+          <b className="truncate text-lg">{match.name}</b>
           {mine && (
             <span className="rounded-pill bg-secondary text-secondary-foreground flex-none px-2 text-sm">
               {t('home.matches.yours')}
