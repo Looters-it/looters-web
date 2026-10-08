@@ -28,21 +28,36 @@ const SIZES: {
   { value: 'l', key: 'sizeL' },
 ]
 
-function MatchRow({ match, mine }: { match: MatchSummary; mine: boolean }) {
+/** One match as a card of the row: what it is, how full, and the way in. */
+function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   const { t } = useTranslation()
   const format = useMatchFormat()
   const full = match.players >= match.maxPlayers
+  // How full the match is, as a bar: seen before it is read.
+  const filled = Math.min(100, Math.round((match.players / match.maxPlayers) * 100))
 
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-t py-3">
+    <li className="bg-background flex w-[17.5rem] flex-none snap-start flex-col gap-3 rounded-lg border p-4 sm:w-80">
       <div className="min-w-0">
-        <b className="block truncate">{match.name}</b>
-        <p className="text-muted-foreground text-base">
+        <div className="flex items-start justify-between gap-2">
+          <b className="font-display truncate text-lg font-normal">{match.name}</b>
+          {mine && (
+            <span className="rounded-pill bg-primary text-primary-foreground flex-none px-2 text-sm">
+              {t('home.matches.yours')}
+            </span>
+          )}
+        </div>
+        <p className="text-muted-foreground truncate text-base">
           {match.areas.map((area) => area.name).join(', ')}
           {match.hasInviteCode && ` · ${t('home.matches.invite')}`}
           {match.status === 'DRAFT' && ` · ${t('home.matches.draft')}`}
         </p>
-        <p className="flex flex-wrap gap-x-4 font-mono text-sm">
+      </div>
+      <div className="flex flex-col gap-1">
+        <div aria-hidden="true" className="bg-muted rounded-pill h-1.5 overflow-hidden">
+          <div className="bg-primary h-full" style={{ width: `${String(filled)}%` }} />
+        </div>
+        <p className="flex flex-wrap justify-between gap-x-4 font-mono text-sm">
           <span>
             {t('home.matches.players', { players: match.players, max: match.maxPlayers })}
           </span>
@@ -53,24 +68,34 @@ function MatchRow({ match, mine }: { match: MatchSummary; mine: boolean }) {
           </span>
         </p>
       </div>
-      {mine ? (
-        <Button asChild variant="outline" size="sm">
-          <Link to={`/partite/${match.id}`}>{t('home.matches.enter')}</Link>
-        </Button>
-      ) : full ? (
-        <Button size="sm" disabled>
-          {t('home.matches.full')}
-        </Button>
-      ) : (
-        <Button asChild size="sm">
-          <Link to={`/partite/${match.id}`}>{t('home.matches.join')}</Link>
-        </Button>
-      )}
+      <div className="mt-auto">
+        {mine ? (
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/partite/${match.id}`}>{t('home.matches.enter')}</Link>
+          </Button>
+        ) : full ? (
+          <Button size="sm" disabled>
+            {t('home.matches.full')}
+          </Button>
+        ) : (
+          <Button asChild size="sm">
+            <Link to={`/partite/${match.id}`}>{t('home.matches.join')}</Link>
+          </Button>
+        )}
+      </div>
     </li>
   )
 }
 
-/** The card "Partite attive": filter by name and by participants, pages, and the way in. */
+/** A row of cards that scrolls sideways, each stopping at the edge. */
+const ROW =
+  'flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:thin] -mx-4 px-4 sm:-mx-8 sm:px-8'
+
+/**
+ * The band under the hero: the player's own matches, then the matches being
+ * played or about to start, as cards side by side, with the filters by name
+ * and by participants and the pages.
+ */
 export function MatchList() {
   const { t } = useTranslation()
   const { user } = useSession()
@@ -95,68 +120,85 @@ export function MatchList() {
   const pages = list.data ? Math.max(1, Math.ceil(list.data.total / list.data.pageSize)) : 1
   const filtered = name.trim() !== '' || size !== ''
 
+  const pager = pages > 1 && (
+    <nav className="flex items-center gap-2" aria-label={t('home.matches.pages')}>
+      <Button variant="quiet" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+        {t('home.matches.previous')}
+      </Button>
+      <span className="font-mono text-sm whitespace-nowrap">
+        {t('home.matches.page', { page, pages })}
+      </span>
+      <Button variant="quiet" size="sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>
+        {t('home.matches.next')}
+      </Button>
+    </nav>
+  )
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-[100rem] flex-col gap-8 px-4 py-8 sm:px-8">
       {mine.data && mine.data.length > 0 && (
-        <section className="rounded-lg border p-4" aria-labelledby="my-matches">
-          <h2 id="my-matches" className="text-lg">
+        <section className="flex flex-col gap-3" aria-labelledby="my-matches">
+          <h2 id="my-matches" className="text-2xl">
             {t('home.matches.mine')}
           </h2>
-          <ul className="mt-2 [&>li:first-child]:border-t-0">
+          <ul className={ROW}>
             {mine.data.map((match) => (
-              <MatchRow key={match.id} match={match} mine />
+              <MatchCard key={match.id} match={match} mine />
             ))}
           </ul>
         </section>
       )}
 
-      <section className="rounded-lg border p-4" aria-labelledby="active-matches">
-        <h2 id="active-matches" className="text-lg">
-          {t('home.matches.title')}
-        </h2>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={nameId}>{t('home.matches.name')}</Label>
-            <Input
-              id={nameId}
-              value={name}
-              placeholder={t('home.matches.namePlaceholder')}
-              onChange={(event) => {
-                setName(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={sizeId}>{t('home.matches.size')}</Label>
-            <Select
-              value={size || 'all'}
-              onValueChange={(value) => {
-                setSize(value === 'all' ? '' : (value as SizeFilter))
-                setPage(1)
-              }}
-            >
-              <SelectTrigger id={sizeId} className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SIZES.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {t(`home.matches.${option.key}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <section className="flex flex-col gap-3" aria-labelledby="active-matches">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <h2 id="active-matches" className="text-2xl">
+            {t('home.matches.title')}
+          </h2>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={nameId}>{t('home.matches.name')}</Label>
+              <Input
+                id={nameId}
+                className="w-48"
+                value={name}
+                placeholder={t('home.matches.namePlaceholder')}
+                onChange={(event) => {
+                  setName(event.target.value)
+                  setPage(1)
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={sizeId}>{t('home.matches.size')}</Label>
+              <Select
+                value={size || 'all'}
+                onValueChange={(value) => {
+                  setSize(value === 'all' ? '' : (value as SizeFilter))
+                  setPage(1)
+                }}
+              >
+                <SelectTrigger id={sizeId} className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SIZES.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {t(`home.matches.${option.key}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {list.error && (
-          <p role="alert" className="text-danger mt-3">
+          <p role="alert" className="text-danger">
             {t('home.matches.error')}
           </p>
         )}
         {list.data?.matches.length === 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-6">
             <p className="text-muted-foreground">
               {filtered ? t('home.matches.none') : t('home.matches.empty')}
             </p>
@@ -175,33 +217,14 @@ export function MatchList() {
             )}
           </div>
         )}
-        <ul className="mt-3">
-          {list.data?.matches.map((match) => (
-            <MatchRow key={match.id} match={match} mine={mineIds.has(match.id)} />
-          ))}
-        </ul>
-
-        {pages > 1 && (
-          <nav className="mt-2 flex items-center justify-between gap-3 border-t pt-3">
-            <Button
-              variant="quiet"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              {t('home.matches.previous')}
-            </Button>
-            <span className="font-mono text-sm">{t('home.matches.page', { page, pages })}</span>
-            <Button
-              variant="quiet"
-              size="sm"
-              disabled={page >= pages}
-              onClick={() => setPage(page + 1)}
-            >
-              {t('home.matches.next')}
-            </Button>
-          </nav>
+        {list.data && list.data.matches.length > 0 && (
+          <ul className={ROW}>
+            {list.data.matches.map((match) => (
+              <MatchCard key={match.id} match={match} mine={mineIds.has(match.id)} />
+            ))}
+          </ul>
         )}
+        {pager}
       </section>
     </div>
   )

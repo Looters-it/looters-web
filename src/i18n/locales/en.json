@@ -14,7 +14,7 @@
   },
   "home": {
     "title": "Conquer the municipalities, one at a time",
-    "intro": "Choose a starting municipality, annex its neighbours and defend your capital from the other empires.",
+    "intro": "Looters is a turn-based conquest game on the map of Italian municipalities. Start from one, annex its neighbours and fight the other empires for the land.",
     "status": {
       "title": "System status",
       "api": "Game service",
@@ -34,9 +34,9 @@
       "error": "The map is not available right now."
     },
     "create": "Create a match",
-    "createGuest": "Sign in to create or join a match.",
+    "createGuest": "Sign in to play",
     "matches": {
-      "title": "Active matches",
+      "title": "Matches in progress",
       "name": "Match name",
       "namePlaceholder": "Search by name",
       "size": "Players",
@@ -60,7 +60,24 @@
       "next": "Next",
       "page": "Page {{page}} of {{pages}}",
       "mine": "Your matches",
-      "draft": "draft"
+      "draft": "draft",
+      "yours": "yours",
+      "pages": "Pages of matches"
+    },
+    "points": {
+      "real": "Played on the real boundaries of the municipalities.",
+      "hidden": "Your enemies' resources stay hidden: every attack is a gamble.",
+      "turns": "One turn at a time, even with a hundred players on the same map."
+    },
+    "createGuestHint": "You need an account to create a match or join one. Registering takes a minute.",
+    "demo": {
+      "label": "Demonstration of the game on the map",
+      "badge": "Demonstration: made-up empires",
+      "log": "Chronicle of the demonstration",
+      "note": "This is a demonstration: no real match.",
+      "annexed": "{{empire}} annexed {{name}}.",
+      "conquered": "{{empire}} took {{name}} from {{other}}.",
+      "defended": "{{other}} defended {{name}} against {{empire}}."
     }
   },
   "notFound": {

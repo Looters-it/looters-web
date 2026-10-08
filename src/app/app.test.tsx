@@ -1,7 +1,8 @@
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { FakeMap, resetFakeMaplibre } from '@/test/fake-maplibre'
 import { FakeWebSocket, guest, stubApi } from '@/test/fakes'
 import { renderApp } from '@/test/render'
 
@@ -23,9 +24,61 @@ describe('homepage', () => {
     renderApp()
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Conquista i comuni')
-    expect(await screen.findByText(/Accedi per creare una partita/)).toBeInTheDocument()
     expect(await screen.findByText(/Non ci sono ancora partite/)).toBeInTheDocument()
+    // A guest is not offered to create a match: the call to action opens the sign-in panel.
     expect(screen.queryByRole('link', { name: 'Crea una partita' })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Accedi per giocare' }))
+    const panel = await screen.findByRole('dialog', { name: 'Accesso e registrazione' })
+    expect(within(panel).getByRole('tab', { name: 'Registrati' })).toBeInTheDocument()
+  })
+
+  it('plays a demonstration on the map: empires grow, and a chronicle says what happens', async () => {
+    resetFakeMaplibre()
+    // A grid of municipalities, enough for a few empires to have neighbours.
+    const units = Array.from({ length: 60 }, (_, i) => ({
+      id: i + 1,
+      name: `Comune ${String(i + 1)}`,
+      lon: 9 + (i % 10) * 0.05,
+      lat: 45 + Math.floor(i / 10) * 0.05,
+    }))
+    stubApi({
+      ...guest,
+      'GET /api/geo/areas': () => ({ body: [{ id: 'a1', name: 'Italia', unitCount: 60 }] }),
+      'GET /api/geo/areas/a1/map': () => ({
+        body: {
+          id: 'a1',
+          name: 'Italia',
+          unitCount: 60,
+          bounds: [6, 36, 19, 47],
+          version: '60',
+          tiles: '/api/geo/areas/a1/tiles/{z}/{x}/{y}.mvt?v=60',
+          minZoom: 4,
+          maxZoom: 12,
+          labelMinZoom: 9,
+        },
+      }),
+      'GET /api/geo/areas/a1/units': () => ({ body: units }),
+    })
+    renderApp()
+
+    const hero = await screen.findByRole('region', { name: 'Dimostrazione del gioco sulla mappa' })
+    await waitFor(() => expect(FakeMap.instances.length).toBeGreaterThan(0))
+    act(() => FakeMap.latest.fire('load'))
+    // Said on the map: these empires are made up.
+    expect(await within(hero).findByText('Dimostrazione: imperi inventati')).toBeInTheDocument()
+    // Six empires stand on their capitals, each with its name and its arms…
+    const owned = () => [...FakeMap.latest.state.values()].filter((state) => state.color).length
+    await waitFor(() => expect(owned()).toBe(6))
+    const labels = FakeMap.latest.sourceData.get('empires') as { features: object[] }
+    expect(labels.features).toHaveLength(6)
+    // …then the map changes by itself, and the chronicle tells it.
+    const log = await within(hero).findByRole(
+      'list',
+      { name: 'Cronaca della dimostrazione' },
+      { timeout: 4000 },
+    )
+    expect(within(log).getAllByRole('listitem')[0]).toHaveTextContent(/ha annesso Comune \d+\./)
+    expect(owned()).toBeGreaterThan(6)
   })
 })
 

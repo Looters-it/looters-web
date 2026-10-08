@@ -14,7 +14,7 @@
   },
   "home": {
     "title": "Conquista i comuni, uno alla volta",
-    "intro": "Scegli un comune di partenza, annetti i vicini e difendi la tua capitale dagli altri imperi.",
+    "intro": "Looters è un gioco di conquista a turni sulla mappa dei comuni italiani. Parti da un comune, annetti i vicini e contendi il territorio agli altri imperi.",
     "status": {
       "title": "Stato del sistema",
       "api": "Servizio di gioco",
@@ -34,9 +34,9 @@
       "error": "La mappa non è disponibile in questo momento."
     },
     "create": "Crea una partita",
-    "createGuest": "Accedi per creare una partita o partecipare.",
+    "createGuest": "Accedi per giocare",
     "matches": {
-      "title": "Partite attive",
+      "title": "Partite in corso",
       "name": "Nome partita",
       "namePlaceholder": "Cerca per nome",
       "size": "Partecipanti",
@@ -60,7 +60,24 @@
       "next": "Successiva",
       "page": "Pagina {{page}} di {{pages}}",
       "mine": "Le tue partite",
-      "draft": "bozza"
+      "draft": "bozza",
+      "yours": "la tua",
+      "pages": "Pagine delle partite"
+    },
+    "points": {
+      "real": "Si gioca sui confini veri dei comuni.",
+      "hidden": "Le risorse dei nemici restano nascoste: ogni attacco è una scommessa.",
+      "turns": "Un turno alla volta, anche in cento sulla stessa mappa."
+    },
+    "createGuestHint": "Serve un account per creare una partita o partecipare. Registrarsi richiede un minuto.",
+    "demo": {
+      "label": "Dimostrazione del gioco sulla mappa",
+      "badge": "Dimostrazione: imperi inventati",
+      "log": "Cronaca della dimostrazione",
+      "note": "È una dimostrazione: nessuna partita vera.",
+      "annexed": "{{empire}} ha annesso {{name}}.",
+      "conquered": "{{empire}} ha conquistato {{name}} a {{other}}.",
+      "defended": "{{other}} ha difeso {{name}} da {{empire}}."
     }
   },
   "notFound": {

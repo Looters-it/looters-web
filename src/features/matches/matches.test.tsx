@@ -133,7 +133,13 @@ describe('match list on the homepage', () => {
     })
     renderApp()
 
-    const list = await screen.findByRole('region', { name: 'Partite attive' })
+    // The player's own matches come first, in a row of their own.
+    const own = await screen.findByRole('region', { name: 'Le tue partite' })
+    expect(await within(own).findByRole('link', { name: 'Entra' })).toHaveAttribute(
+      'href',
+      '/partite/m3',
+    )
+    const list = await screen.findByRole('region', { name: 'Partite in corso' })
     const rows = await within(list).findAllByRole('listitem')
     expect(within(rows[0]!).getByRole('link', { name: 'Partecipa' })).toHaveAttribute(
       'href',
@@ -146,6 +152,9 @@ describe('match list on the homepage', () => {
       '/partite/m3',
     )
     expect(rows[2]).toHaveTextContent('turno 4')
+    // Among all the matches, the player's own is marked.
+    expect(rows[2]).toHaveTextContent('la tua')
+    expect(rows[0]).not.toHaveTextContent('la tua')
     expect(screen.getByRole('link', { name: 'Crea una partita' })).toHaveAttribute(
       'href',
       '/partite/nuova',
