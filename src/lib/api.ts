@@ -29,7 +29,9 @@ async function request<T>(
     signal: options.signal,
     ...(body === undefined
       ? {}
-      : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
+      : body instanceof FormData
+        ? { body } // the browser sets the multipart boundary itself
+        : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
   })
   if (response.status === 204) return undefined as T
   if (response.ok || options.accept?.includes(response.status)) {
@@ -51,6 +53,14 @@ export function apiGet<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export function apiPost<T>(path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
   return request<T>('POST', path, body, options)
+}
+
+export function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  return request<T>('PATCH', path, body, {})
+}
+
+export function apiDelete(path: string, body?: unknown): Promise<void> {
+  return request<void>('DELETE', path, body, {})
 }
 
 export interface SystemStatus {

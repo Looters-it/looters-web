@@ -7,7 +7,8 @@
     "account": "Accesso e registrazione",
     "accountOf": "Account di {{username}}",
     "online_one": "giocatore connesso",
-    "online_other": "giocatori connessi"
+    "online_other": "giocatori connessi",
+    "admin": "Dashboard admin"
   },
   "home": {
     "title": "Conquista i comuni, uno alla volta",
@@ -52,6 +53,117 @@
       "RATE_LIMITED": "Troppi tentativi. Riprova tra qualche minuto.",
       "VALIDATION": "Controlla i dati inseriti.",
       "UNKNOWN": "Qualcosa non ha funzionato. Riprova."
+    }
+  },
+  "admin": {
+    "title": "Dashboard admin",
+    "loading": "Caricamento…",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "delete": "Elimina",
+    "tabs": {
+      "overview": "Panoramica",
+      "sessions": "Sessioni",
+      "geo": "Dati geografici"
+    },
+    "overview": {
+      "users": "Utenti registrati",
+      "matchesRunning": "Partite in corso",
+      "online": "Connessi adesso"
+    },
+    "sessions": {
+      "count_one": "{{count}} sessione attiva",
+      "count_other": "{{count}} sessioni attive",
+      "admin": "admin",
+      "connected": "Connesso adesso",
+      "idle": "Non connesso",
+      "current": "questa sessione",
+      "started": "Inizio",
+      "lastSeen": "Ultima attività",
+      "address": "Indirizzo",
+      "revoke": "Revoca",
+      "revokeTitle": "Revocare la sessione di {{username}}?",
+      "revokeText": "L'utente viene disconnesso subito e dovrà accedere di nuovo."
+    },
+    "geo": {
+      "areas": "Aree e cartelle",
+      "tree": "Aree e cartelle",
+      "newArea": "Nuova area",
+      "newFolder": "Nuova cartella",
+      "newFolderIn": "Nuova cartella in {{name}}",
+      "rename": "Rinomina",
+      "renameTitle": "Rinomina {{name}}",
+      "name": "Nome",
+      "noAreas": "Nessuna area. Creane una, per esempio \"Italia\", poi caricaci i confini dei comuni.",
+      "pickFolder": "Scegli un'area o una cartella per caricare i file.",
+      "deleteTitle": "Eliminare {{name}}?",
+      "deleteText": "Vengono eliminati anche le cartelle, i file e i comuni che contiene. Non si può annullare.",
+      "upload": "Carica un file",
+      "sending": "Invio in corso…",
+      "file": "File da caricare",
+      "formats": "KML o GeoJSON, con i confini in coordinate WGS84.",
+      "noUploads": "Nessun file caricato in questa cartella.",
+      "deleteUpload": "Elimina {{filename}}",
+      "deleteUploadTitle": "Eliminare {{filename}}?",
+      "deleteUploadText": "Vengono eliminati anche i comuni caricati da questo file. Non si può annullare.",
+      "progress": "Elaborazione di {{filename}}",
+      "units_one": "{{count}} comune",
+      "units_other": "{{count}} comuni",
+      "adjacencies_one": "{{count}} confine",
+      "adjacencies_other": "{{count}} confini",
+      "status": {
+        "PENDING": "in coda",
+        "PROCESSING": "in elaborazione",
+        "DONE": "completato",
+        "FAILED": "rifiutato"
+      },
+      "failure": {
+        "INVALID_FILE": "Il file non si può leggere: non è un KML o un GeoJSON valido.",
+        "NOT_FEATURE_COLLECTION": "Il file non è una raccolta di elementi GeoJSON (FeatureCollection).",
+        "FILE_MISSING": "Il file caricato non è più disponibile. Caricalo di nuovo.",
+        "NO_UNITS": "Il file non contiene nessun comune.",
+        "FEATURE_PROBLEMS": "Alcuni elementi del file non sono validi. Nessun comune è stato caricato.",
+        "ALREADY_LOADED": "Questi comuni sono già presenti in quest'area:",
+        "EMPTY_GEOMETRY": "Questi comuni hanno un confine che non si può usare:",
+        "INTERNAL": "L'elaborazione non è riuscita per un errore interno."
+      },
+      "problem": {
+        "item": "Elemento {{feature}} ({{name}}):",
+        "unnamed": "senza nome",
+        "more_one": "e un altro elemento",
+        "more_other": "e altri {{count}} elementi",
+        "MISSING_NAME": "manca il nome.",
+        "NO_POLYGON": "non ha un confine poligonale.",
+        "BAD_COORDINATES": "le coordinate non sono in WGS84 (longitudine e latitudine in gradi).",
+        "RING_TOO_SHORT": "il confine ha meno di quattro punti.",
+        "DUPLICATE_CODE": "il codice è ripetuto nel file."
+      }
+    },
+    "adjacency": {
+      "title": "Comuni confinanti",
+      "intro": "I confini vengono calcolati al caricamento. Cerca un comune per controllare i suoi vicini e aggiungere a mano quelli che la geometria non trova, come le isole.",
+      "unit": "Comune",
+      "searchHint": "Scrivi almeno due lettere",
+      "noResults": "Nessun comune trovato.",
+      "neighboursOf": "Confinanti di {{name}}",
+      "none": "Nessun comune confinante.",
+      "manual": "aggiunto a mano",
+      "remove": "Rimuovi il confine con {{name}}",
+      "add": "Aggiungi un confinante a {{name}}"
+    },
+    "errors": {
+      "UNKNOWN": "Qualcosa non ha funzionato. Riprova.",
+      "AREA_NAME_TAKEN": "Qui esiste già una cartella con questo nome.",
+      "AREA_IN_USE": "Una partita usa questa cartella: non si può eliminare.",
+      "UPLOAD_IN_USE": "Una partita usa questi comuni: il file non si può eliminare.",
+      "UPLOAD_IN_PROGRESS": "Attendi la fine dell'elaborazione.",
+      "UNSUPPORTED_FILE": "Sono accettati solo file KML e GeoJSON.",
+      "FILE_TOO_LARGE": "Il file è troppo grande.",
+      "FILE_REQUIRED": "Scegli un file da caricare.",
+      "ALREADY_ADJACENT": "Questi due comuni sono già confinanti.",
+      "VALIDATION": "Controlla i dati inseriti.",
+      "FORBIDDEN": "Non hai i permessi per questa operazione.",
+      "UNAUTHENTICATED": "La sessione è terminata. Accedi di nuovo."
     }
   }
 }

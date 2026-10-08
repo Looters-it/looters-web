@@ -12,7 +12,7 @@ export function stubApi(routes: Record<string, Handler>) {
     'fetch',
     vi.fn((input: string, init: RequestInit = {}) => {
       const key = `${init.method ?? 'GET'} ${input}`
-      const body: unknown = typeof init.body === 'string' ? JSON.parse(init.body) : undefined
+      const body: unknown = typeof init.body === 'string' ? JSON.parse(init.body) : init.body
       calls.push({ key, body })
       const result = routes[key]?.(body) ?? { status: 404, body: { error: { code: 'NOT_FOUND' } } }
       const status = result.status ?? 200

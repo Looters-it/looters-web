@@ -1,6 +1,7 @@
 import { CircleUserRound } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -40,6 +41,11 @@ export function AccountPopover() {
             <p>
               {t('auth.signedInAs')} <b>{user.username}</b>
             </p>
+            {user.role === 'ADMIN' && (
+              <Button asChild onClick={() => setOpen(false)}>
+                <Link to="/admin">{t('nav.admin')}</Link>
+              </Button>
+            )}
             <Button variant="outline" onClick={() => void logout()}>
               {t('auth.logout')}
             </Button>
