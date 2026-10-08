@@ -1,5 +1,5 @@
-import { CircleUserRound, Info, LogIn, LogOut, Menu, Shield, Swords, Trophy } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { CircleUserRound, LogIn, LogOut, Menu } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useMatch } from 'react-router'
 
@@ -11,14 +11,17 @@ import { cn } from '@/lib/utils'
 import { Crest } from './Crest'
 import { OnlineCounter } from './OnlineCounter'
 
-function Item(props: { to: string; icon: ReactNode; children: string; onClick?: () => void }) {
+/**
+ * An entry of the menu: plain words in the heading font, which turn into a
+ * floating button under the pointer.
+ */
+function Item(props: { to: string; children: string; onClick?: () => void }) {
   return (
     <Link
       to={props.to}
       onClick={props.onClick}
-      className="hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-lg transition-colors [&_svg]:size-5 [&_svg]:flex-none"
+      className="font-display rounded-pill hover:bg-secondary focus-visible:bg-secondary px-4 pt-2.5 pb-1.5 text-lg tracking-[0.02em] transition-[scale,background-color,color,box-shadow] duration-300 ease-in-out outline-none hover:scale-[1.04] hover:text-white hover:shadow-lg focus-visible:scale-[1.04] focus-visible:text-white focus-visible:shadow-lg"
     >
-      {props.icon}
       {props.children}
     </Link>
   )
@@ -51,24 +54,24 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
         {user ? (
           <>
-            <Item to="/partite" icon={<Swords aria-hidden />} onClick={onNavigate}>
+            <Item to="/partite" onClick={onNavigate}>
               {t('nav.myMatches')}
             </Item>
-            <Item to="/profilo" icon={<CircleUserRound aria-hidden />} onClick={onNavigate}>
+            <Item to="/profilo" onClick={onNavigate}>
               {t('nav.profile')}
             </Item>
             {user.role === 'ADMIN' && (
-              <Item to="/admin" icon={<Shield aria-hidden />} onClick={onNavigate}>
+              <Item to="/admin" onClick={onNavigate}>
                 {t('nav.admin')}
               </Item>
             )}
           </>
         ) : (
           <>
-            <Item to="/come-funziona" icon={<Info aria-hidden />} onClick={onNavigate}>
+            <Item to="/come-funziona" onClick={onNavigate}>
               {t('nav.how')}
             </Item>
-            <Item to="/partite" icon={<Trophy aria-hidden />} onClick={onNavigate}>
+            <Item to="/partite" onClick={onNavigate}>
               {t('nav.matches')}
             </Item>
           </>
