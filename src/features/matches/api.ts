@@ -188,13 +188,12 @@ export interface TurnHistory {
   ownership: Record<string, string>
 }
 
-/** A small picture of a match: a grid of cells, free or of an empire's colour. */
+/** A small map of a match: the real outline of its area and what each empire holds. */
 export interface MatchPreview {
-  columns: number
-  rows: number
-  /** x, y, x, y… */
-  free: number[]
-  owned: Record<string, number[]>
+  /** `min-x min-y width height` of the SVG that draws the paths. */
+  viewBox: string
+  outline: string
+  empires: { color: string; path: string }[]
 }
 
 export type BoardKind =
