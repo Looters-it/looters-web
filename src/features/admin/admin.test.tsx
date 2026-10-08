@@ -124,6 +124,7 @@ describe('geographic data', () => {
     progress: 100,
     unitCount: 133,
     adjacencyCount: 360,
+    isolatedCount: 0,
     sizeBytes: 2_097_152,
     error: null,
     createdAt: '2026-10-07T10:00:00.000Z',
@@ -257,5 +258,50 @@ describe('geographic data', () => {
     expect(
       screen.getByRole('button', { name: 'Rimuovi il confine con Villa San Giovanni' }),
     ).toBeInTheDocument()
+  })
+
+  it('flags the islands when a file is loaded and lets the admin link each one', async () => {
+    const unit = (id: number, name: string) => ({ id, name, code: null, area: { name: 'Italia' } })
+    let isolated = [unit(1, 'Messina'), unit(3, 'Lipari')]
+    let neighbours: object[] = []
+    stubApi({
+      ...asAdmin,
+      ...stats,
+      'GET /api/admin/geo/areas': () => ({ body: [italy, north] }),
+      'GET /api/admin/geo/uploads?areaId=no': () => ({
+        body: [upload({ isolatedCount: isolated.length })],
+      }),
+      'GET /api/admin/geo/isolated': () => ({ body: isolated }),
+      'GET /api/admin/geo/units?q=villa': () => ({ body: [unit(2, 'Villa San Giovanni')] }),
+      'GET /api/admin/geo/units/1/neighbours': () => ({ body: neighbours }),
+      'POST /api/admin/geo/adjacency': () => {
+        neighbours = [{ ...unit(2, 'Villa San Giovanni'), manual: true }]
+        isolated = [unit(3, 'Lipari')]
+        return { status: 201, body: {} }
+      },
+    })
+    renderApp('/admin')
+    await openTab('Dati geografici')
+
+    // Said where the file is listed…
+    await userEvent.click(await screen.findByRole('button', { name: /Nord/ }))
+    expect(await screen.findByText(/2 comuni senza confinanti \(isole\)/)).toBeInTheDocument()
+
+    // …and listed where they are linked.
+    expect(await screen.findByRole('heading', { name: '2 comuni senza confinanti' })).toBeVisible()
+    const islands = screen.getByRole('list', { name: 'Comuni senza confinanti' })
+    await userEvent.click(within(islands).getByRole('button', { name: 'Messina' }))
+    expect(await screen.findByText('Nessun comune confinante.')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText('Aggiungi un confinante a Messina'), 'villa')
+    await userEvent.click(await screen.findByRole('button', { name: /Villa San Giovanni/ }))
+    expect(await screen.findByText('aggiunto a mano')).toBeInTheDocument()
+    // Linked: it leaves the list.
+    expect(await screen.findByRole('heading', { name: '1 comune senza confinanti' })).toBeVisible()
+    expect(
+      within(screen.getByRole('list', { name: 'Comuni senza confinanti' })).queryByRole('button', {
+        name: 'Messina',
+      }),
+    ).not.toBeInTheDocument()
   })
 })

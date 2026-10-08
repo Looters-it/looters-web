@@ -174,7 +174,9 @@
         "BAD_COORDINATES": "le coordinate non sono in WGS84 (longitudine e latitudine in gradi).",
         "RING_TOO_SHORT": "il confine ha meno di quattro punti.",
         "DUPLICATE_CODE": "il codice è ripetuto nel file."
-      }
+      },
+      "isolated_one": "{{count}} comune senza confinanti (un'isola): collegalo in \"Comuni confinanti\", altrimenti in partita non è raggiungibile.",
+      "isolated_other": "{{count}} comuni senza confinanti (isole): collegali in \"Comuni confinanti\", altrimenti in partita non sono raggiungibili."
     },
     "adjacency": {
       "title": "Comuni confinanti",
@@ -186,7 +188,11 @@
       "none": "Nessun comune confinante.",
       "manual": "aggiunto a mano",
       "remove": "Rimuovi il confine con {{name}}",
-      "add": "Aggiungi un confinante a {{name}}"
+      "add": "Aggiungi un confinante a {{name}}",
+      "isolatedTitle_one": "{{count}} comune senza confinanti",
+      "isolatedTitle_other": "{{count}} comuni senza confinanti",
+      "isolatedIntro": "Sono isole o comuni che non toccano nessun altro: in partita non si possono né annettere né attaccare finché non li colleghi a un vicino. Scegline uno e aggiungi i confinanti.",
+      "isolatedList": "Comuni senza confinanti"
     },
     "errors": {
       "UNKNOWN": "Qualcosa non ha funzionato. Riprova.",

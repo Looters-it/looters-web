@@ -74,7 +74,14 @@ export function AdjacencyTool() {
     queryFn: () => adminApi.neighbours(unit?.id ?? 0),
     enabled: unit !== null,
   })
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'neighbours'] })
+  // Islands: municipalities no border reaches. They are found when the file is processed.
+  const isolated = useQuery({ queryKey: ['admin', 'geo', 'isolated'], queryFn: adminApi.isolated })
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'neighbours'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'isolated'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'uploads'] }),
+    ])
   const add = useMutation({
     mutationFn: (other: GeoUnit) => adminApi.addAdjacency(unit?.id ?? 0, other.id),
     onSuccess: refresh,
@@ -88,6 +95,32 @@ export function AdjacencyTool() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground">{t('admin.adjacency.intro')}</p>
+      {isolated.data && isolated.data.length > 0 && (
+        <div className="border-danger flex flex-col gap-2 rounded-md border p-3">
+          <h3 className="text-lg">
+            {t('admin.adjacency.isolatedTitle', { count: isolated.data.length })}
+          </h3>
+          <p className="text-muted-foreground">{t('admin.adjacency.isolatedIntro')}</p>
+          <ul className="flex flex-wrap gap-2" aria-label={t('admin.adjacency.isolatedList')}>
+            {isolated.data.map((island) => (
+              <li key={island.id}>
+                <Button
+                  variant={unit?.id === island.id ? 'default' : 'quiet'}
+                  size="sm"
+                  className="tracking-normal normal-case"
+                  onClick={() => {
+                    add.reset()
+                    remove.reset()
+                    setUnit(island)
+                  }}
+                >
+                  {island.name}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <UnitSearch
         label={t('admin.adjacency.unit')}
         onPick={(picked) => {

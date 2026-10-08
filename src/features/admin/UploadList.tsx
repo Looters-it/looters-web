@@ -72,7 +72,11 @@ export function UploadList({ areaId }: { areaId: string }) {
   const [wasRunning, setWasRunning] = useState(false)
   if (running !== wasRunning) {
     setWasRunning(running)
-    if (!running) void queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'areas'] })
+    if (!running) {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'areas'] })
+      // A file just processed may have brought islands with it.
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'geo', 'isolated'] })
+    }
   }
 
   const send = useMutation({
@@ -159,6 +163,11 @@ export function UploadList({ areaId }: { areaId: string }) {
               <p className="mt-1">
                 {t('admin.geo.units', { count: upload.unitCount })} ·{' '}
                 {t('admin.geo.adjacencies', { count: upload.adjacencyCount })}
+              </p>
+            )}
+            {upload.status === 'DONE' && upload.isolatedCount > 0 && (
+              <p role="status" className="text-danger mt-1">
+                {t('admin.geo.isolated', { count: upload.isolatedCount })}
               </p>
             )}
             {upload.status === 'FAILED' && <FailureDetails upload={upload} />}

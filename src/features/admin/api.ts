@@ -36,6 +36,8 @@ export interface GeoUpload {
   progress: number
   unitCount: number
   adjacencyCount: number
+  /** Municipalities of this file without any neighbour: islands, to link by hand. */
+  isolatedCount: number
   sizeBytes: number
   /** JSON written by `jobs` when the file is refused (see parseUploadFailure). */
   error: string | null
@@ -90,6 +92,7 @@ export const adminApi = {
 
   searchUnits: (query: string) =>
     apiGet<GeoUnit[]>(`/admin/geo/units?q=${encodeURIComponent(query)}`),
+  isolated: () => apiGet<GeoUnit[]>('/admin/geo/isolated'),
   neighbours: (unitId: number) => apiGet<Neighbour[]>(`/admin/geo/units/${unitId}/neighbours`),
   addAdjacency: (aId: number, bId: number) => apiPost<void>('/admin/geo/adjacency', { aId, bId }),
   removeAdjacency: (aId: number, bId: number) => apiDelete('/admin/geo/adjacency', { aId, bId }),
