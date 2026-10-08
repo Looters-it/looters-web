@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -12,7 +13,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { MapUnit } from '@/features/map/GameMap'
-import { matchApi, type MatchState, type UnitCardData } from '@/features/matches/api'
+import {
+  matchApi,
+  type MatchState,
+  type Territory,
+  type UnitCardData,
+} from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
 import { useMatchErrorText } from '@/features/matches/errors'
 
@@ -154,6 +160,55 @@ function CapitalAction(props: { state: MatchState; card: UnitCardData; isCapital
   )
 }
 
+/** An area is renamed from its own card. */
+function RenameArea({ state, territory }: { state: MatchState; territory: Territory }) {
+  const { t } = useTranslation()
+  const errorText = useMatchErrorText()
+  const queryClient = useQueryClient()
+  const id = useId()
+  const [name, setName] = useState(territory.name)
+  const matchId = state.match.id
+  const rename = useMutation({
+    mutationFn: () => matchApi.renameArea(matchId, territory.id, name.trim()),
+    onSuccess: (next) => queryClient.setQueryData(['matches', 'state', matchId], next),
+  })
+
+  return (
+    <form
+      className="flex flex-col gap-2 rounded-md border p-3"
+      onSubmit={(event) => {
+        event.preventDefault()
+        rename.mutate()
+      }}
+    >
+      <Label htmlFor={id}>{t('game.unit.renameArea')}</Label>
+      <div className="flex gap-2">
+        <Input
+          id={id}
+          required
+          minLength={2}
+          maxLength={40}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          disabled={rename.isPending || name.trim() === territory.name}
+        >
+          {t('game.unit.rename')}
+        </Button>
+      </div>
+      {rename.error && (
+        <p role="alert" className="text-danger">
+          {errorText(rename.error)}
+        </p>
+      )}
+    </form>
+  )
+}
+
 /**
  * The card of the selected municipality: who holds it, its state, the
  * action available, and its neighbours, each of which can be opened in turn.
@@ -168,7 +223,7 @@ export function UnitPanel(props: {
   /** Opens the preparation of an attack on this municipality. */
   onPrepareAttack?: (card: UnitCardData) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { state, unit } = props
   const card = useQuery({
     queryKey: ['matches', 'unit', state.match.id, unit.id],
@@ -185,6 +240,9 @@ export function UnitPanel(props: {
   const mine = state.me?.empireId
   const isMine = mine !== undefined && card.data?.territory.ownerEmpireId === mine
   const territoryState = state.territories.find((t) => t.id === card.data?.territory.id)
+  const structuresHere = state.structures.filter(
+    (structure) => structure.territoryId === card.data?.territory.id,
+  )
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="unit-title">
@@ -217,8 +275,31 @@ export function UnitPanel(props: {
               {card.data.territory.protected && ` · ${t('match.unit.protected')}`}
             </p>
             {territoryState?.alert && <p className="text-danger">{t('game.unit.alert')}</p>}
+            {territoryState?.isArea && (
+              <p className="text-muted-foreground">
+                {t('game.unit.partOf', { name: territoryState.name })}{' '}
+                {t('game.unit.area', { count: territoryState.geoUnitIds.length })}
+              </p>
+            )}
+            {structuresHere.length > 0 && (
+              <p>
+                {t('game.unit.structures')}:{' '}
+                {structuresHere
+                  .map((structure) =>
+                    i18n.exists(`game.structures.types.${structure.type}`)
+                      ? t(
+                          `game.structures.types.${structure.type}` as 'game.structures.types.BLOCK',
+                        )
+                      : structure.type,
+                  )
+                  .join(', ')}
+              </p>
+            )}
           </div>
 
+          {isMine && territoryState?.isArea && state.me?.status === 'ACTIVE' && (
+            <RenameArea key={territoryState.id} state={state} territory={territoryState} />
+          )}
           {isMine && state.match.status === 'RUNNING' && state.me?.status === 'ACTIVE' && (
             <CapitalAction
               key={`capital:${unit.id}:${state.match.currentTurn}`}
@@ -243,7 +324,9 @@ export function UnitPanel(props: {
                 {t('game.unit.attackTitle')}
               </h3>
               {/* The reason is always spelled out when the action is not possible. */}
-              {card.data.attack.blocked === 'PROTECTED' ? (
+              {card.data.attack.blocked === 'BLOCKED' ? (
+                <p className="text-muted-foreground">{t('game.unit.attackBlocked')}</p>
+              ) : card.data.attack.blocked === 'PROTECTED' ? (
                 <p className="text-muted-foreground">{t('game.unit.attackProtected')}</p>
               ) : card.data.attack.blocked === 'IN_BATTLE' ? (
                 <p className="text-muted-foreground">{t('game.unit.attackInBattle')}</p>

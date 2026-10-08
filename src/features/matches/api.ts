@@ -1,3 +1,5 @@
+import type { Geometry } from 'geojson'
+
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import type { AreaMap, UnitPoint } from '@/features/map/api'
 
@@ -88,8 +90,49 @@ export interface MatchState {
   territories: Territory[]
   /** Players of the match watching it now, out of those still in play. */
   online: { connected: number; total: number }
+  /** Active structures: public, like what they do. */
+  structures: Structure[]
   /** Open battles (public) and, for a player, their own battles just resolved. */
   battles: Battle[]
+}
+
+export interface Structure {
+  id: string
+  /** A key of the catalogue: BLOCK, SECOND_CAPITAL, and whatever is added later. */
+  type: string
+  territoryId: string
+  empireId: string
+  effects: string[]
+  /** Turns it still lasts, counting the current one; null if permanent. */
+  turnsLeft: number | null
+}
+
+/** One structure of the catalogue as the player can use it now. */
+export interface CatalogueEntry {
+  type: string
+  cost: number
+  durationTurns: number | null
+  cooldownTurns: number
+  effects: string[]
+  sites: { territoryId: string; name: string; resources: number; blocked: string | null }[]
+}
+
+export interface MergePreview {
+  perTerritory: number
+  cost: number
+  available: number
+  maxUnits: number
+  problem: string | null
+}
+
+export interface AreaOutlines {
+  type: 'FeatureCollection'
+  features: {
+    type: 'Feature'
+    id: string
+    geometry: Geometry
+    properties: { name: string; ownerEmpireId: string | null; lon: number; lat: number }
+  }[]
 }
 
 export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER' | 'CANCELLED'
@@ -147,7 +190,7 @@ export interface UnitCardData {
   } | null
   /** Present for a player looking at a territory of another empire in a running match. */
   attack: {
-    blocked: 'PROTECTED' | 'IN_BATTLE' | 'NOT_ADJACENT' | null
+    blocked: 'PROTECTED' | 'BLOCKED' | 'IN_BATTLE' | 'NOT_ADJACENT' | null
     from: { territoryId: string; name: string; resources: number; usable: boolean }[]
   } | null
 }
@@ -214,6 +257,16 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/annex`, body),
   allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  catalogue: (id: string) => apiGet<CatalogueEntry[]>(`/matches/${id}/structures/catalogue`),
+  build: (id: string, body: { type: string; territoryId: string; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/structures`, body),
+  areas: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/areas`),
+  previewMerge: (id: string, territoryIds: string[]) =>
+    apiPost<MergePreview>(`/matches/${id}/merge/preview`, { territoryIds }),
+  merge: (id: string, body: { territoryIds: string[]; name: string; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/merge`, body),
+  renameArea: (id: string, territoryId: string, name: string) =>
+    apiPatch<MatchState>(`/matches/${id}/territories/${territoryId}`, { name }),
   moveCapital: (id: string, body: { territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/capital`, body),
   previewAttack: (id: string, body: { targetGeoUnitId: number; fromTerritoryIds: string[] }) =>

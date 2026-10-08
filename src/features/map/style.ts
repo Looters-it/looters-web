@@ -8,6 +8,7 @@ export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
 export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
+export const AREAS_SOURCE = 'areas'
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
@@ -63,6 +64,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       },
       [EMPIRES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [MARKERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
       { id: 'ground', type: 'background', paint: { 'background-color': colors.ground } },
@@ -129,6 +131,69 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'line-width': ['case', featureFlag('attacked'), 3.5, 0],
           'line-dasharray': [2, 1.5],
         },
+      },
+      {
+        // A merged area reads as one polygon: a heavy outline around all its municipalities.
+        id: 'area-outlines',
+        type: 'line',
+        source: AREAS_SOURCE,
+        layout: { 'line-join': 'round' },
+        paint: { 'line-color': colors.ink, 'line-width': 2.5 },
+      },
+      {
+        id: 'area-labels',
+        type: 'symbol',
+        source: AREAS_SOURCE,
+        minzoom: 7,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': [EMPIRE_FONT],
+          'text-size': 13,
+          'text-max-width': 8,
+        },
+        paint: { 'text-color': colors.ink, 'text-halo-color': colors.halo, 'text-halo-width': 1.6 },
+      },
+      {
+        // Second capital: a hollow ring in the empire's colour, distinct from the full disc of the capital.
+        id: 'second-capital-markers',
+        type: 'circle',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'second-capital'],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4, 10, 7],
+          'circle-color': colors.halo,
+          'circle-stroke-color': ['get', 'color'],
+          'circle-stroke-width': 3.5,
+        },
+      },
+      {
+        // Military block: a dark square-ish disc with the turns left written on it.
+        id: 'block-discs',
+        type: 'circle',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'block'],
+        paint: {
+          'circle-radius': 10,
+          'circle-color': colors.ink,
+          'circle-stroke-color': colors.halo,
+          'circle-stroke-width': 1.5,
+          'circle-translate': [-12, -12],
+        },
+      },
+      {
+        id: 'block-turns',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'block'],
+        layout: {
+          'text-field': ['get', 'text'],
+          'text-font': [EMPIRE_FONT],
+          'text-size': 12,
+          'text-offset': [-1, -1],
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: { 'text-color': colors.halo },
       },
       {
         // Capitals: a ringed disc in the empire's colour, always visible to everyone.

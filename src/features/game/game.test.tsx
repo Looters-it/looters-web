@@ -143,6 +143,7 @@ function running(territories: object[], me: object = {}, turn = 3) {
     territories,
     online: { connected: 1, total: 2 },
     battles: [] as object[],
+    structures: [] as object[],
   }
 }
 const mine = [
@@ -988,5 +989,300 @@ describe('capital and end of the match', () => {
     expect(screen.getByText('vincitore')).toBeInTheDocument()
     expect(screen.getByText(/300 risorse/)).toBeInTheDocument()
     expect(screen.getByText(/410 risorse/)).toBeInTheDocument()
+  })
+})
+
+// ---------- Structures and merged areas ----------
+
+describe('structures', () => {
+  const catalogue = [
+    {
+      type: 'BLOCK',
+      cost: 300,
+      durationTurns: 5,
+      cooldownTurns: 5,
+      effects: ['NO_ATTACK_ON', 'NO_ATTACK_FROM'],
+      sites: [
+        { territoryId: 'ta1', name: 'Milano', resources: 200, blocked: 'NOT_ENOUGH_RESOURCES' },
+        { territoryId: 'ta2', name: 'Monza', resources: 400, blocked: null },
+      ],
+    },
+    {
+      type: 'SECOND_CAPITAL',
+      cost: 1400,
+      durationTurns: null,
+      cooldownTurns: 0,
+      effects: ['BACKUP_CAPITAL'],
+      sites: [
+        { territoryId: 'ta1', name: 'Milano', resources: 200, blocked: 'ON_CAPITAL' },
+        { territoryId: 'ta2', name: 'Monza', resources: 400, blocked: 'NOT_ENOUGH_RESOURCES' },
+      ],
+    },
+    // A structure the interface has never heard of still shows up, by its key.
+    {
+      type: 'WATCHTOWER',
+      cost: 140,
+      durationTurns: 2,
+      cooldownTurns: 0,
+      effects: ['NO_ATTACK_ON'],
+      sites: [],
+    },
+  ]
+  const block = {
+    id: 's1',
+    type: 'BLOCK',
+    territoryId: 'ta2',
+    empireId: 'anna',
+    effects: ['NO_ATTACK_ON', 'NO_ATTACK_FROM'],
+    turnsLeft: 5,
+  }
+
+  it('lists the catalogue as cards and builds on the municipality chosen in the list or on the map', async () => {
+    let built = false
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({
+        body: built ? { ...running(mine), structures: [block] } : running(mine),
+      }),
+      'GET /api/matches/m1/structures/catalogue': () => ({ body: catalogue }),
+      'POST /api/matches/m1/structures': () => {
+        built = true
+        return { status: 201, body: { ...running(mine), structures: [block] } }
+      },
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    await userEvent.click(await screen.findByRole('button', { name: 'Costruzioni' }))
+
+    const cards = await screen.findAllByRole('listitem')
+    const blockCard = cards.find((card) =>
+      within(card).queryByRole('heading', { name: 'Blocco militare' }),
+    )!
+    expect(blockCard).toHaveTextContent('Costo: 300 risorse')
+    expect(blockCard).toHaveTextContent('Per 5 turni il comune non può essere attaccato')
+    expect(screen.getByRole('heading', { name: 'Seconda capitale' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'WATCHTOWER' })).toBeInTheDocument()
+    expect(within(blockCard).getByRole('button', { name: 'Costruisci' })).toBeDisabled()
+
+    // Choosing a municipality that cannot afford it says why.
+    await userEvent.click(within(blockCard).getByRole('combobox', { name: 'Dove' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Milano (200 risorse)' }))
+    expect(within(blockCard).getByText('Il comune non ha abbastanza risorse.')).toBeInTheDocument()
+    expect(within(blockCard).getByRole('button', { name: 'Costruisci' })).toBeDisabled()
+
+    // Tapping Monza on the map chooses it for the card being used.
+    act(() => map.click({ id: 2, name: 'Monza' }))
+    await waitFor(() =>
+      expect(within(blockCard).getByRole('button', { name: 'Costruisci' })).toBeEnabled(),
+    )
+    await userEvent.click(within(blockCard).getByRole('button', { name: 'Costruisci' }))
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'POST /api/matches/m1/structures')?.body).toEqual({
+        type: 'BLOCK',
+        territoryId: 'ta2',
+        turn: 3,
+      }),
+    )
+    expect(await screen.findByText('Blocco militare a Monza')).toBeInTheDocument()
+    expect(screen.getByText('ancora 5 turni')).toBeInTheDocument()
+    // The block is drawn on the map with the turns it still lasts.
+    await waitFor(() =>
+      expect(JSON.stringify(map.sourceData.get('markers'))).toContain(
+        '"kind":"block","color":"","text":"5"',
+      ),
+    )
+  })
+
+  it('says that a blocked municipality cannot be attacked', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({
+        body: {
+          ...running(mine),
+          structures: [{ ...block, territoryId: 'tb', empireId: 'bruno' }],
+        },
+      }),
+      'GET /api/matches/m1/units/9': () => ({
+        body: {
+          geoUnitId: 9,
+          name: 'Lodi',
+          territory: {
+            id: 'tb',
+            name: 'Lodi',
+            ownerEmpireId: 'bruno',
+            protected: false,
+            inBattle: false,
+            resources: null,
+          },
+          neighbours: [],
+          annex: null,
+          attack: { blocked: 'BLOCKED', from: [] },
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    act(() => map.click({ id: 9, name: 'Lodi' }))
+
+    expect(await screen.findByText(/Un blocco militare protegge questo comune/)).toBeInTheDocument()
+    expect(screen.getByText('Costruzioni presenti: Blocco militare')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Prepara attacco' })).not.toBeInTheDocument()
+  })
+})
+
+describe('merging territories', () => {
+  const three = [
+    ...mine.slice(0, 2),
+    territory('ta3', 'Sesto San Giovanni', 'anna', 3, 80),
+    mine[2]!,
+  ]
+  const previews: Record<string, object> = {
+    '': { perTerritory: 40, cost: 0, available: 0, maxUnits: 5, problem: 'TOO_FEW' },
+    ta2: { perTerritory: 40, cost: 40, available: 100, maxUnits: 5, problem: 'TOO_FEW' },
+    'ta2,ta3': { perTerritory: 40, cost: 80, available: 180, maxUnits: 5, problem: null },
+    'ta1,ta2,ta3': {
+      perTerritory: 40,
+      cost: 120,
+      available: 380,
+      maxUnits: 5,
+      problem: 'NOT_CONTIGUOUS',
+    },
+  }
+  const area = {
+    ...territory('ta2', 'Brianza Unita', 'anna', 2, 100),
+    geoUnitIds: [2, 3],
+    isArea: true,
+  }
+
+  it('chooses the municipalities in the list or on the map, shows the cost and merges them', async () => {
+    let merged = false
+    const after = () => running([mine[0]!, area, mine[2]!])
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: merged ? after() : running(three) }),
+      'POST /api/matches/m1/merge/preview': (body) => ({
+        body: previews[[...(body as { territoryIds: string[] }).territoryIds].sort().join(',')],
+      }),
+      'POST /api/matches/m1/merge': () => {
+        merged = true
+        return { status: 201, body: after() }
+      },
+      'GET /api/matches/m1/areas': () => ({
+        body: {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              id: 'ta2',
+              geometry: { type: 'Polygon', coordinates: [] },
+              properties: { name: 'Brianza Unita', ownerEmpireId: 'anna', lon: 9.25, lat: 45.55 },
+            },
+          ],
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    await userEvent.click(await screen.findByRole('button', { name: 'Unisci territori' }))
+
+    // The pages of the empire share a bar with their three links.
+    expect(screen.getByRole('button', { name: 'Unisci territori' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('button', { name: 'Costruzioni' })).toBeInTheDocument()
+    expect(await screen.findByText('Scegli almeno due comuni.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Unisci' })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /Monza/ }))
+    // Tapping an own municipality on the map adds it.
+    act(() => map.click({ id: 3, name: 'Sesto San Giovanni' }))
+    expect(screen.getByRole('checkbox', { name: /Sesto San Giovanni/ })).toBeChecked()
+    const figure = (label: string) => screen.getByText(label).nextSibling
+    await waitFor(() => expect(figure('Costo totale')).toHaveTextContent('80'))
+    expect(figure('Costo per comune')).toHaveTextContent('40')
+
+    // A third one that does not touch the others: the reason is written.
+    await userEvent.click(screen.getByRole('checkbox', { name: /Milano/ }))
+    expect(
+      await screen.findByText('I comuni scelti non sono tutti confinanti tra loro.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Unisci' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('checkbox', { name: /Milano/ }))
+
+    await userEvent.type(screen.getByLabelText("Nome dell'area"), 'Brianza Unita')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Unisci' })).toBeEnabled())
+    await userEvent.click(screen.getByRole('button', { name: 'Unisci' }))
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'POST /api/matches/m1/merge')?.body).toEqual({
+        territoryIds: ['ta2', 'ta3'],
+        name: 'Brianza Unita',
+        turn: 3,
+      }),
+    )
+    expect(await screen.findByText('Brianza Unita (2 comuni)')).toBeInTheDocument()
+    // The area is drawn as one polygon with its name.
+    await waitFor(() =>
+      expect(map.sourceData.get('areas')).toMatchObject({
+        features: [{ properties: { name: 'Brianza Unita' } }],
+      }),
+    )
+  })
+
+  it('renames an area from its card', async () => {
+    let name = 'Brianza Unita'
+    const current = () => running([mine[0]!, { ...area, name }, mine[2]!])
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: current() }),
+      'GET /api/matches/m1/areas': () => ({ body: { type: 'FeatureCollection', features: [] } }),
+      'GET /api/matches/m1/units/3': () => ({
+        body: {
+          geoUnitId: 3,
+          name: 'Sesto San Giovanni',
+          territory: {
+            id: 'ta2',
+            name,
+            ownerEmpireId: 'anna',
+            protected: false,
+            inBattle: false,
+            resources: 100,
+          },
+          neighbours: [],
+          annex: null,
+          attack: null,
+        },
+      }),
+      'PATCH /api/matches/m1/territories/ta2': (body) => {
+        name = (body as { name: string }).name
+        return { body: current() }
+      },
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    act(() => map.click({ id: 3, name: 'Sesto San Giovanni' }))
+
+    expect(
+      await screen.findByText(/Fa parte dell'area Brianza Unita\. Area di 2 comuni/),
+    ).toBeInTheDocument()
+    const input = screen.getByLabelText("Nome dell'area")
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Contado di Monza')
+    await userEvent.click(screen.getByRole('button', { name: 'Rinomina' }))
+
+    await waitFor(() =>
+      expect(
+        calls.find((call) => call.key === 'PATCH /api/matches/m1/territories/ta2')?.body,
+      ).toEqual({
+        name: 'Contado di Monza',
+      }),
+    )
+    expect(await screen.findByText(/Fa parte dell'area Contado di Monza/)).toBeInTheDocument()
   })
 })

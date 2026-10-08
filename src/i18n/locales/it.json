@@ -398,7 +398,22 @@
       "NOT_THE_DEFENDER": "Solo l'impero attaccato può rispondere.",
       "BATTLE_ANSWERED": "Hai già risposto a questo attacco.",
       "ALREADY_CAPITAL": "Questo comune è già la capitale.",
-      "CAPITAL_MOVED_RECENTLY": "La capitale è stata spostata da poco: devi aspettare."
+      "CAPITAL_MOVED_RECENTLY": "La capitale è stata spostata da poco: devi aspettare.",
+      "TARGET_BLOCKED": "Un blocco militare protegge quel comune.",
+      "SOURCE_BLOCKED": "Un comune sotto blocco militare non può attaccare.",
+      "UNKNOWN_STRUCTURE": "Questa costruzione non esiste.",
+      "STRUCTURE_IN_BATTLE": "Il comune è in uno scontro.",
+      "STRUCTURE_ON_CAPITAL": "Non si può piazzare sulla capitale.",
+      "STRUCTURE_ALREADY_HERE": "Su questo comune ce n'è già una.",
+      "STRUCTURE_ONE_PER_EMPIRE": "Ne hai già una.",
+      "STRUCTURE_COOLDOWN": "Devi aspettare prima di piazzarne un'altra qui.",
+      "STRUCTURE_NOT_ENOUGH_RESOURCES": "Il comune non ha abbastanza risorse.",
+      "MERGE_TOO_FEW": "Scegli almeno due comuni.",
+      "MERGE_NOT_YOURS": "Puoi unire solo i tuoi comuni.",
+      "MERGE_IN_BATTLE": "Uno dei comuni è in uno scontro.",
+      "MERGE_TOO_MANY": "Troppi comuni per una sola area.",
+      "MERGE_NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
+      "MERGE_NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse."
     }
   },
   "game": {
@@ -418,7 +433,9 @@
       "phoneMap": "Mappa",
       "phonePanel": "Pannello",
       "tabs": "Viste della partita",
-      "battles": "Scontri"
+      "battles": "Scontri",
+      "merge": "Unisci territori",
+      "build": "Costruzioni"
     },
     "leaderboard": {
       "title": "Classifica",
@@ -471,7 +488,13 @@
       "capitalWait_one": "Potrai spostare la capitale tra {{count}} turno.",
       "capitalWait_other": "Potrai spostare la capitale tra {{count}} turni.",
       "capitalInBattle": "La capitale non si può spostare da o verso un comune in uno scontro.",
-      "capitalHint": "Se la capitale viene conquistata, il tuo impero cade."
+      "capitalHint": "Se la capitale viene conquistata, il tuo impero cade.",
+      "attackBlocked": "Un blocco militare protegge questo comune: non può essere attaccato.",
+      "structures": "Costruzioni presenti",
+      "area": "Area di {{count}} comuni",
+      "renameArea": "Nome dell'area",
+      "rename": "Rinomina",
+      "partOf": "Fa parte dell'area {{name}}."
     },
     "attack": {
       "title": "Attacco a {{name}}",
@@ -546,6 +569,64 @@
       "legendCapital": "Capitale",
       "legendAlert": "Allerta di accumulo",
       "legendAttack": "Sotto attacco"
+    },
+    "structures": {
+      "title": "Costruzioni",
+      "intro": "Le costruzioni si pagano con le risorse del comune su cui vengono piazzate.",
+      "types": {
+        "BLOCK": "Blocco militare",
+        "SECOND_CAPITAL": "Seconda capitale"
+      },
+      "descriptions": {
+        "BLOCK": "Per {{turns}} turni il comune non può essere attaccato, ma non può nemmeno attaccare. Alla scadenza devono passare {{cooldown}} turni prima di un altro blocco sullo stesso comune.",
+        "SECOND_CAPITAL": "Se la capitale principale viene conquistata, il tuo impero non cade: questo comune diventa la nuova capitale. Ne puoi avere una sola."
+      },
+      "unknownDescription": "Dura {{turns}} turni.",
+      "permanent": "permanente",
+      "cost": "Costo: {{count}} risorse",
+      "where": "Dove",
+      "wherePlaceholder": "Scegli un comune",
+      "whereHint": "Puoi anche toccare un tuo comune sulla mappa.",
+      "siteOption": "{{name}} ({{count}} risorse)",
+      "build": "Costruisci",
+      "built": "Costruito.",
+      "active": "Costruzioni attive",
+      "none": "Nessuna costruzione attiva.",
+      "activeItem": "{{type}} a {{name}}",
+      "turnsLeft_one": "ancora {{count}} turno",
+      "turnsLeft_other": "ancora {{count}} turni",
+      "blocked": {
+        "IN_BATTLE": "Questo comune è in uno scontro.",
+        "ON_CAPITAL": "Non si può piazzare sulla capitale.",
+        "ALREADY_HERE": "Su questo comune ce n'è già una.",
+        "ONE_PER_EMPIRE": "Ne hai già una: non puoi averne un'altra.",
+        "COOLDOWN": "Su questo comune ce n'è stata una da poco: devi aspettare.",
+        "NOT_ENOUGH_RESOURCES": "Il comune non ha abbastanza risorse."
+      }
+    },
+    "merge": {
+      "title": "Unisci territori",
+      "intro": "Unisci comuni confinanti in un'unica area: le risorse si sommano e l'area attacca e si difende come un solo territorio. Non si può dividere di nuovo.",
+      "pick": "Comuni da unire",
+      "pickHint": "Scegli dall'elenco o toccando i tuoi comuni sulla mappa.",
+      "option": "{{name}} ({{count}} risorse)",
+      "lockedOption": "in uno scontro",
+      "name": "Nome dell'area",
+      "perTerritory": "Costo per comune",
+      "total": "Costo totale",
+      "available": "Risorse dei comuni scelti",
+      "submit": "Unisci",
+      "areas": "Le tue aree",
+      "noAreas": "Non hai ancora nessuna area.",
+      "areaItem": "{{name}} ({{count}} comuni)",
+      "problem": {
+        "TOO_FEW": "Scegli almeno due comuni.",
+        "NOT_YOURS": "Puoi unire solo i tuoi comuni.",
+        "IN_BATTLE": "Uno dei comuni è in uno scontro.",
+        "TOO_MANY": "Un'area può contenere al massimo {{max}} comuni.",
+        "NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
+        "NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse per pagare l'unione."
+      }
     }
   }
 }

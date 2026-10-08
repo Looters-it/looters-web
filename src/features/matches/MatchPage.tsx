@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { BattlesPage } from '@/features/game/BattlesPage'
+import { BuildPage } from '@/features/game/BuildPage'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
+import { MergePage } from '@/features/game/MergePage'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
@@ -27,7 +29,11 @@ import { MyEmpire } from './MyEmpire'
 import { OwnerPanel } from './OwnerPanel'
 
 /** What the panel shows. Inside an entry the menu gives way to a single "Menu" button. */
-type View = 'menu' | 'match' | 'leaderboard' | 'resources' | 'battles' | 'unit' | 'attack'
+type View =
+  'menu' | 'match' | 'leaderboard' | 'resources' | 'merge' | 'build' | 'battles' | 'unit' | 'attack'
+
+/** The pages of the empire, which share a bar with their links. */
+const EMPIRE_PAGES = ['resources', 'merge', 'build'] as const
 
 function MatchInfo({ state }: { state: MatchState }) {
   const { t } = useTranslation()
@@ -104,6 +110,11 @@ export function MatchPage() {
   // The attack being prepared: its target and the own territories chosen so far.
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
+  // Territories being chosen for a merge, and the structure a territory is being chosen for.
+  const [merging, setMerging] = useState<string[]>([])
+  const [building, setBuilding] = useState<{ type: string; territoryId: string | null } | null>(
+    null,
+  )
 
   const hasMap = state !== undefined && state.match.status !== 'DRAFT'
   const area = useQuery({
@@ -117,6 +128,23 @@ export function MatchPage() {
     queryFn: () => matchApi.units(id),
     enabled: hasMap,
     staleTime: Infinity,
+  })
+
+  const hasAreas = state?.territories.some((territory) => territory.isArea) ?? false
+  const areas = useQuery({
+    // Read again when the areas change: a merge, a rename, a conquest.
+    queryKey: [
+      'matches',
+      'areas',
+      id,
+      state?.territories
+        .filter((territory) => territory.isArea)
+        .map((territory) => `${territory.id}:${territory.name}:${territory.geoUnitIds.length}`)
+        .join('|'),
+    ],
+    queryFn: () => matchApi.areas(id),
+    enabled: hasMap && hasAreas,
+    placeholderData: (previous) => previous,
   })
 
   // Who owns each municipality, for the map and for the box of the selected one.
@@ -171,17 +199,49 @@ export function MatchPage() {
         ...(territory.alert
           ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
           : []),
+        // Structures are read by their effects, so new ones with the same effects are drawn too.
+        ...(state?.structures ?? [])
+          .filter((structure) => structure.territoryId === territory.id)
+          .flatMap((structure): MapMarker[] => [
+            ...(structure.effects.includes('NO_ATTACK_ON')
+              ? [
+                  {
+                    id: `block:${structure.id}`,
+                    kind: 'block' as const,
+                    text: structure.turnsLeft === null ? '' : String(structure.turnsLeft),
+                    ...at,
+                  },
+                ]
+              : []),
+            ...(structure.effects.includes('BACKUP_CAPITAL')
+              ? [
+                  {
+                    id: `second:${structure.id}`,
+                    kind: 'second-capital' as const,
+                    color: state?.empires.find((e) => e.id === structure.empireId)?.color,
+                    ...at,
+                  },
+                ]
+              : []),
+          ]),
       ]
     })
   }, [state, units.data])
 
   const mineId = state?.me?.empireId
+  const pickingOwn = chosenView === 'merge' || chosenView === 'build'
   // What is lit on the map: the empire pointed at in the ranking, or the free
   // neighbours of the player's own municipality that is selected.
   const highlighted = useMemo(() => {
     if (hoveredEmpire) {
       return (state?.territories ?? [])
         .filter((territory) => territory.ownerEmpireId === hoveredEmpire)
+        .flatMap((territory) => territory.geoUnitIds)
+    }
+    // Choosing territories for a merge or a structure: the player's own are lit.
+    if (pickingOwn) {
+      return (state?.territories ?? [])
+        .filter((territory) => territory.ownerEmpireId === mineId)
         .flatMap((territory) => territory.geoUnitIds)
     }
     // While an attack is prepared: the own territories that can join it.
@@ -197,7 +257,7 @@ export function MatchPage() {
       return card.neighbours.filter((n) => n.ownerEmpireId === null).map((n) => n.geoUnitId)
     }
     return []
-  }, [attack, card, hoveredEmpire, mineId, selected?.id, state?.territories])
+  }, [attack, card, hoveredEmpire, mineId, pickingOwn, selected?.id, state?.territories])
 
   // Territories that are the target of an open battle are marked for everyone.
   const attacked = useMemo(() => {
@@ -241,8 +301,26 @@ export function MatchPage() {
     setView(next)
     setHoveredEmpire(null)
     if (next !== 'attack') setAttack(null)
+    if (next !== 'merge') setMerging([])
+    if (next !== 'build') setBuilding(null)
   }
   const onMapSelect = (unit: MapUnit | null) => {
+    // On the pages that choose own territories, a tap on the map chooses one.
+    if (view === 'merge' || view === 'build') {
+      const territory = unit ? ownership.byUnit.get(unit.id) : undefined
+      if (!territory || territory.ownerEmpireId !== mineId) return
+      if (view === 'merge') {
+        if (territory.battleId !== null) return
+        setMerging((chosen) =>
+          chosen.includes(territory.id)
+            ? chosen.filter((other) => other !== territory.id)
+            : [...chosen, territory.id],
+        )
+      } else if (building) {
+        setBuilding({ ...building, territoryId: territory.id })
+      }
+      return
+    }
     // While an attack is prepared, tapping an own territory that can join it adds or
     // removes it; any other tap is ignored, so the target is not lost by mistake.
     if (attack) {
@@ -276,9 +354,11 @@ export function MatchPage() {
       {mine && (
         <>
           <p className="font-display mt-3 px-3 text-base">{t('game.menu.empire')}</p>
-          <MenuButton indented onClick={() => open('resources')}>
-            {t('game.menu.resources')}
-          </MenuButton>
+          {EMPIRE_PAGES.map((page) => (
+            <MenuButton key={page} indented onClick={() => open(page)}>
+              {t(`game.menu.${page}`)}
+            </MenuButton>
+          ))}
         </>
       )}
     </nav>
@@ -315,6 +395,7 @@ export function MatchPage() {
           colors={ownership.colors}
           empireLabels={labels}
           markers={markers}
+          areas={hasAreas ? (areas.data ?? null) : null}
           selected={selected}
           highlightedIds={highlighted}
           attackedIds={attacked}
@@ -376,11 +457,22 @@ export function MatchPage() {
                 {t('game.menu.back')}
               </Button>
               {/* The pages of the empire share a bar with their links. */}
-              {view === 'resources' && (
-                <span className="rounded-pill border-foreground border px-3 py-0.5 text-base">
-                  {t('game.menu.resources')}
-                </span>
-              )}
+              {mine &&
+                (EMPIRE_PAGES as readonly View[]).includes(view) &&
+                EMPIRE_PAGES.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    aria-current={view === page ? 'page' : undefined}
+                    onClick={() => open(page)}
+                    className={cn(
+                      'rounded-pill hover:bg-accent cursor-pointer border px-3 py-0.5 text-base',
+                      view === page ? 'border-foreground font-bold' : 'border-border',
+                    )}
+                  >
+                    {t(`game.menu.${page}`)}
+                  </button>
+                ))}
             </div>
             {view === 'match' && (
               <>
@@ -390,6 +482,10 @@ export function MatchPage() {
             )}
             {view === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
             {view === 'resources' && <ResourcesPage state={state} />}
+            {view === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
+            {view === 'build' && (
+              <BuildPage state={state} picking={building} onPicking={setBuilding} />
+            )}
             {view === 'unit' && selected && (
               <UnitPanel
                 key={selected.id}

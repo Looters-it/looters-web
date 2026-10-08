@@ -198,6 +198,7 @@ describe('new match', () => {
           territories: [],
           online,
           battles,
+          structures: [],
         },
       }),
       ...mapOf,
@@ -257,6 +258,7 @@ describe('match page', () => {
         territories: [brunoCapital],
         online,
         battles,
+        structures: [],
       }),
     })
     renderApp('/partite/m1')
@@ -305,6 +307,7 @@ describe('match page', () => {
       territories: [brunoCapital],
       online,
       battles,
+      structures: [],
     }
     const after = {
       match: match({ players: 2 }),
@@ -313,6 +316,7 @@ describe('match page', () => {
       territories: [brunoCapital, myCapital],
       online,
       battles,
+      structures: [],
     }
     let joined = false
     const calls = stubApi({
@@ -365,6 +369,7 @@ describe('match page', () => {
         territories: [],
         online,
         battles,
+        structures: [],
       }),
       'POST /api/matches/m1/join': () => ({
         status: 403,
@@ -389,7 +394,15 @@ describe('match page', () => {
       ...guest,
       ...options,
       ...mapOf,
-      ...open({ match: match(), me: null, empires: [], territories: [], online, battles }),
+      ...open({
+        match: match(),
+        me: null,
+        empires: [],
+        territories: [],
+        online,
+        battles,
+        structures: [],
+      }),
     })
     renderApp('/partite/m1')
     expect(await screen.findByText('Accedi per partecipare a questa partita.')).toBeInTheDocument()
@@ -407,7 +420,15 @@ describe('match page', () => {
         body: [{ id: 'a1', name: 'Provincia di Milano', parentId: null, unitCount: 133 }],
       }),
       'GET /api/matches/m1/state': () => ({
-        body: { match: current(), me: null, empires: [], territories: [], online, battles },
+        body: {
+          match: current(),
+          me: null,
+          empires: [],
+          territories: [],
+          online,
+          battles,
+          structures: [],
+        },
       }),
       'PATCH /api/matches/m1': () => ({ body: current() }),
       'POST /api/matches/m1/open': () => {

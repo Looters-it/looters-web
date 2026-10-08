@@ -11,6 +11,7 @@ import {
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './map.css'
+import type { FeatureCollection } from 'geojson'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils'
 import type { AreaMap } from './api'
 import { diffFlags, diffState } from './feature-state'
 import {
+  AREAS_SOURCE,
   ATTACKED_LAYER,
   buildStyle,
   EMPIRES_SOURCE,
@@ -37,11 +39,13 @@ export interface MapUnit {
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
 export interface MapMarker {
   id: string
-  kind: 'capital' | 'alert'
+  kind: 'capital' | 'second-capital' | 'alert' | 'block'
   lon: number
   lat: number
   /** Colour of the empire, for a capital. */
   color?: string
+  /** Short text drawn on the sign: the turns a block still lasts. */
+  text?: string
 }
 
 /** A name drawn over an empire at low zoom. */
@@ -69,6 +73,8 @@ interface Props {
   colors?: ReadonlyMap<number, string>
   empireLabels?: readonly EmpireLabel[]
   markers?: readonly MapMarker[]
+  /** Outlines of merged areas, each drawn as one polygon with its name. */
+  areas?: FeatureCollection | null
   selected?: MapUnit | null
   highlightedIds?: readonly number[]
   /** Municipalities under attack, marked for everyone with a pulsing red border. */
@@ -96,6 +102,7 @@ export function GameMap({
   colors = NO_COLORS,
   empireLabels = NO_LABELS,
   markers = NO_MARKERS,
+  areas = null,
   selected = null,
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
@@ -278,10 +285,18 @@ export function GameMap({
       features: markers.map((marker) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
-        properties: { kind: marker.kind, color: marker.color ?? '' },
+        properties: { kind: marker.kind, color: marker.color ?? '', text: marker.text ?? '' },
       })),
     })
   }, [markers, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map
+      .getSource<GeoJSONSource>(AREAS_SOURCE)
+      ?.setData(areas ?? { type: 'FeatureCollection', features: [] })
+  }, [areas, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
   const anchored = anchor && anchor.id === selected?.id ? anchor.at : null
