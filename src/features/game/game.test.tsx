@@ -1739,3 +1739,101 @@ describe('alliances', () => {
     expect(colorOf(8)).toBe('#d9ccbf')
   })
 })
+
+describe('history of the turns', () => {
+  const routes = (calls: { turns?: number[] } = {}) => ({
+    ...asAnna,
+    ...mapRoutes,
+    'GET /api/matches/m1/board': () => ({ body: [] }),
+    'GET /api/matches/m1/state': () => ({ body: running(mine) }),
+    'GET /api/matches/m1/history': () => ({
+      body: [
+        { turn: 2, closedAt: '2026-01-02', events: 1 },
+        { turn: 1, closedAt: '2026-01-01', events: 0 },
+      ],
+    }),
+    'GET /api/matches/m1/history/2': () => {
+      calls.turns?.push(2)
+      return {
+        body: {
+          turn: 2,
+          closedAt: '2026-01-02',
+          events: [
+            {
+              id: 'e1',
+              type: 'ANNEXED',
+              turn: 2,
+              createdAt: '2026-01-02',
+              empireId: 'anna',
+              territoryId: 'ta2',
+              geoUnitId: 2,
+              data: { empireName: 'Ducato del Ticino', territoryName: 'Monza' },
+            },
+          ],
+          // At the end of turn 2 Lodi was Anna's and Monza still Bruno's.
+          ownership: { '1': 'anna', '9': 'anna', '2': 'bruno' },
+        },
+      }
+    },
+    'GET /api/matches/m1/history/1': () => ({
+      body: { turn: 1, closedAt: '2026-01-01', events: [], ownership: { '1': 'anna' } },
+    }),
+  })
+
+  it('lists the closed turns as cards that open on what happened', async () => {
+    stubApi(routes())
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Storico dei turni' }))
+
+    const second = await screen.findByRole('button', { name: /Turno 2/ })
+    expect(second).toHaveTextContent('1 evento')
+    expect(second).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: /Turno 1/ })).toHaveTextContent('0 eventi')
+
+    await userEvent.click(second)
+    expect(second).toHaveAttribute('aria-expanded', 'true')
+    expect(await screen.findByText(/Ducato del Ticino.*Monza/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mostra Monza sulla mappa' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /Turno 1/ }))
+    expect(
+      await screen.findByText('In questo turno non è successo niente da annunciare.'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the map as it was, moves between turns and comes back to the present', async () => {
+    stubApi(routes())
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    const colorOf = (id: number) => map.state.get(id)?.color
+    await waitFor(() => expect(colorOf(9)).toBe('#aa0000'))
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Storico dei turni' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Turno 2/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Rivedi sulla mappa' }))
+
+    const bar = await screen.findByRole('group', { name: 'Revisione dello storico' })
+    expect(within(bar).getByRole('status')).toHaveTextContent('Mappa alla fine del turno 2')
+    // The colours are those of the owners of then; the views of the present give way.
+    await waitFor(() => expect(colorOf(9)).toBe('#00aa00'))
+    expect(colorOf(2)).toBe('#aa0000')
+    expect(screen.queryByRole('group', { name: 'Vista della mappa' })).not.toBeInTheDocument()
+    expect(within(bar).getByRole('button', { name: 'Turno successivo' })).toBeDisabled()
+
+    // A tap on the map says who owned the municipality then, without opening its card.
+    act(() => map.click({ id: 9, name: 'Lodi' }))
+    expect(await screen.findByText('Impero: Ducato del Ticino')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Storico dei turni' })).toBeInTheDocument()
+
+    await userEvent.click(within(bar).getByRole('button', { name: 'Turno precedente' }))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Mappa alla fine del turno 1'),
+    )
+    await waitFor(() => expect(colorOf(9)).toBeUndefined())
+    expect(screen.getByRole('button', { name: 'Turno precedente' })).toBeDisabled()
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Torna al presente' })[0])
+    await waitFor(() => expect(colorOf(9)).toBe('#aa0000'))
+    expect(screen.getByRole('group', { name: 'Vista della mappa' })).toBeInTheDocument()
+  })
+})

@@ -450,7 +450,8 @@
       "merge": "Unisci territori",
       "build": "Costruzioni",
       "phoneBoard": "Bacheca",
-      "alliance": "Alleanza"
+      "alliance": "Alleanza",
+      "history": "Storico dei turni"
     },
     "leaderboard": {
       "title": "Classifica",
@@ -732,6 +733,20 @@
       "chatEmpty": "Ancora nessun messaggio.",
       "chatWrite": "Scrivi agli alleati",
       "chatSend": "Invia"
+    },
+    "history": {
+      "title": "Storico dei turni",
+      "empty": "Nessun turno si è ancora chiuso.",
+      "turn": "Turno {{turn}}",
+      "events_one": "{{count}} evento",
+      "events_other": "{{count}} eventi",
+      "nothing": "In questo turno non è successo niente da annunciare.",
+      "review": "Rivedi sulla mappa",
+      "present": "Torna al presente",
+      "reviewing": "Mappa alla fine del turno {{turn}}",
+      "previous": "Turno precedente",
+      "next": "Turno successivo",
+      "bar": "Revisione dello storico"
     }
   }
 }

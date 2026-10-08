@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
@@ -11,6 +12,8 @@ import { BattlesPage } from '@/features/game/BattlesPage'
 import { Board } from '@/features/game/Board'
 import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
+import { historyQuery, turnQuery } from '@/features/game/history'
+import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
@@ -41,12 +44,14 @@ type View =
   | 'build'
   | 'alliance'
   | 'battles'
+  | 'history'
   | 'unit'
   | 'attack'
 
 /** The pages of the empire, which share a bar with their links. */
 const EMPIRE_PAGES = ['resources', 'merge', 'build', 'alliance'] as const
 
+const NOTHING: never[] = []
 const MAP_VIEWS: MapView[] = ['political', 'alliances', 'resources']
 /** Map paint needs literal colours: the neutral tone and the scale of the resources view. */
 const MAP_TONES = {
@@ -124,6 +129,8 @@ export function MatchPage() {
   const [chosenView, setView] = useState<View | null>(null)
   const [hoveredEmpire, setHoveredEmpire] = useState<string | null>(null)
   const [mapView, setMapView] = useState<MapView>('political')
+  // The closed turn shown on the map instead of the present, while the history is reviewed.
+  const [review, setReview] = useState<number | null>(null)
   const [card, setCard] = useState<UnitCardData | null>(null)
   const [focus, setFocus] = useState<{ lon: number; lat: number } | null>(null)
   const [phoneTab, setPhoneTab] = useState<'map' | 'panel' | 'board'>('map')
@@ -166,6 +173,20 @@ export function MatchPage() {
     enabled: hasMap && hasAreas,
     placeholderData: (previous) => previous,
   })
+
+  const closedTurns = useQuery({ ...historyQuery(id), enabled: review !== null })
+  const past = useQuery({ ...turnQuery(id, review ?? 0), enabled: review !== null }).data
+  const reviewing = review !== null && past?.turn === review ? past : null
+  const reviewTurns = closedTurns.data?.map((entry) => entry.turn) ?? []
+  const pastColors = useMemo(() => {
+    const colorOf = new Map(state?.empires.map((empire) => [empire.id, empire.color]))
+    const colors = new Map<number, string>()
+    for (const [unitId, empireId] of Object.entries(reviewing?.ownership ?? {})) {
+      const color = colorOf.get(empireId)
+      if (color) colors.set(Number(unitId), color)
+    }
+    return colors
+  }, [reviewing, state?.empires])
 
   // Who owns each municipality, for the map and for the box of the selected one.
   const ownership = useMemo(() => {
@@ -327,6 +348,11 @@ export function MatchPage() {
     if (next !== 'build') setBuilding(null)
   }
   const onMapSelect = (unit: MapUnit | null) => {
+    // Looking at the past: the box says who owned the municipality then, nothing else opens.
+    if (reviewing) {
+      setSelected(unit)
+      return
+    }
     // On the pages that choose own territories, a tap on the map chooses one.
     if (view === 'merge' || view === 'build') {
       const territory = unit ? ownership.byUnit.get(unit.id) : undefined
@@ -372,6 +398,9 @@ export function MatchPage() {
       )}
       {match.status === 'RUNNING' && (
         <MenuButton onClick={() => open('battles')}>{t('game.menu.battles')}</MenuButton>
+      )}
+      {(match.status === 'RUNNING' || match.status === 'FINISHED') && (
+        <MenuButton onClick={() => open('history')}>{t('game.menu.history')}</MenuButton>
       )}
       {mine && (
         <>
@@ -420,16 +449,31 @@ export function MatchPage() {
         >
           <LazyGameMap
             area={area.data}
-            colors={ownership.colors}
-            empireLabels={labels}
-            markers={markers}
-            areas={hasAreas ? (areas.data ?? null) : null}
+            colors={reviewing ? pastColors : ownership.colors}
+            empireLabels={reviewing ? NOTHING : labels}
+            markers={reviewing ? NOTHING : markers}
+            areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             selected={selected}
-            highlightedIds={highlighted}
-            attackedIds={attacked}
+            highlightedIds={reviewing ? NOTHING : highlighted}
+            attackedIds={reviewing ? NOTHING : attacked}
             focus={focus}
             onSelect={onMapSelect}
             renderInfo={(unit) => {
+              if (reviewing) {
+                const then = ownership.empires.get(reviewing.ownership[String(unit.id)] ?? '')
+                return (
+                  <UnitCard name={unit.name}>
+                    {then ? (
+                      <p className="flex items-center gap-2">
+                        <EmpireShield color={then.color} emblem={then.emblem} className="size-6" />
+                        {t('match.unit.owned', { name: then.name })}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">{t('match.unit.free')}</p>
+                    )}
+                  </UnitCard>
+                )
+              }
               const territory = ownership.byUnit.get(unit.id)
               const empire = territory && ownership.empires.get(territory.ownerEmpireId)
               return (
@@ -462,26 +506,59 @@ export function MatchPage() {
             }}
             className="h-full"
           />
-          <div
-            role="group"
-            aria-label={t('game.map.view')}
-            className="bg-background absolute top-3 left-3 z-10 flex overflow-hidden rounded-md border"
-          >
-            {MAP_VIEWS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={mapView === option}
-                onClick={() => setMapView(option)}
-                className={cn(
-                  'cursor-pointer px-3 py-1.5 text-base font-bold transition-colors',
-                  mapView === option ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
-                )}
+          {reviewing ? (
+            <div
+              role="group"
+              aria-label={t('game.history.bar')}
+              className="bg-background absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5"
+            >
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t('game.history.previous')}
+                disabled={!reviewTurns.includes(reviewing.turn - 1)}
+                onClick={() => setReview(reviewing.turn - 1)}
               >
-                {t(`game.map.${option}`)}
-              </button>
-            ))}
-          </div>
+                <ChevronLeft aria-hidden />
+              </Button>
+              <p role="status" className="font-bold">
+                {t('game.history.reviewing', { turn: reviewing.turn })}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t('game.history.next')}
+                disabled={!reviewTurns.includes(reviewing.turn + 1)}
+                onClick={() => setReview(reviewing.turn + 1)}
+              >
+                <ChevronRight aria-hidden />
+              </Button>
+              <Button size="sm" onClick={() => setReview(null)}>
+                {t('game.history.present')}
+              </Button>
+            </div>
+          ) : (
+            <div
+              role="group"
+              aria-label={t('game.map.view')}
+              className="bg-background absolute top-3 left-3 z-10 flex overflow-hidden rounded-md border"
+            >
+              {MAP_VIEWS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={mapView === option}
+                  onClick={() => setMapView(option)}
+                  className={cn(
+                    'cursor-pointer px-3 py-1.5 text-base font-bold transition-colors',
+                    mapView === option ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                  )}
+                >
+                  {t(`game.map.${option}`)}
+                </button>
+              ))}
+            </div>
+          )}
           {/* The board sits over the map, bottom left; on a phone it has its own tab. */}
           <Board
             state={state}
@@ -541,6 +618,18 @@ export function MatchPage() {
               <BuildPage state={state} picking={building} onPicking={setBuilding} />
             )}
             {view === 'alliance' && <AlliancePage state={state} />}
+            {view === 'history' && (
+              <HistoryPage
+                state={state}
+                review={review}
+                onReview={(turn) => {
+                  setReview(turn)
+                  setSelected(null)
+                  if (turn !== null) setPhoneTab('map')
+                }}
+                onGoTo={goTo}
+              />
+            )}
             {view === 'unit' && selected && (
               <UnitPanel
                 key={selected.id}

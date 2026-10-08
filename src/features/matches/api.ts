@@ -165,6 +165,15 @@ export interface BoardEntry {
   data: Record<string, string>
 }
 
+/** A closed turn: what happened and who owned each municipality when it ended. */
+export interface TurnHistory {
+  turn: number
+  closedAt: string
+  events: BoardEntry[]
+  /** Municipality id → empire id; free municipalities are absent. */
+  ownership: Record<string, string>
+}
+
 export type BoardKind =
   'messages' | 'empires' | 'annexations' | 'battles' | 'capitals' | 'areas' | 'alliances' | 'match'
 
@@ -308,6 +317,9 @@ export const matchApi = {
     if (filters.empireId) query.set('empireId', filters.empireId)
     return apiGet<BoardEntry[]>(`/matches/${id}/board?${query.toString()}`)
   },
+  history: (id: string) =>
+    apiGet<{ turn: number; closedAt: string; events: number }[]>(`/matches/${id}/history`),
+  turn: (id: string, turn: number) => apiGet<TurnHistory>(`/matches/${id}/history/${turn}`),
   postMessage: (id: string, text: string) =>
     apiPost<{ id: string }>(`/matches/${id}/board`, { text }),
   removeMessage: (id: string, eventId: string) => apiDelete(`/matches/${id}/board/${eventId}`),
