@@ -5,6 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FakeWebSocket, guest, healthy, stubApi } from '@/test/fakes'
 import { renderApp } from '@/test/render'
 
+vi.mock('maplibre-gl', async () => {
+  const fake = await import('@/test/fake-maplibre')
+  return {
+    Map: fake.FakeMap,
+    Popup: fake.FakePopup,
+    NavigationControl: fake.FakeNavigationControl,
+    setWorkerUrl: fake.fakeSetWorkerUrl,
+  }
+})
+
 beforeEach(() => FakeWebSocket.install())
 
 describe('homepage', () => {

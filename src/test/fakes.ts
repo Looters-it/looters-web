@@ -76,4 +76,7 @@ export const healthy = {
   }),
 }
 
+/** No geographic data loaded: the homepage shows a placeholder instead of the map. */
+export const noMap = { 'GET /api/geo/areas': () => ({ body: [] }) }
+
 export const guest = { 'GET /api/auth/me': () => ({ status: 401, body: { error: {} } }) }

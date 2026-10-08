@@ -24,6 +24,12 @@
       "waiting": "in attesa",
       "loading": "verifica in corso",
       "retry": "Riprova"
+    },
+    "map": {
+      "label": "Mappa di {{name}}",
+      "free": "Comune libero",
+      "empty": "La mappa comparirà qui quando saranno caricati i confini dei comuni.",
+      "error": "La mappa non è disponibile in questo momento."
     }
   },
   "notFound": {
@@ -164,6 +170,13 @@
       "VALIDATION": "Controlla i dati inseriti.",
       "FORBIDDEN": "Non hai i permessi per questa operazione.",
       "UNAUTHENTICATED": "La sessione è terminata. Accedi di nuovo."
+    },
+    "preview": {
+      "title": "Mappa",
+      "hint": "Tocca un comune per evidenziare i suoi confinanti.",
+      "demo": "Imperi di prova",
+      "neighbours_one": "{{count}} confinante",
+      "neighbours_other": "{{count}} confinanti"
     }
   }
 }

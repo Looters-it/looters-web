@@ -1,9 +1,19 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FakeWebSocket, guest, stubApi } from '@/test/fakes'
 import { renderApp } from '@/test/render'
+
+vi.mock('maplibre-gl', async () => {
+  const fake = await import('@/test/fake-maplibre')
+  return {
+    Map: fake.FakeMap,
+    Popup: fake.FakePopup,
+    NavigationControl: fake.FakeNavigationControl,
+    setWorkerUrl: fake.fakeSetWorkerUrl,
+  }
+})
 
 beforeEach(() => FakeWebSocket.install())
 

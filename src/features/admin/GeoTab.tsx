@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import { AdjacencyTool } from './AdjacencyTool'
+import { AreaPreview } from './AreaPreview'
 import { adminApi, type GeoArea } from './api'
 import { AreaTree } from './AreaTree'
 import { useErrorText } from './hooks'
@@ -170,6 +171,13 @@ export function GeoTab() {
           )}
         </Card>
       </div>
+
+      {selected && selected.unitCount > 0 && (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg">{t('admin.preview.title')}</h2>
+          <AreaPreview key={selected.id} areaId={selected.id} />
+        </Card>
+      )}
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg">{t('admin.adjacency.title')}</h2>

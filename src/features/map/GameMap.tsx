@@ -1,0 +1,249 @@
+import {
+  Map as MapLibreMap,
+  NavigationControl,
+  Popup,
+  type GeoJSONSource,
+  setWorkerUrl,
+  type MapLayerMouseEvent,
+} from 'maplibre-gl'
+// MapLibre parses tiles in a web worker shipped as a separate file: the bundler
+// emits it as its own chunk and hands back the address.
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import './map.css'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+
+import { cn } from '@/lib/utils'
+
+import type { AreaMap } from './api'
+import { diffFlags, diffState } from './feature-state'
+import { buildStyle, EMPIRES_SOURCE, FILL_LAYER, UNITS_LAYER, UNITS_SOURCE } from './style'
+import { mapColors } from './theme'
+
+export interface MapUnit {
+  id: number
+  name: string
+}
+
+/** A name drawn over an empire at low zoom. */
+export interface EmpireLabel {
+  id: string
+  name: string
+  lon: number
+  lat: number
+  /** Municipalities controlled: larger empires win when names collide. */
+  size: number
+}
+
+setWorkerUrl(workerUrl)
+
+const NO_COLORS: ReadonlyMap<number, string> = new Map()
+const NO_IDS: readonly number[] = []
+const NO_LABELS: readonly EmpireLabel[] = []
+
+const PHONE = '(max-width: 767px)'
+
+interface Props {
+  area: AreaMap
+  /** Colour of each owned municipality; the others are drawn as free. */
+  colors?: ReadonlyMap<number, string>
+  empireLabels?: readonly EmpireLabel[]
+  selected?: MapUnit | null
+  highlightedIds?: readonly number[]
+  onSelect?: (unit: MapUnit | null) => void
+  /** Content of the box shown for the selected municipality. */
+  renderInfo?: (unit: MapUnit) => ReactNode
+  /**
+   * For a map embedded in a page that scrolls: one finger scrolls the page,
+   * two fingers (or ctrl + wheel) move the map.
+   */
+  embedded?: boolean
+  className?: string
+}
+
+/**
+ * The map of the game: OpenStreetMap underneath, municipalities on top.
+ * Geometry is loaded once as vector tiles; everything that changes during a
+ * match (owner colour, selection, highlights) is applied as feature state.
+ */
+export function GameMap({
+  area,
+  colors = NO_COLORS,
+  empireLabels = NO_LABELS,
+  selected = null,
+  highlightedIds = NO_IDS,
+  onSelect,
+  renderInfo,
+  embedded = false,
+  className,
+}: Props) {
+  const container = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<MapLibreMap | null>(null)
+  const [ready, setReady] = useState(false)
+  // What is currently applied to the map, to change only the differences.
+  const applied = useRef({
+    colors: NO_COLORS,
+    highlighted: new Set<number>(),
+    selectedId: null as number | null,
+  })
+  const onSelectRef = useRef(onSelect)
+  useEffect(() => {
+    onSelectRef.current = onSelect
+  })
+
+  // The box of the selected municipality: anchored to it on wide screens,
+  // a sheet rising from the bottom on a phone.
+  const [popupNode] = useState(() => document.createElement('div'))
+  const popupRef = useRef<Popup | null>(null)
+  const [anchor, setAnchor] = useState<[number, number] | null>(null)
+  const [phone, setPhone] = useState(() => window.matchMedia?.(PHONE).matches ?? false)
+  useEffect(() => {
+    const query = window.matchMedia?.(PHONE)
+    if (!query) return
+    const update = () => setPhone(query.matches)
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (!container.current) return
+    const map = new MapLibreMap({
+      container: container.current,
+      style: buildStyle(area, mapColors(), window.location.origin),
+      ...(area.bounds
+        ? { bounds: area.bounds, fitBoundsOptions: { padding: 24 } }
+        : { center: [12.5, 42], zoom: 5 }),
+      minZoom: 4,
+      maxZoom: 16,
+      cooperativeGestures: embedded,
+      attributionControl: { compact: true },
+      // The map is flat and north-up: rotating it would only disorient.
+      dragRotate: false,
+      pitchWithRotate: false,
+    })
+    map.touchZoomRotate.disableRotation()
+    map.keyboard.disableRotation()
+    map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+    mapRef.current = map
+    applied.current = { colors: NO_COLORS, highlighted: new Set(), selectedId: null }
+
+    let hovered: number | null = null
+    const setHover = (id: number | null) => {
+      if (hovered === id) return
+      const target = { source: UNITS_SOURCE, sourceLayer: UNITS_LAYER }
+      if (hovered !== null) map.setFeatureState({ ...target, id: hovered }, { hover: false })
+      if (id !== null) map.setFeatureState({ ...target, id }, { hover: true })
+      hovered = id
+      map.getCanvas().style.cursor = id === null ? '' : 'pointer'
+    }
+    map.on('mousemove', FILL_LAYER, (event: MapLayerMouseEvent) => {
+      const id = event.features?.[0]?.id
+      setHover(typeof id === 'number' ? id : null)
+    })
+    map.on('mouseleave', FILL_LAYER, () => setHover(null))
+
+    map.on('click', (event) => {
+      const feature = map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER] })[0]
+      if (typeof feature?.id !== 'number') {
+        onSelectRef.current?.(null)
+        return
+      }
+      setAnchor([event.lngLat.lng, event.lngLat.lat])
+      onSelectRef.current?.({ id: feature.id, name: String(feature.properties.name ?? '') })
+    })
+    map.once('load', () => setReady(true))
+
+    return () => {
+      popupRef.current?.remove()
+      popupRef.current = null
+      mapRef.current = null
+      setReady(false)
+      map.remove()
+    }
+    // A different area (or a new version of its data) is a different map.
+  }, [area, embedded])
+
+  // Owner colours: only the municipalities that changed are touched.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const target = { source: UNITS_SOURCE, sourceLayer: UNITS_LAYER }
+    const diff = diffState(applied.current.colors, colors)
+    for (const [id, color] of diff.set) map.setFeatureState({ ...target, id }, { color })
+    for (const id of diff.clear) map.removeFeatureState({ ...target, id }, 'color')
+    applied.current.colors = colors
+  }, [colors, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const target = { source: UNITS_SOURCE, sourceLayer: UNITS_LAYER }
+    const next = new Set(highlightedIds)
+    const diff = diffFlags(applied.current.highlighted, next)
+    for (const id of diff.on) map.setFeatureState({ ...target, id }, { highlight: true })
+    for (const id of diff.off) map.setFeatureState({ ...target, id }, { highlight: false })
+    applied.current.highlighted = next
+  }, [highlightedIds, ready])
+
+  const selectedId = selected?.id ?? null
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const target = { source: UNITS_SOURCE, sourceLayer: UNITS_LAYER }
+    const previous = applied.current.selectedId
+    if (previous !== null) map.setFeatureState({ ...target, id: previous }, { selected: false })
+    if (selectedId !== null) map.setFeatureState({ ...target, id: selectedId }, { selected: true })
+    applied.current.selectedId = selectedId
+  }, [selectedId, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.getSource<GeoJSONSource>(EMPIRES_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: empireLabels.map((label) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [label.lon, label.lat] },
+        properties: { name: label.name, size: label.size },
+      })),
+    })
+  }, [empireLabels, ready])
+
+  // The anchored box follows the map; on a phone the sheet below is used instead.
+  const showPopup = Boolean(selected && renderInfo && anchor && !phone)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !showPopup || !anchor) {
+      popupRef.current?.remove()
+      popupRef.current = null
+      return
+    }
+    const popup =
+      popupRef.current ??
+      new Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: 10,
+        maxWidth: '320px',
+      })
+        .setDOMContent(popupNode)
+        .addTo(map)
+    popup.setLngLat(anchor)
+    popupRef.current = popup
+  }, [anchor, popupNode, ready, showPopup])
+
+  const info = selected && renderInfo ? renderInfo(selected) : null
+
+  return (
+    <div className={cn('relative isolate overflow-hidden', className)}>
+      <div ref={container} className="h-full w-full" />
+      {info && !phone && createPortal(info, popupNode)}
+      {info && phone && (
+        <div className="animate-in bg-background slide-in-from-bottom-8 absolute inset-x-0 bottom-0 z-10 max-h-[60%] overflow-y-auto rounded-t-xl border-t p-4 duration-200">
+          {info}
+        </div>
+      )}
+    </div>
+  )
+}
