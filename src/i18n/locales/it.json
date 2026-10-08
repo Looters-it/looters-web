@@ -748,5 +748,10 @@
       "next": "Turno successivo",
       "bar": "Revisione dello storico"
     }
+  },
+  "crash": {
+    "title": "Qualcosa si è rotto",
+    "text": "La pagina ha avuto un problema imprevisto. L'errore è stato segnalato: ricarica per riprovare.",
+    "reload": "Ricarica la pagina"
   }
 }

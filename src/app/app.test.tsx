@@ -191,3 +191,39 @@ describe('routing', () => {
     expect(screen.getByRole('link', { name: 'Torna alla homepage' })).toHaveAttribute('href', '/')
   })
 })
+
+describe('a page that breaks', () => {
+  it('leaves the navbar, offers a way out and reports the error to the server', async () => {
+    const { resetReports } = await import('@/lib/report')
+    resetReports()
+    const noise = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    // A state the page cannot draw: it has no empires at all.
+    const calls = stubApi({
+      ...guest,
+      'GET /api/matches/m1/state': () => ({ body: { match: { id: 'm1', status: 'RUNNING' } } }),
+    })
+    renderApp('/partite/m1?token=secret')
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Qualcosa si è rotto')
+    expect(screen.getByRole('button', { name: 'Ricarica la pagina' })).toBeInTheDocument()
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+
+    await waitFor(() =>
+      expect(calls.some((call) => call.key === 'POST /api/client-errors')).toBe(true),
+    )
+    const report = calls.find((call) => call.key === 'POST /api/client-errors')?.body as {
+      message: string
+      path: string
+      kind: string
+      stack?: string
+    }
+    expect(report.kind).toBe('render')
+    // The path of the page, never its query string.
+    expect(report.path).toBe('/partite/m1')
+    expect(report.message).not.toBe('')
+    // Reported once, however many times the page tries again.
+    expect(calls.filter((call) => call.key === 'POST /api/client-errors')).toHaveLength(1)
+    noise.mockRestore()
+  })
+})
