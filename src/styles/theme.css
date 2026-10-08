@@ -46,30 +46,35 @@
   /* page ground of the first theme: still used by empire colours on the map */
   --color-parchment: #fef5eb;
 
-  /* roles. Neutrals are tints and shades of the palette, written as plain values because
-     the map reads them and cannot resolve a mix. */
-  --color-ground: #f3f6fb;
-  --color-surface: #e1e9f5;
-  --color-ink: #072a3e;
-  --color-dim: #1b445f;
-  --color-key: #5b7ea3;
-  --color-key-soft: #cfdbef;
-  --color-free: #dbe2ee;
-  --color-primary: var(--color-deep-space-blue);
-  --color-primary-hover: #072838;
-  --color-on-primary: #f3f6fb;
-  --color-focus: var(--color-deep-space-blue);
-  --color-ok: var(--color-hunter-green-600);
-  --color-danger: var(--color-crushed-berry-600);
-  --color-danger-hover: var(--color-crushed-berry-700);
-  --color-on-danger: var(--color-crushed-berry-50);
-  --color-shade: color-mix(in srgb, var(--color-deep-space-blue) 32%, transparent);
+  /* roles. The page is dark: everything stands on the deep blue, cards are powder blue
+     and what must be pressed is watermelon. Plain values, because the map reads them
+     and cannot resolve a mix. */
+  --color-ground: #0b3954;
+  --color-surface: #0b3954;
+  --color-ink: #f3f6fb;
+  --color-dim: #b9c9e3;
+  --color-key: #6f93b5;
+  --color-key-soft: #17506f;
+  --color-free: #3d6f8f;
+  /* what is selected or filled: powder blue on the dark ground */
+  --color-primary: var(--color-powder-blue);
+  --color-primary-hover: #b3c6e8;
+  --color-on-primary: #072a3e;
+  --color-focus: var(--color-powder-blue);
+  --color-ok: var(--color-hunter-green-300);
+  --color-danger: #ff8fa1;
+  --color-danger-hover: #ffa9b7;
+  --color-on-danger: #3a0612;
+  --color-shade: color-mix(in srgb, #000 45%, transparent);
+  /* inside a card the ground is light: text and lines turn dark (see index.css) */
+  --color-card-muted: #1b445f;
+  --color-card-link: var(--color-deep-space-blue);
 
   /* the same roles under the names shadcn/ui components expect */
   --color-background: var(--color-ground);
   --color-foreground: var(--color-ink);
   --color-card: var(--color-powder-blue);
-  --color-card-foreground: var(--color-ink);
+  --color-card-foreground: #072a3e;
   --color-popover: var(--color-ground);
   --color-popover-foreground: var(--color-ink);
   --color-primary-foreground: var(--color-on-primary);
@@ -77,7 +82,7 @@
   /* white inside, as chosen by the project owner; the hover darkens, to keep it readable */
   --color-secondary-hover: #d92f55;
   --color-secondary-foreground: #ffffff;
-  --color-muted: var(--color-surface);
+  --color-muted: #0f4160;
   --color-muted-foreground: var(--color-dim);
   --color-accent: var(--color-key-soft);
   --color-accent-foreground: var(--color-ink);

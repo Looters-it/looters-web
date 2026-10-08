@@ -57,8 +57,9 @@ const NOTHING: never[] = []
 const MAP_VIEWS: MapView[] = ['political', 'alliances', 'resources']
 /** Map paint needs literal colours: the neutral tone and the scale of the resources view. */
 const MAP_TONES = {
-  neutral: '#d5dbe6',
-  scale: ['#e3ebf7', '#c9d7ee', '#afc3e5', '#99b2dd', '#6f8fc0', '#466b9c', '#234f78', '#0b3954'],
+  neutral: '#24506d',
+  // From barely there to bright: on a dark map, more is lighter.
+  scale: ['#1d4f6e', '#2c6388', '#3f78a3', '#5b8dbb', '#7aa2cf', '#99b2dd', '#bccdea', '#e3ebf7'],
 }
 
 function MatchInfo({ state }: { state: MatchState }) {

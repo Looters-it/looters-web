@@ -74,8 +74,13 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         id: 'base',
         type: 'raster',
         source: 'base',
-        // Muted, so the map reads as part of the parchment and the empires stand out.
-        paint: { 'raster-saturation': -0.75, 'raster-opacity': 0.7, 'raster-contrast': -0.1 },
+        // Dimmed and drained, so the map sinks into the dark page and the empires stand out.
+        paint: {
+          'raster-saturation': -0.85,
+          'raster-brightness-max': 0.5,
+          'raster-opacity': 0.5,
+          'raster-contrast': 0.1,
+        },
       },
       {
         id: FILL_LAYER,

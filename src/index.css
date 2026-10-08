@@ -40,6 +40,35 @@
   }
 }
 
+/* A card is a light island on the dark page: inside it the roles that assume a dark
+   ground are given the values that read on powder blue. */
+.bg-card {
+  --color-foreground: var(--color-card-foreground);
+  --color-muted-foreground: var(--color-card-muted);
+  --color-border: #5b7ea3;
+  --color-input: var(--color-card-muted);
+  --color-ring: var(--color-deep-space-blue);
+  --color-primary: var(--color-card-link);
+  --color-primary-foreground: #f3f6fb;
+  --color-accent: #b7c8e8;
+  --color-muted: #7f9cd0;
+  --color-background: #f3f6fb;
+  --color-danger: #7a0b1a;
+  --color-ok: var(--color-hunter-green-800);
+}
+
+/* The controls MapLibre draws by itself, in the colours of the page. */
+.maplibregl-ctrl-group {
+  background: var(--color-ground) !important;
+  border: 1px solid var(--color-key);
+}
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--color-key) !important;
+}
+.maplibregl-ctrl-group .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+
 /* Every animation and transition yields to the user's preference. */
 @media (prefers-reduced-motion: reduce) {
   *,

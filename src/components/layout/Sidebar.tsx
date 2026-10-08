@@ -16,7 +16,7 @@ function Item(props: { to: string; icon: ReactNode; children: string; onClick?: 
     <Link
       to={props.to}
       onClick={props.onClick}
-      className="hover:bg-primary-hover flex items-center gap-3 rounded-md px-3 py-2.5 text-lg transition-colors [&_svg]:size-5 [&_svg]:flex-none"
+      className="hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-lg transition-colors [&_svg]:size-5 [&_svg]:flex-none"
     >
       {props.icon}
       {props.children}
@@ -140,7 +140,7 @@ export function Sidebar() {
         // Narrow: a strip that lets the page through, holding the button and the figures.
         'pointer-events-none fixed inset-x-0 top-0 z-30 flex items-start gap-2 p-2',
         // Wide: the sidebar itself.
-        'lg:bg-primary lg:text-primary-foreground lg:pointer-events-auto lg:inset-y-0 lg:right-auto lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:p-0 lg:py-5',
+        'lg:bg-background lg:text-foreground lg:pointer-events-auto lg:inset-y-0 lg:right-auto lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:border-r lg:p-0 lg:py-5',
       )}
     >
       <Button
@@ -157,11 +157,11 @@ export function Sidebar() {
       {/* The figures of the match being played: filled in by MatchBar. */}
       <div
         id="navbar-match"
-        className="pointer-events-auto lg:order-last lg:border-t lg:border-white/20 lg:px-5 lg:pt-4 lg:empty:hidden"
+        className="pointer-events-auto lg:order-last lg:border-t lg:px-5 lg:pt-4 lg:empty:hidden"
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-primary text-primary-foreground top-0 left-0 flex h-dvh w-72 max-w-[85vw] translate-x-0 translate-y-0 flex-col gap-6 rounded-none border-0 border-r px-2 py-5 sm:max-w-[85vw]">
+        <DialogContent className="bg-background text-foreground top-0 left-0 flex h-dvh w-72 max-w-[85vw] translate-x-0 translate-y-0 flex-col gap-6 rounded-none border-0 border-r px-2 py-5 sm:max-w-[85vw]">
           <DialogTitle className="sr-only">{t('nav.menu')}</DialogTitle>
           <DialogDescription className="sr-only">{t('nav.main')}</DialogDescription>
           <SidebarBody onNavigate={() => setOpen(false)} />

@@ -12,8 +12,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // What is pressed is watermelon, everywhere: the page itself is the deep blue.
         default:
-          'border-primary bg-primary text-primary-foreground hover:border-primary-hover hover:bg-primary-hover',
+          'border-secondary bg-secondary text-white hover:border-secondary-hover hover:bg-secondary-hover',
         secondary:
           'border-secondary bg-secondary text-white hover:border-secondary-hover hover:bg-secondary-hover',
         destructive:

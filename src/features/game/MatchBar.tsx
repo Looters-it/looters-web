@@ -31,7 +31,7 @@ export function MatchBar(props: {
     : null
 
   return createPortal(
-    <div className="bg-primary text-primary-foreground rounded-pill flex min-h-11 items-center gap-2 px-3 shadow-md sm:gap-4 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:rounded-none lg:bg-transparent lg:px-0 lg:shadow-none">
+    <div className="bg-background text-foreground rounded-pill max-lg:border-key flex min-h-11 items-center gap-2 border px-3 shadow-md sm:gap-4 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent lg:px-0 lg:shadow-none">
       {props.alert}
       <dl className="flex items-center gap-x-3 text-sm whitespace-nowrap sm:gap-x-5 sm:text-base lg:flex-col lg:items-stretch lg:gap-y-1.5 [&_dd]:font-mono [&_dd]:font-bold [&_div]:flex [&_div]:items-baseline [&_div]:gap-1.5 lg:[&_div]:justify-between">
         <div>

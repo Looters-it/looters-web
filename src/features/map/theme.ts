@@ -23,12 +23,12 @@ export function mapColors(): MapColors {
   return {
     ground: themeColor('ground'),
     free: themeColor('free'),
-    border: themeColor('dim'),
+    border: themeColor('key'),
     ink: themeColor('ink'),
     halo: themeColor('ground'),
-    selected: themeColor('deep-space-blue'),
-    highlight: themeColor('watermelon'),
-    attacked: themeColor('crushed-berry-600'),
+    selected: themeColor('watermelon'),
+    highlight: themeColor('powder-blue'),
+    attacked: themeColor('danger'),
   }
 }
 
