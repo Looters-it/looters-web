@@ -137,14 +137,6 @@ describe('accessibility', () => {
     await expectAccessible()
   })
 
-  it('sign-in dialog', async () => {
-    stubApi({ ...guest })
-    renderApp()
-    await userEvent.click(await screen.findByRole('button', { name: 'Accesso e registrazione' }))
-    await screen.findByRole('dialog')
-    await expectAccessible()
-  })
-
   it('sign-in page', async () => {
     stubApi({ ...guest })
     renderApp('/accesso')

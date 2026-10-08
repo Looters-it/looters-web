@@ -103,8 +103,8 @@ describe('choosing the language', () => {
       expect(preferredLanguage()).toBe('it')
       stubApi({ ...guest })
       renderApp()
-      await userEvent.click(await screen.findByRole('button', { name: 'Accesso e registrazione' }))
-      await screen.findByRole('dialog')
+      await userEvent.click(await screen.findByRole('link', { name: 'Accedi' }))
+      await screen.findByRole('heading', { name: 'Entra in Looters' })
       expect(screen.queryByRole('combobox', { name: 'Lingua' })).not.toBeInTheDocument()
     },
   )
@@ -124,7 +124,7 @@ describe('choosing the language', () => {
     stubApi({ ...guest })
     renderApp()
     expect(screen.getByRole('link', { name: 'Vai al contenuto' })).toBeInTheDocument()
-    await userEvent.click(await screen.findByRole('button', { name: 'Accesso e registrazione' }))
+    await userEvent.click(await screen.findByRole('link', { name: 'Accedi' }))
     await userEvent.click(await screen.findByRole('combobox', { name: 'Lingua' }))
     await userEvent.click(await screen.findByRole('option', { name: 'English' }))
 

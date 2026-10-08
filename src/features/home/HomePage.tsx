@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/session-context'
 
 import { HeroMap } from './HeroMap'
+import { HowItWorks } from './HowItWorks'
 import { MatchList } from './MatchList'
 
 /**
@@ -23,24 +24,25 @@ export function HomePage() {
       top: 48,
       bottom: 48,
       left: 32,
-      right: wide ? Math.round(window.innerWidth * 0.42) : 32,
+      // (The sidebar takes 15rem of the width on a wide screen.)
+      right: wide ? Math.round((window.innerWidth - 240) * 0.42) : 32,
     }
   })
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col max-lg:-mt-14">
       <div className="bg-surface relative border-b">
         <HeroMap
           fitPadding={fitPadding}
-          className="h-[52vh] min-h-80 lg:h-[calc(100vh-3.5rem-13rem)] lg:min-h-[30rem]"
+          className="h-[52vh] min-h-80 lg:h-[calc(100vh-13rem)] lg:min-h-[30rem]"
         />
         {/* The map fades into the page: to the right on a wide screen, downwards on a phone. */}
         <div
           aria-hidden="true"
           className="from-surface pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t to-transparent lg:inset-y-0 lg:right-0 lg:left-auto lg:h-auto lg:w-[58%] lg:bg-gradient-to-l lg:from-45%"
         />
-        <section className="relative z-20 flex flex-col items-start gap-5 px-4 py-8 sm:px-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[38%] lg:max-w-2xl lg:justify-center lg:py-10 lg:pr-12 lg:pl-0">
-          <h1 className="text-4xl leading-[1.05] text-balance sm:text-5xl xl:text-6xl">
+        <section className="relative z-20 flex flex-col items-start gap-5 px-4 py-8 sm:px-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[42%] lg:max-w-2xl lg:justify-center lg:py-10 lg:pr-12 lg:pl-0">
+          <h1 className="text-3xl leading-[1.1] text-balance sm:text-4xl xl:text-5xl">
             {t('home.title')}
           </h1>
           <p className="max-w-prose text-lg sm:text-xl">{t('home.intro')}</p>
@@ -59,6 +61,7 @@ export function HomePage() {
         </section>
       </div>
       <MatchList />
+      <HowItWorks />
     </div>
   )
 }

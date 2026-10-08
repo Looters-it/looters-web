@@ -1,16 +1,19 @@
 {
   "app": {
-    "name": "Looters",
-    "provisionalName": "working title"
+    "name": "Looters"
   },
   "nav": {
-    "account": "Sign in and registration",
-    "accountOf": "{{username}}'s account",
     "online_one": "player online",
     "online_other": "players online",
     "admin": "Admin dashboard",
     "skip": "Skip to content",
-    "language": "Language"
+    "language": "Language",
+    "main": "Main navigation",
+    "menu": "Navigation",
+    "myMatches": "My matches",
+    "profile": "Profile",
+    "how": "How it works",
+    "matches": "See matches in progress"
   },
   "home": {
     "title": "Loot your neighbours!",
@@ -72,6 +75,25 @@
       "annexed": "{{empire}} annexed {{name}}.",
       "conquered": "{{empire}} took {{name}} from {{other}}.",
       "defended": "{{other}} defended {{name}} against {{empire}}."
+    },
+    "how": {
+      "title": "How it works",
+      "start": {
+        "title": "Choose a municipality",
+        "text": "You enter a match by founding your State on a free municipality: it becomes your capital."
+      },
+      "grow": {
+        "title": "Annex your neighbours",
+        "text": "Every turn you earn resources and can annex the free municipalities that border yours."
+      },
+      "fight": {
+        "title": "Loot",
+        "text": "You attack other players' municipalities without knowing how many resources defend them. Whoever is attacked chooses to defend or to give up."
+      },
+      "win": {
+        "title": "Conquer the map",
+        "text": "Whoever loses their capital falls. The last State standing wins, or the richest at the deadline."
+      }
     }
   },
   "notFound": {
@@ -477,7 +499,8 @@
       "online": "In the match",
       "turn": "Turn",
       "timeLeft": "Time until the end of the turn",
-      "resources": "Resources"
+      "resources": "Resources",
+      "timeLeftShort": "Turn ends"
     },
     "menu": {
       "title": "Menu",
@@ -830,5 +853,13 @@
     "title": "Something broke",
     "text": "The page ran into an unexpected problem. The error has been reported: reload to try again.",
     "reload": "Reload the page"
+  },
+  "profile": {
+    "title": "Profile",
+    "role": "Role",
+    "roles": {
+      "USER": "Player",
+      "ADMIN": "Admin"
+    }
   }
 }

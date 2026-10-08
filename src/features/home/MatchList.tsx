@@ -137,7 +137,11 @@ export function MatchList() {
   return (
     <div className="mx-auto flex w-full max-w-[100rem] flex-col gap-8 px-4 py-8 sm:px-8">
       {mine.data && mine.data.length > 0 && (
-        <section className="flex flex-col gap-3" aria-labelledby="my-matches">
+        <section
+          id="mie-partite"
+          className="flex scroll-mt-16 flex-col gap-3"
+          aria-labelledby="my-matches"
+        >
           <h2 id="my-matches" className="text-2xl">
             {t('home.matches.mine')}
           </h2>
@@ -149,7 +153,11 @@ export function MatchList() {
         </section>
       )}
 
-      <section className="flex flex-col gap-3" aria-labelledby="active-matches">
+      <section
+        id="partite"
+        className="flex scroll-mt-16 flex-col gap-3"
+        aria-labelledby="active-matches"
+      >
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <h2 id="active-matches" className="text-2xl">
             {t('home.matches.title')}

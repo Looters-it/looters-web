@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router'
 
 import { AdminPage } from '@/features/admin/AdminPage'
 import { AuthPage } from '@/features/auth/AuthPage'
+import { ProfilePage } from '@/features/auth/ProfilePage'
 import { MatchPage } from '@/features/matches/MatchPage'
 import { NewMatchPage } from '@/features/matches/NewMatchPage'
 import { HomePage } from '@/features/home/HomePage'
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
         children: [
           { path: '/', element: <HomePage /> },
           { path: '/accesso', element: <AuthPage /> },
+          { path: '/profilo', element: <ProfilePage /> },
           { path: '/admin', element: <AdminPage /> },
           { path: '/partite/nuova', element: <NewMatchPage /> },
           { path: '/partite/:id', element: <MatchPage /> },

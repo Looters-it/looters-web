@@ -1,16 +1,19 @@
 {
   "app": {
-    "name": "Looters",
-    "provisionalName": "nome provvisorio"
+    "name": "Looters"
   },
   "nav": {
-    "account": "Accesso e registrazione",
-    "accountOf": "Account di {{username}}",
     "online_one": "giocatore connesso",
     "online_other": "giocatori connessi",
     "admin": "Dashboard admin",
     "skip": "Vai al contenuto",
-    "language": "Lingua"
+    "language": "Lingua",
+    "main": "Navigazione principale",
+    "menu": "Navigazione",
+    "myMatches": "Le mie partite",
+    "profile": "Profilo",
+    "how": "Come funziona",
+    "matches": "Vedi partite in corso"
   },
   "home": {
     "title": "Saccheggia i tuoi vicini!",
@@ -72,6 +75,25 @@
       "annexed": "{{empire}} ha annesso {{name}}.",
       "conquered": "{{empire}} ha conquistato {{name}} a {{other}}.",
       "defended": "{{other}} ha difeso {{name}} da {{empire}}."
+    },
+    "how": {
+      "title": "Come funziona",
+      "start": {
+        "title": "Scegli un comune",
+        "text": "Entri in una partita fondando il tuo Stato su un comune libero: diventa la tua capitale."
+      },
+      "grow": {
+        "title": "Annetti i vicini",
+        "text": "A ogni turno guadagni risorse e puoi annettere i comuni liberi che confinano con i tuoi."
+      },
+      "fight": {
+        "title": "Saccheggia",
+        "text": "Attacchi i comuni degli altri senza sapere quante risorse li difendono. Chi viene attaccato sceglie se difendersi o cedere."
+      },
+      "win": {
+        "title": "Conquista la mappa",
+        "text": "Chi perde la capitale cade. Vince l'ultimo Stato rimasto, o il più ricco alla scadenza."
+      }
     }
   },
   "notFound": {
@@ -477,7 +499,8 @@
       "online": "In partita",
       "turn": "Turno",
       "timeLeft": "Tempo alla fine del turno",
-      "resources": "Risorse"
+      "resources": "Risorse",
+      "timeLeftShort": "Fine turno"
     },
     "menu": {
       "title": "Menu",
@@ -830,5 +853,13 @@
     "title": "Qualcosa si è rotto",
     "text": "La pagina ha avuto un problema imprevisto. L'errore è stato segnalato: ricarica per riprovare.",
     "reload": "Ricarica la pagina"
+  },
+  "profile": {
+    "title": "Profilo",
+    "role": "Ruolo",
+    "roles": {
+      "USER": "Giocatore",
+      "ADMIN": "Admin"
+    }
   }
 }

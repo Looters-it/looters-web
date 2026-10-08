@@ -1,0 +1,35 @@
+import { useTranslation } from 'react-i18next'
+
+const STEPS = ['start', 'grow', 'fight', 'win'] as const
+
+/** The game in four steps, for who arrives without knowing it ("Come funziona"). */
+export function HowItWorks() {
+  const { t } = useTranslation()
+  return (
+    <section
+      id="come-funziona"
+      aria-labelledby="how-title"
+      className="bg-surface scroll-mt-16 border-t px-4 py-10 sm:px-8"
+    >
+      <div className="mx-auto flex max-w-[100rem] flex-col gap-6">
+        <h2 id="how-title" className="text-2xl">
+          {t('home.how.title')}
+        </h2>
+        <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {STEPS.map((step, index) => (
+            <li
+              key={step}
+              className="bg-card text-card-foreground flex flex-col gap-2 rounded-lg border p-4"
+            >
+              <span aria-hidden="true" className="font-display text-3xl">
+                {index + 1}
+              </span>
+              <b className="font-display text-lg font-normal">{t(`home.how.${step}.title`)}</b>
+              <p>{t(`home.how.${step}.text`)}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}

@@ -13,7 +13,7 @@ export function OnlineCounter() {
     <p className="flex items-center gap-2 whitespace-nowrap" aria-live="polite">
       <span className="bg-hunter-green-300 size-2 rounded-full" aria-hidden="true" />
       <RollingNumber value={online} className="text-lg font-bold" />
-      <span className="hidden sm:inline">{t('nav.online', { count: online })}</span>
+      <span className="text-base">{t('nav.online', { count: online })}</span>
     </p>
   )
 }

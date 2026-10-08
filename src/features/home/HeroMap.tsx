@@ -164,7 +164,7 @@ export function HeroMap({
         className="h-full w-full"
       />
       {/* Said on the map itself: nobody should take this for a match being played. */}
-      <p className="bg-background rounded-pill absolute top-3 left-3 z-10 border px-3 py-1 text-sm">
+      <p className="bg-background rounded-pill absolute top-16 left-3 z-10 border px-3 py-1 text-sm lg:top-3">
         {t('home.demo.badge')}
       </p>
       {/* The chronicle of the demonstration: decoration, not news to be announced. */}

@@ -466,7 +466,7 @@ export function MatchPage() {
   )
 
   return (
-    <div className="flex flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
+    <div className="flex flex-col max-lg:-mt-14 md:h-dvh md:flex-row">
       <MatchBar
         state={state}
         connected={connected}
@@ -476,7 +476,7 @@ export function MatchPage() {
       {hasMap && area.data ? (
         <div
           className={cn(
-            'relative h-[calc(100dvh-7rem)] flex-none md:h-auto md:flex-1',
+            'relative h-[calc(100dvh-3.5rem)] flex-none md:h-auto md:flex-1',
             phoneTab !== 'map' && 'hidden md:block',
           )}
         >
@@ -550,7 +550,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.history.bar')}
-              className="bg-background absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5"
+              className="bg-background absolute top-16 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5 lg:top-3"
             >
               <Button
                 variant="ghost"
@@ -581,7 +581,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.map.view')}
-              className="bg-background absolute top-3 left-3 z-10 flex overflow-hidden rounded-md border"
+              className="bg-background absolute top-16 left-3 z-10 flex overflow-hidden rounded-md border lg:top-3"
             >
               {MAP_VIEWS.map((option) => (
                 <button
@@ -612,7 +612,7 @@ export function MatchPage() {
               }
             }}
             className={cn(
-              'absolute top-14 left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors',
+              'absolute top-[6.75rem] left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors lg:top-14',
               showTags ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
             )}
           >
@@ -631,7 +631,7 @@ export function MatchPage() {
 
       <aside
         className={cn(
-          'flex w-full flex-col gap-5 overflow-y-auto p-4 pb-20 md:w-[26rem] md:flex-none md:border-l md:pb-4',
+          'flex w-full flex-col gap-5 overflow-y-auto p-4 pb-20 max-lg:pt-16 md:w-[26rem] md:flex-none md:border-l md:pb-4',
           hasMap && phoneTab !== 'panel' && 'hidden md:flex',
         )}
       >
@@ -736,7 +736,7 @@ export function MatchPage() {
       </aside>
 
       {hasMap && phoneTab === 'board' && (
-        <div className="h-[calc(100dvh-7rem)] md:hidden">
+        <div className="h-[calc(100dvh-3.5rem)] pt-14 md:hidden">
           <Board state={state} onGoTo={goTo} full />
         </div>
       )}

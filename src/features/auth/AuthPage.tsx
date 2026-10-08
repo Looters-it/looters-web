@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
+import { LanguageSelect } from '@/i18n/LanguageSelect'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { LoginForm, RegisterForm } from './AuthForms'
@@ -62,6 +63,8 @@ export function AuthPage() {
           </TabsContent>
         </Tabs>
       </div>
+      {/* A guest has no account panel: the language is chosen here. */}
+      <LanguageSelect />
       <Link to="/" className="hover:text-primary self-start underline underline-offset-2">
         {t('notFound.back')}
       </Link>

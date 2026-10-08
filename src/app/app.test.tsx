@@ -156,11 +156,11 @@ describe('online counter', () => {
   })
 })
 
-describe('account popover', () => {
+describe('account in the navbar', () => {
   const mario = { id: 'u1', username: 'mario_rossi', role: 'USER' }
 
   async function openAccount() {
-    await userEvent.click(await screen.findByRole('button', { name: 'Accesso e registrazione' }))
+    await userEvent.click(await screen.findByRole('link', { name: 'Accedi' }))
   }
 
   it('signs in with username and password and reopens the socket', async () => {
@@ -173,7 +173,7 @@ describe('account popover', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'password-123')
     await userEvent.click(screen.getByRole('button', { name: 'Accedi' }))
 
-    expect(await screen.findByRole('button', { name: 'Account di mario_rossi' })).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'Esci' })).toBeVisible()
     expect(calls.find((call) => call.key === 'POST /api/auth/login')?.body).toEqual({
       username: 'mario_rossi',
       password: 'password-123',
@@ -217,7 +217,7 @@ describe('account popover', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'password-123')
     await userEvent.click(screen.getByRole('button', { name: "Crea l'account" }))
 
-    expect(await screen.findByRole('button', { name: 'Account di mario_rossi' })).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'Esci' })).toBeVisible()
     expect(calls.find((call) => call.key === 'POST /api/auth/register')?.body).toEqual({
       username: 'mario_rossi',
       email: 'mario@example.test',
@@ -252,23 +252,30 @@ describe('account popover', () => {
     })
     renderApp()
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Account di mario_rossi' }))
+    // The sidebar says who is signed in and holds the way out.
+    expect(await screen.findByText('mario_rossi')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Le mie partite' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Profilo' })).toHaveAttribute('href', '/profilo')
     await userEvent.click(screen.getByRole('button', { name: 'Esci' }))
 
-    expect(await screen.findByRole('tab', { name: 'Accedi' })).toBeVisible()
+    // A guest again: the entries of a guest, and the way in.
+    expect(await screen.findByRole('link', { name: 'Accedi' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Come funziona' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Vedi partite in corso' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Profilo' })).not.toBeInTheDocument()
     await waitFor(() => expect(calls.some((c) => c.key === 'POST /api/auth/logout')).toBe(true))
   })
 
   it('signs the user out and explains when the server revokes the session', async () => {
     stubApi({ 'GET /api/auth/me': () => ({ body: mario }) })
     renderApp()
-    await screen.findByRole('button', { name: 'Account di mario_rossi' })
+    await screen.findByRole('button', { name: 'Esci' })
     const revoked = FakeWebSocket.latest
 
     act(() => revoked.receive({ t: 'session.revoked' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('La tua sessione è terminata')
-    expect(screen.getByRole('button', { name: 'Accesso e registrazione' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Accedi' })).toBeInTheDocument()
     expect(FakeWebSocket.latest).not.toBe(revoked)
   })
 })
@@ -316,5 +323,20 @@ describe('a page that breaks', () => {
     // Reported once, however many times the page tries again.
     expect(calls.filter((call) => call.key === 'POST /api/client-errors')).toHaveLength(1)
     noise.mockRestore()
+  })
+})
+
+describe('profile page', () => {
+  it('shows who the player is and lets them change the language; a guest is sent to sign in', async () => {
+    stubApi({ 'GET /api/auth/me': () => ({ body: { id: 'u1', username: 'anna', role: 'USER' } }) })
+    const view = renderApp('/profilo')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Profilo' })).toBeVisible()
+    expect(screen.getByText('Giocatore')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Lingua' })).toBeInTheDocument()
+    view.unmount()
+
+    stubApi({ ...guest })
+    renderApp('/profilo')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Entra in Looters' })).toBeVisible()
   })
 })

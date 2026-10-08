@@ -86,10 +86,9 @@
   --color-input: var(--color-key);
   --color-ring: var(--color-focus);
 
-  --font-display: "Alfa Slab One", "Rockwell", Georgia, serif;
+  --font-display: "Chango", "Alfa Slab One", "Rockwell", Georgia, serif;
   /* body and interface text; the token keeps the name Tailwind and shadcn/ui read */
-  /* EB Garamond is loaded with the underscore only: Sorts Mill Goudy draws it almost invisible */
-  --font-sans: "EB Garamond", "Sorts Mill Goudy", "Goudy Old Style", Georgia, serif;
+  --font-sans: "Cantarell", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Overpass Mono", ui-monospace, Menlo, monospace;
   --radius-panel: 6px;
   --radius-pill: 999px;
