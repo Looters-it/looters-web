@@ -48,6 +48,8 @@ export interface Empire {
   motto: string | null
   status: 'ACTIVE' | 'FALLEN'
   username: string
+  /** Played by the server, not by a person. */
+  isBot: boolean
   capitalTerritoryId: string | null
   /** Municipalities controlled. */
   units: number

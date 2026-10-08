@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Bot } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useSession } from '@/features/auth/session-context'
@@ -89,8 +90,16 @@ export function Leaderboard(props: {
                       </span>
                     )}
                   </p>
-                  <p className="text-muted-foreground truncate text-base">
-                    {empire.username}
+                  <p className="text-muted-foreground flex items-center gap-1 truncate text-base">
+                    {empire.isBot ? (
+                      // A bot has no player behind it: said with a sign and a word, not a made-up name.
+                      <>
+                        <Bot aria-hidden className="size-4 flex-none" />
+                        {t('game.leaderboard.bot')}
+                      </>
+                    ) : (
+                      empire.username
+                    )}
                     {empire.status === 'FALLEN' &&
                       empire.fallenTurn !== null &&
                       ` · ${t('game.end.fallen', { turn: empire.fallenTurn })}`}

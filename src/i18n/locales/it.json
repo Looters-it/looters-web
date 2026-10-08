@@ -249,7 +249,9 @@
       "inviteCode": "Codice d'invito",
       "inviteCodeHint": "Vuoto: partita pubblica",
       "rules": "Regole di gioco",
-      "rulesLocked": "Le regole non si possono più cambiare: le iscrizioni sono aperte."
+      "rulesLocked": "Le regole non si possono più cambiare: le iscrizioni sono aperte.",
+      "bots": "Aggiungi imperi bot",
+      "botsHint": "Imperi guidati dal gioco, che nascono su comuni liberi nel corso dei turni e giocano da soli: annettono, attaccano e si difendono come un giocatore. Basta così un solo giocatore per fare una partita. Quanti e quanto spesso si decide nelle regole."
     },
     "ruleGroups": {
       "start": "Avvio",
@@ -259,7 +261,8 @@
       "capital": "Capitale e allerta",
       "structures": "Strutture",
       "alliances": "Alleanze",
-      "board": "Bacheca"
+      "board": "Bacheca",
+      "bots": "Bot"
     },
     "rules": {
       "minPlayersToStart": "Giocatori minimi per partire",
@@ -290,7 +293,10 @@
       "allianceLeaveNoticeTurns": "Preavviso di uscita, in turni",
       "boardMaxChars": "Lunghezza massima di un messaggio",
       "boardMessageIntervalSec": "Secondi di attesa tra due messaggi di un impero",
-      "allianceMaxAllies": "Alleati massimi per impero"
+      "allianceMaxAllies": "Alleati massimi per impero",
+      "botsEnabled": "Imperi bot",
+      "botsMax": "Bot al massimo in una partita",
+      "botSpawnChancePct": "Probabilità che nasca un bot a ogni turno (%)"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -477,7 +483,8 @@
     },
     "leaderboard": {
       "title": "Classifica",
-      "share": "Ripartizione dei comuni tra gli imperi"
+      "share": "Ripartizione dei comuni tra gli imperi",
+      "bot": "Bot"
     },
     "resources": {
       "title": "Risorse per comune",

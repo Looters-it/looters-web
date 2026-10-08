@@ -263,6 +263,8 @@ describe('panel menu', () => {
       .filter((item) => item.textContent?.includes('comun'))
     expect(cards[0]).toHaveTextContent('1Ducato del TicinoDTanna2 comuni')
     expect(cards[1]).toHaveTextContent('2Repubblica AmbrosianaRAbruno1 comune')
+    // An empire played by the server says so in place of a player's name.
+    expect(cards[1]).not.toHaveTextContent('Bot')
     // Never a total of resources in the ranking.
     expect(screen.queryByText(/risorse/i, { selector: 'ol *' })).not.toBeInTheDocument()
 
@@ -1900,5 +1902,29 @@ describe('history of the turns', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Torna al presente' })[0])
     await waitFor(() => expect(colorOf(9)).toBe('#aa0000'))
     expect(screen.getByRole('group', { name: 'Vista della mappa' })).toBeInTheDocument()
+  })
+})
+
+describe('bots', () => {
+  it('marks in the leaderboard the empires played by the server', async () => {
+    const state = running(mine)
+    state.empires = [
+      { ...state.empires[0]!, isBot: true, username: 'bot_3f9a1c' } as never,
+      state.empires[1]!,
+    ]
+    stubApi({ ...asAnna, ...mapRoutes, 'GET /api/matches/m1/state': () => ({ body: state }) })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Classifica' }))
+
+    const cards = screen
+      .getAllByRole('listitem')
+      .filter((item) => item.textContent?.includes('comun'))
+    const bot = cards.find((card) => card.textContent?.includes('Repubblica Ambrosiana'))!
+    expect(bot).toHaveTextContent('Bot')
+    // Its made-up user name is of no interest to anyone.
+    expect(bot).not.toHaveTextContent('bot_3f9a1c')
+    expect(cards.find((card) => card.textContent?.includes('Ducato del Ticino'))).toHaveTextContent(
+      'anna',
+    )
   })
 })

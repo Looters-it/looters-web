@@ -25,7 +25,14 @@ const asAnna = {
   'GET /api/auth/me': () => ({ body: { id: 'u1', username: 'anna', role: 'USER' } }),
 }
 
-const rules = { minPlayersToStart: 2, lateJoin: true, startResources: 200, annexCost: 50 }
+const rules = {
+  minPlayersToStart: 1,
+  lateJoin: true,
+  botsEnabled: false,
+  botsMax: 5,
+  startResources: 200,
+  annexCost: 50,
+}
 const options = {
   'GET /api/matches/options': () => ({
     body: {
@@ -218,8 +225,14 @@ describe('new match', () => {
     await userEvent.clear(screen.getByLabelText('Giocatori massimi'))
     await userEvent.type(screen.getByLabelText('Giocatori massimi'), '30')
 
+    // Bots are asked for in the main form: one player is then enough for a match.
+    const bots = screen.getByRole('checkbox', { name: 'Aggiungi imperi bot' })
+    expect(bots).not.toBeChecked()
+    await userEvent.click(bots)
+
     // A rule changed from its default travels with the match.
     await userEvent.click(screen.getByRole('button', { name: /Regole di gioco/ }))
+    expect(screen.getByRole('spinbutton', { name: 'Bot al massimo in una partita' })).toHaveValue(5)
     const cost = screen.getByRole('spinbutton', { name: "Costo di un'annessione" })
     await userEvent.clear(cost)
     await userEvent.type(cost, '80')
@@ -235,7 +248,7 @@ describe('new match', () => {
       turnHours: 24,
       maxDays: null,
       inviteCode: null,
-      config: { ...rules, annexCost: 80 },
+      config: { ...rules, annexCost: 80, botsEnabled: true },
     })
     expect(calls.some((call) => call.key === 'POST /api/matches/m1/open')).toBe(true)
   })

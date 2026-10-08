@@ -18,6 +18,8 @@ import type { MatchDraft } from './match-draft'
 /** Rules shown under "advanced", grouped as in the game. */
 const RULE_GROUPS: [group: string, keys: string[]][] = [
   ['start', ['minPlayersToStart', 'lateJoin']],
+  // Whether there are any is chosen in the main form; here, how many and how often.
+  ['bots', ['botsMax', 'botSpawnChancePct']],
   [
     'resources',
     [
@@ -202,6 +204,25 @@ export function MatchFields(props: {
           />
         )}
       </Field>
+
+      {/* One player is enough: the other empires can be played by the server. */}
+      {'botsEnabled' in draft.config && (
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2 font-bold">
+            <input
+              type="checkbox"
+              className="accent-primary size-4"
+              disabled={locked}
+              checked={draft.config.botsEnabled === true}
+              onChange={(event) =>
+                set({ config: { ...draft.config, botsEnabled: event.target.checked } })
+              }
+            />
+            {t('match.form.bots')}
+          </label>
+          <p className="text-muted-foreground text-base">{t('match.form.botsHint')}</p>
+        </div>
+      )}
 
       <div className="rounded-md border">
         <button
