@@ -69,6 +69,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         socketRef.current?.reconnect()
       },
       dismissSessionEnded: () => setSessionEnded(false),
+      followMatch: (matchId, handler) =>
+        socketRef.current?.followMatch(matchId, handler) ?? (() => undefined),
     }),
     [user, online, sessionEnded, signedIn],
   )

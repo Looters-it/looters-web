@@ -46,6 +46,10 @@ export class FakeWebSocket {
   onmessage: ((event: { data: string }) => void) | null = null
   onclose: (() => void) | null = null
   closed = false
+  readyState = 0
+  /** What the page sent to the server. */
+  readonly sent: unknown[] = []
+  static readonly OPEN = 1
   readonly url: string
 
   constructor(url: string) {
@@ -53,13 +57,19 @@ export class FakeWebSocket {
     FakeWebSocket.instances.push(this)
   }
 
+  send(data: string) {
+    this.sent.push(JSON.parse(data))
+  }
+
   close() {
     this.closed = true
+    this.readyState = 3
     this.onclose?.()
   }
 
   /** The server accepts the connection. */
   open() {
+    this.readyState = FakeWebSocket.OPEN
     this.onopen?.()
   }
 

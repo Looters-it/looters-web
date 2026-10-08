@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from '@/lib/api'
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import type { AreaMap, UnitPoint } from '@/features/map/api'
 
 export type MatchStatus = 'DRAFT' | 'OPEN' | 'RUNNING' | 'FINISHED'
@@ -55,14 +55,51 @@ export interface Territory {
   protected: boolean
   /** Null when the viewer may not see them: hidden amounts never reach the browser. */
   resources: number | null
+  /** Weight in the split of the income; null unless the territory is the viewer's. */
+  weight: number | null
 }
 
 export interface MatchState {
   match: MatchSummary
-  me: { empireId: string } | null
+  me: {
+    empireId: string
+    /** Annexations still available this turn. */
+    annexLeft: number
+    /** What the empire earns when this turn ends. */
+    turnValue: number
+    allocationMode: 'EQUAL' | 'WEIGHTED'
+  } | null
   empires: Empire[]
   /** Owned territories only; every other municipality is free. */
   territories: Territory[]
+  /** Players of the match watching it now, out of those still in play. */
+  online: { connected: number; total: number }
+}
+
+/** The card of a municipality (api: GET /matches/:id/units/:geoUnitId). */
+export interface UnitCardData {
+  geoUnitId: number
+  name: string
+  territory: {
+    id: string
+    name: string
+    ownerEmpireId: string | null
+    protected: boolean
+    inBattle: boolean
+    resources: number | null
+  }
+  neighbours: {
+    geoUnitId: number
+    name: string
+    territoryId: string
+    ownerEmpireId: string | null
+  }[]
+  /** Present for a player looking at a free municipality of a running match. */
+  annex: {
+    cost: number
+    left: number
+    payFrom: { territoryId: string; name: string; resources: number; usable: boolean }[]
+  } | null
 }
 
 export interface MatchOptions {
@@ -121,4 +158,14 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/join`, body),
   updateEmpire: (id: string, empire: EmpireIdentity) =>
     apiPatch<MatchState>(`/matches/${id}/empire`, empire),
+  unit: (id: string, geoUnitId: number) =>
+    apiGet<UnitCardData>(`/matches/${id}/units/${geoUnitId}`),
+  annex: (id: string, body: { geoUnitId: number; payFromTerritoryId: string; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/annex`, body),
+  allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  setAllocationRule: (
+    id: string,
+    body: { mode: 'EQUAL' | 'WEIGHTED'; weights?: Record<string, number> },
+  ) => apiPut<MatchState>(`/matches/${id}/allocation-rule`, body),
 }

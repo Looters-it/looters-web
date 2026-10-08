@@ -1,0 +1,97 @@
+import { useTranslation } from 'react-i18next'
+
+import type { MatchState } from '@/features/matches/api'
+import { EmpireShield } from '@/features/matches/Emblem'
+import { cn } from '@/lib/utils'
+
+/**
+ * The ranking by municipalities controlled (resources stay hidden until the
+ * end, PROMPT §9 #10). Each empire shows one square per municipality;
+ * pointing at a card lights its territories on the map.
+ */
+export function Leaderboard(props: {
+  state: MatchState
+  onHover: (empireId: string | null) => void
+}) {
+  const { t } = useTranslation()
+  const { state } = props
+  const empires = [...state.empires].sort(
+    (a, b) => b.units - a.units || a.name.localeCompare(b.name),
+  )
+  const total = empires.reduce((sum, empire) => sum + empire.units, 0)
+
+  return (
+    <section className="flex flex-col gap-3" aria-labelledby="leaderboard-title">
+      <h2 id="leaderboard-title" className="text-lg">
+        {t('game.leaderboard.title')}
+      </h2>
+
+      {total > 0 && (
+        <div
+          className="rounded-pill flex h-3 overflow-hidden border"
+          role="img"
+          aria-label={t('game.leaderboard.share')}
+        >
+          {empires.map((empire) => (
+            <div
+              key={empire.id}
+              style={{ width: `${(empire.units / total) * 100}%`, backgroundColor: empire.color }}
+            />
+          ))}
+        </div>
+      )}
+
+      <ol className="flex flex-col gap-2">
+        {empires.map((empire, index) => {
+          const territories = state.territories.filter((t) => t.ownerEmpireId === empire.id)
+          return (
+            <li
+              key={empire.id}
+              className={cn(
+                'rounded-md border p-3',
+                empire.id === state.me?.empireId && 'border-foreground',
+                empire.status === 'FALLEN' && 'opacity-60',
+              )}
+              onMouseEnter={() => props.onHover(empire.id)}
+              onMouseLeave={() => props.onHover(null)}
+              onFocus={() => props.onHover(empire.id)}
+              onBlur={() => props.onHover(null)}
+              tabIndex={0}
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-6 font-mono text-lg font-bold">{index + 1}</span>
+                <EmpireShield color={empire.color} emblem={empire.emblem} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold">{empire.name}</p>
+                  <p className="text-muted-foreground truncate text-base">{empire.username}</p>
+                </div>
+                <span className="font-mono text-sm whitespace-nowrap">
+                  {t('match.players.units', { count: empire.units })}
+                </span>
+              </div>
+              {/* One square per municipality: capital outlined, protected hollow. */}
+              <ul className="mt-2 flex flex-wrap gap-1" aria-hidden="true">
+                {territories.flatMap((territory) =>
+                  territory.geoUnitIds.map((unitId) => (
+                    <li
+                      key={unitId}
+                      className={cn(
+                        'size-3 rounded-[2px] border',
+                        territory.id === empire.capitalTerritoryId &&
+                          'ring-foreground ring-offset-background ring-2 ring-offset-1',
+                      )}
+                      style={{
+                        borderColor: empire.color,
+                        backgroundColor: territory.protected ? 'transparent' : empire.color,
+                      }}
+                    />
+                  )),
+                )}
+              </ul>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}

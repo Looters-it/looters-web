@@ -54,6 +54,8 @@ interface Props {
   onSelect?: (unit: MapUnit | null) => void
   /** Content of the box shown for the selected municipality. */
   renderInfo?: (unit: MapUnit) => ReactNode
+  /** A point to bring into view when it changes. */
+  focus?: { lon: number; lat: number } | null
   /**
    * For a map embedded in a page that scrolls: one finger scrolls the page,
    * two fingers (or ctrl + wheel) move the map.
@@ -75,6 +77,7 @@ export function GameMap({
   highlightedIds = NO_IDS,
   onSelect,
   renderInfo,
+  focus = null,
   embedded = false,
   className,
 }: Props) {
@@ -96,7 +99,9 @@ export function GameMap({
   // a sheet rising from the bottom on a phone.
   const [popupNode] = useState(() => document.createElement('div'))
   const popupRef = useRef<Popup | null>(null)
-  const [anchor, setAnchor] = useState<[number, number] | null>(null)
+  // Where the box is anchored, and for which municipality: a selection made
+  // elsewhere (a list in the panel) has no place on the map to hang a box on.
+  const [anchor, setAnchor] = useState<{ id: number; at: [number, number] } | null>(null)
   const [phone, setPhone] = useState(() => window.matchMedia?.(PHONE).matches ?? false)
   useEffect(() => {
     const query = window.matchMedia?.(PHONE)
@@ -149,7 +154,7 @@ export function GameMap({
         onSelectRef.current?.(null)
         return
       }
-      setAnchor([event.lngLat.lng, event.lngLat.lat])
+      setAnchor({ id: feature.id, at: [event.lngLat.lng, event.lngLat.lat] })
       onSelectRef.current?.({ id: feature.id, name: String(feature.properties.name ?? '') })
     })
     map.once('load', () => setReady(true))
@@ -211,10 +216,11 @@ export function GameMap({
   }, [empireLabels, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
-  const showPopup = Boolean(selected && renderInfo && anchor && !phone)
+  const anchored = anchor && anchor.id === selected?.id ? anchor.at : null
+  const showPopup = Boolean(selected && renderInfo && anchored && !phone)
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !ready || !showPopup || !anchor) {
+    if (!map || !ready || !showPopup || !anchored) {
       popupRef.current?.remove()
       popupRef.current = null
       return
@@ -229,11 +235,18 @@ export function GameMap({
       })
         .setDOMContent(popupNode)
         .addTo(map)
-    popup.setLngLat(anchor)
+    popup.setLngLat(anchored)
     popupRef.current = popup
-  }, [anchor, popupNode, ready, showPopup])
+  }, [anchored, popupNode, ready, showPopup])
 
-  const info = selected && renderInfo ? renderInfo(selected) : null
+  // Brings a point into view, for a municipality chosen from a list.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !focus) return
+    map.easeTo({ center: [focus.lon, focus.lat], zoom: Math.max(map.getZoom(), 9) })
+  }, [focus, ready])
+
+  const info = selected && renderInfo && (anchored || phone) ? renderInfo(selected) : null
 
   return (
     <div className={cn('relative isolate overflow-hidden', className)}>

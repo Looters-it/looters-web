@@ -381,7 +381,75 @@
       "TERRITORY_TAKEN": "Un altro impero è arrivato prima in quel comune. Scegline un altro.",
       "EMPIRE_NAME_TAKEN": "Un altro impero ha già questo nome.",
       "EMPIRE_COLOR_TAKEN": "Un altro impero ha già questo colore.",
-      "MATCH_STARTED": "La partita è iniziata: l'impero non si può più modificare."
+      "MATCH_STARTED": "La partita è iniziata: l'impero non si può più modificare.",
+      "MATCH_NOT_RUNNING": "La partita non è in corso.",
+      "TURN_CHANGED": "Il turno è cambiato nel frattempo. Riguarda la mappa e riprova.",
+      "NOT_A_PLAYER": "Non hai un impero in questa partita.",
+      "EMPIRE_FALLEN": "Il tuo impero è caduto.",
+      "ANNEX_LIMIT": "Hai già usato le annessioni di questo turno.",
+      "NOT_YOUR_TERRITORY": "Puoi usare solo i tuoi comuni.",
+      "NOT_ADJACENT": "Quel comune non confina con il comune che paga.",
+      "TERRITORY_IN_BATTLE": "Un comune coinvolto in uno scontro è bloccato.",
+      "NOT_ENOUGH_RESOURCES": "Il comune che paga non ha abbastanza risorse.",
+      "ALLOCATION_SUM": "Il totale delle risorse è cambiato. Ricontrolla la ripartizione."
+    }
+  },
+  "game": {
+    "bar": {
+      "online": "In partita",
+      "turn": "Turno",
+      "timeLeft": "Tempo alla fine del turno",
+      "resources": "Risorse"
+    },
+    "menu": {
+      "title": "Menu",
+      "back": "Menu",
+      "match": "La partita",
+      "leaderboard": "Classifica",
+      "empire": "Il tuo impero",
+      "resources": "Risorse per comune",
+      "phoneMap": "Mappa",
+      "phonePanel": "Pannello",
+      "tabs": "Viste della partita"
+    },
+    "leaderboard": {
+      "title": "Classifica",
+      "share": "Ripartizione dei comuni tra gli imperi"
+    },
+    "resources": {
+      "title": "Risorse per comune",
+      "units": "Comuni",
+      "total": "Risorse totali",
+      "unallocated": "Non allocate",
+      "sliderOf": "Risorse a {{name}}",
+      "equal": "Dividi in parti uguali",
+      "cancel": "Annulla",
+      "apply": "Applica",
+      "assignAll_one": "Assegna la risorsa rimasta per poter applicare.",
+      "assignAll_other": "Assegna le {{count}} risorse rimaste per poter applicare.",
+      "rule": "Guadagno di ogni turno (ora {{count}})",
+      "ruleEqual": "Diviso in parti uguali tra i comuni",
+      "ruleWeighted": "In proporzione alle risorse di adesso",
+      "ruleHint": "La regola vale per tutti i turni finché non la cambi. Scegliendo la proporzione, i pesi restano quelli di questo momento."
+    },
+    "unit": {
+      "title": "Scheda del comune",
+      "state": "Stato",
+      "peace": "In pace",
+      "war": "In guerra",
+      "neighbours": "Comuni confinanti",
+      "noNeighbours": "Nessun comune confinante.",
+      "freeTag": "libero",
+      "yoursTag": "tuo",
+      "annex": "Annetti",
+      "annexTitle": "Annessione",
+      "annexCost": "Costa {{count}} risorse, pagate da un tuo comune confinante.",
+      "annexNoneLeft": "Hai già usato le annessioni di questo turno.",
+      "annexNotAdjacent": "Non confina con nessun tuo comune: non puoi annetterlo.",
+      "annexNoFunds": "Nessun tuo comune confinante ha {{count}} risorse. Spostane lì da \"Risorse per comune\".",
+      "payFrom": "Paga da",
+      "payOption": "{{name}} ({{count}} risorse)",
+      "annexed": "Annesso."
     }
   }
 }

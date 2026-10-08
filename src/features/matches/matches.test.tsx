@@ -77,6 +77,8 @@ const brunoCapital = {
   resources: null,
 }
 
+const online = { connected: 0, total: 1 }
+
 const mapOf = {
   'GET /api/matches/m1/map': () => ({
     body: {
@@ -190,6 +192,7 @@ describe('new match', () => {
           me: null,
           empires: [],
           territories: [],
+          online,
         },
       }),
       ...mapOf,
@@ -242,7 +245,7 @@ describe('match page', () => {
       ...asAnna,
       ...options,
       ...mapOf,
-      ...open({ match: match(), me: null, empires: [bruno], territories: [brunoCapital] }),
+      ...open({ match: match(), me: null, empires: [bruno], territories: [brunoCapital], online }),
     })
     renderApp('/partite/m1')
 
@@ -283,12 +286,19 @@ describe('match page', () => {
       geoUnitIds: [2],
       resources: 263,
     }
-    const before = { match: match(), me: null, empires: [bruno], territories: [brunoCapital] }
+    const before = {
+      match: match(),
+      me: null,
+      empires: [bruno],
+      territories: [brunoCapital],
+      online,
+    }
     const after = {
       match: match({ players: 2 }),
-      me: { empireId: 'e2' },
+      me: { empireId: 'e2', annexLeft: 1, turnValue: 60, allocationMode: 'EQUAL' },
       empires: [bruno, mine],
       territories: [brunoCapital, myCapital],
+      online,
     }
     let joined = false
     const calls = stubApi({
@@ -314,11 +324,15 @@ describe('match page', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Stemma luna' }))
     await userEvent.click(screen.getByRole('button', { name: "Fonda l'impero" }))
 
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'POST /api/matches/m1/join')?.body).toEqual({
+        geoUnitId: 2,
+        empire: { name: 'Ducato del Ticino', color: '#00aa00', emblem: 'luna', motto: null },
+      }),
+    )
+    // A player lands on the menu of the panel; the empire is under "La partita".
+    await userEvent.click(await screen.findByRole('button', { name: 'La partita' }))
     expect(await screen.findByRole('heading', { name: 'Il tuo impero' })).toBeInTheDocument()
-    expect(calls.find((call) => call.key === 'POST /api/matches/m1/join')?.body).toEqual({
-      geoUnitId: 2,
-      empire: { name: 'Ducato del Ticino', color: '#00aa00', emblem: 'luna', motto: null },
-    })
     // Own resources are shown, and the map gains the new empire without being rebuilt.
     expect(screen.getByText(/Risorse in capitale: 263/)).toBeInTheDocument()
     await waitFor(() => expect(map.state.get(2)).toMatchObject({ color: '#00aa00' }))
@@ -330,7 +344,13 @@ describe('match page', () => {
       ...asAnna,
       ...options,
       ...mapOf,
-      ...open({ match: match({ hasInviteCode: true }), me: null, empires: [], territories: [] }),
+      ...open({
+        match: match({ hasInviteCode: true }),
+        me: null,
+        empires: [],
+        territories: [],
+        online,
+      }),
       'POST /api/matches/m1/join': () => ({
         status: 403,
         body: { error: { code: 'INVITE_CODE_REQUIRED', message: 'x' } },
@@ -354,7 +374,7 @@ describe('match page', () => {
       ...guest,
       ...options,
       ...mapOf,
-      ...open({ match: match(), me: null, empires: [], territories: [] }),
+      ...open({ match: match(), me: null, empires: [], territories: [], online }),
     })
     renderApp('/partite/m1')
     expect(await screen.findByText('Accedi per partecipare a questa partita.')).toBeInTheDocument()
@@ -372,7 +392,7 @@ describe('match page', () => {
         body: [{ id: 'a1', name: 'Provincia di Milano', parentId: null, unitCount: 133 }],
       }),
       'GET /api/matches/m1/state': () => ({
-        body: { match: current(), me: null, empires: [], territories: [] },
+        body: { match: current(), me: null, empires: [], territories: [], online },
       }),
       'PATCH /api/matches/m1': () => ({ body: current() }),
       'POST /api/matches/m1/open': () => {

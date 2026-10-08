@@ -1,9 +1,19 @@
 /** Messages pushed by the server (docs/ARCHITECTURE.md, WebSocket). */
-export type ServerMessage = { t: 'online'; n: number } | { t: 'session.revoked' }
+export type ServerMessage = { t: 'online'; n: number } | { t: 'session.revoked' } | MatchMessage
+
+/** What the server says about a match the socket follows. */
+export type MatchMessage =
+  | { t: 'match.update'; matchId: string; kinds: string[] }
+  | { t: 'match.online'; matchId: string; connected: number }
 
 export interface RealtimeSocket {
   /** Drops the connection and opens a new one, to pick up a changed session cookie. */
   reconnect(): void
+  /**
+   * Follows a match: the handler receives what the server says about it,
+   * across reconnections. Returns the function that stops following.
+   */
+  followMatch(matchId: string, handler: (message: MatchMessage) => void): () => void
   close(): void
 }
 
@@ -30,6 +40,10 @@ export function openRealtimeSocket(options: Options): RealtimeSocket {
   let retryMs = RETRY_MIN_MS
   let timer: ReturnType<typeof setTimeout> | undefined
   let closed = false
+  const followers = new Map<string, Set<(message: MatchMessage) => void>>()
+  const tell = (message: object) => {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message))
+  }
 
   const connect = () => {
     const current = new WebSocket(socketUrl())
@@ -37,10 +51,16 @@ export function openRealtimeSocket(options: Options): RealtimeSocket {
     current.onopen = () => {
       retryMs = RETRY_MIN_MS
       options.onStatus(true)
+      // A new connection knows nothing of what the old one followed.
+      for (const matchId of followers.keys()) tell({ t: 'sub', matchId })
     }
     current.onmessage = (event) => {
       try {
-        options.onMessage(JSON.parse(String(event.data)) as ServerMessage)
+        const message = JSON.parse(String(event.data)) as ServerMessage
+        options.onMessage(message)
+        if ('matchId' in message) {
+          for (const handler of followers.get(message.matchId) ?? []) handler(message)
+        }
       } catch {
         // Not a message we understand: ignore it.
       }
@@ -68,6 +88,18 @@ export function openRealtimeSocket(options: Options): RealtimeSocket {
       drop()
       retryMs = RETRY_MIN_MS
       connect()
+    },
+    followMatch(matchId, handler) {
+      const handlers = followers.get(matchId) ?? new Set()
+      if (handlers.size === 0) tell({ t: 'sub', matchId })
+      handlers.add(handler)
+      followers.set(matchId, handlers)
+      return () => {
+        handlers.delete(handler)
+        if (handlers.size > 0) return
+        followers.delete(matchId)
+        tell({ t: 'unsub', matchId })
+      }
     },
     close() {
       closed = true

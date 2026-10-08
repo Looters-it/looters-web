@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react'
 
+import type { MatchMessage } from '@/features/realtime/socket'
+
 import type { Credentials, Registration, User } from './api'
 
 export interface SessionState {
@@ -13,6 +15,8 @@ export interface SessionState {
   register(registration: Registration): Promise<void>
   logout(): Promise<void>
   dismissSessionEnded(): void
+  /** Follows the live updates of a match; returns the function that stops. */
+  followMatch(matchId: string, handler: (message: MatchMessage) => void): () => void
 }
 
 export const SessionContext = createContext<SessionState | null>(null)

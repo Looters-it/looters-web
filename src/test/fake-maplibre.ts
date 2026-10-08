@@ -71,6 +71,14 @@ export class FakeMap {
   remove() {
     this.removed = true
   }
+  getZoom() {
+    return 6
+  }
+  /** The last place the map was asked to move to. */
+  easedTo: unknown = null
+  easeTo(options: unknown) {
+    this.easedTo = options
+  }
 
   /** Clicks the municipality with this id, or empty map when omitted. */
   click(unit?: { id: number; name: string }) {

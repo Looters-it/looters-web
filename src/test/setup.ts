@@ -14,3 +14,10 @@ Element.prototype.hasPointerCapture ??= () => false
 Element.prototype.setPointerCapture ??= () => undefined
 Element.prototype.releasePointerCapture ??= () => undefined
 Element.prototype.scrollIntoView ??= () => undefined
+
+// The Slider measures itself with ResizeObserver, which jsdom does not have.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
