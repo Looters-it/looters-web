@@ -1574,6 +1574,13 @@ describe('board', () => {
 describe('alliances', () => {
   const carla = empire('carla', 'Contea di Pavia', 'carla', '#0000aa', 'tc', 1)
   const board = { 'GET /api/matches/m1/board': () => ({ body: [] }) }
+  const pact = (id: string, other: string, extra: object = {}) => ({
+    id,
+    empireIds: ['anna', other],
+    endsAtTurn: null as number | null,
+    endedByEmpireId: null as string | null,
+    ...extra,
+  })
   const withAlly = (extra: object = {}) => {
     const base = running([
       ...mine,
@@ -1583,20 +1590,12 @@ describe('alliances', () => {
     return {
       ...base,
       empires: [...base.empires, carla],
-      alliances: [
-        {
-          id: 'al1',
-          members: [
-            { empireId: 'anna', leavesAtTurn: null },
-            { empireId: 'bruno', leavesAtTurn: null },
-          ],
-        },
-      ],
+      alliances: [pact('al1', 'bruno')],
       ...extra,
     }
   }
 
-  it('proposes an alliance and answers the proposals received', async () => {
+  it('proposes an alliance and shows the proposals made and received', async () => {
     const base = running(mine)
     const state = {
       ...base,
@@ -1611,26 +1610,11 @@ describe('alliances', () => {
       'POST /api/matches/m1/alliances/invites': () => ({
         body: { ...state, invites: [{ id: 'i2', fromEmpireId: 'anna', toEmpireId: 'bruno' }] },
       }),
-      'POST /api/matches/m1/alliances/invites/i1/accept': () => ({
-        body: {
-          ...state,
-          invites: [],
-          alliances: [
-            {
-              id: 'al1',
-              members: [
-                { empireId: 'carla', leavesAtTurn: null },
-                { empireId: 'anna', leavesAtTurn: null },
-              ],
-            },
-          ],
-        },
-      }),
     })
     renderApp('/partite/m1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
 
-    expect(screen.getByText('Non fai parte di nessuna alleanza.')).toBeInTheDocument()
+    expect(screen.getByText('Non hai alleati.')).toBeInTheDocument()
     expect(screen.getByText("Contea di Pavia ti propone un'alleanza.")).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox', { name: 'A quale impero' }))
@@ -1644,7 +1628,7 @@ describe('alliances', () => {
     ).toEqual({ toEmpireId: 'bruno' })
   })
 
-  it('accepts a proposal and lists the members', async () => {
+  it('accepts a proposal: the ally is listed, and another empire can still be proposed to', async () => {
     const base = running(mine)
     const state = {
       ...base,
@@ -1655,45 +1639,50 @@ describe('alliances', () => {
       ...asAnna,
       ...mapRoutes,
       ...board,
-      'GET /api/matches/m1/alliances/chat': () => ({ body: [] }),
       'GET /api/matches/m1/state': () => ({ body: state }),
       'POST /api/matches/m1/alliances/invites/i1/accept': () => ({
-        body: {
-          ...state,
-          invites: [],
-          alliances: [
-            {
-              id: 'al1',
-              members: [
-                { empireId: 'carla', leavesAtTurn: null },
-                { empireId: 'anna', leavesAtTurn: null },
-              ],
-            },
-          ],
-        },
+        body: { ...state, invites: [], alliances: [pact('al1', 'carla')] },
       }),
     })
     renderApp('/partite/m1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
     await userEvent.click(screen.getByRole('button', { name: 'Accetta' }))
 
-    const members = await screen.findByRole('heading', { name: 'Membri' })
-    const list = members.nextElementSibling as HTMLElement
-    expect(within(list).getByText('Contea di Pavia')).toBeInTheDocument()
-    expect(within(list).getByText(/Ducato del Ticino/)).toHaveTextContent('(tu)')
-    // A third member may still be invited: the limit is three.
-    expect(screen.getByRole('heading', { name: "Invita nell'alleanza" })).toBeInTheDocument()
+    const allies = (await screen.findByRole('heading', { name: 'I tuoi alleati' }))
+      .parentElement as HTMLElement
+    expect(await within(allies).findByText('Contea di Pavia')).toBeInTheDocument()
+    // Alliances are pacts between two: an ally does not close the door to another.
+    await userEvent.click(screen.getByRole('combobox', { name: 'A quale impero' }))
+    expect(await screen.findByRole('option', { name: 'Repubblica Ambrosiana' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Contea di Pavia' })).not.toBeInTheDocument()
   })
 
-  it('sends resources to a territory of an ally and writes in the private chat', async () => {
+  it('stops proposing once the empire has as many allies as the match allows', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({
+        body: withAlly({ alliances: [pact('al1', 'bruno'), pact('al2', 'carla')] }),
+      }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
+    expect(
+      await screen.findByText('Hai già 2 alleati, il massimo in questa partita.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'A quale impero' })).not.toBeInTheDocument()
+  })
+
+  it('sends resources to a territory of an ally and writes in the chat of that pact', async () => {
     let messages = [{ id: 'c1', empireId: 'bruno', text: 'Tieni Monza', createdAt: '2026-01-01' }]
     const calls = stubApi({
       ...asAnna,
       ...mapRoutes,
       ...board,
       'GET /api/matches/m1/state': () => ({ body: withAlly() }),
-      'GET /api/matches/m1/alliances/chat': () => ({ body: messages }),
-      'POST /api/matches/m1/alliances/chat': (body) => {
+      'GET /api/matches/m1/alliances/al1/chat': () => ({ body: messages }),
+      'POST /api/matches/m1/alliances/al1/chat': (body) => {
         messages = [
           { id: 'c2', empireId: 'anna', text: (body as { text: string }).text, createdAt: 'x' },
           ...messages,
@@ -1703,7 +1692,7 @@ describe('alliances', () => {
       'POST /api/matches/m1/alliances/transfer': () => ({ body: withAlly() }),
     })
     renderApp('/partite/m1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
 
     await userEvent.click(await screen.findByRole('combobox', { name: 'Dal tuo comune' }))
     await userEvent.click(await screen.findByRole('option', { name: 'Milano (200 risorse)' }))
@@ -1721,49 +1710,72 @@ describe('alliances', () => {
       ).toEqual({ fromTerritoryId: 'ta1', toTerritoryId: 'tb2', amount: 50, turn: 3 }),
     )
 
+    // The chat belongs to the pact and opens from the ally's card.
+    await userEvent.click(screen.getByRole('button', { name: 'Chat' }))
     expect(await screen.findByText('Tieni Monza')).toBeInTheDocument()
-    await userEvent.type(screen.getByRole('textbox', { name: 'Scrivi agli alleati' }), 'Arrivo')
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Scrivi a Repubblica Ambrosiana' }),
+      'Arrivo',
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Invia' }))
     expect(await screen.findByText('Arrivo')).toBeInTheDocument()
   })
 
-  it('leaves with a notice, after a confirmation', async () => {
-    const leaving = withAlly({
-      alliances: [
-        {
-          id: 'al1',
-          members: [
-            { empireId: 'anna', leavesAtTurn: 4 },
-            { empireId: 'bruno', leavesAtTurn: null },
-          ],
-        },
-      ],
+  it('ends an alliance with a notice, after a confirmation, and can take it back', async () => {
+    const ending = withAlly({
+      alliances: [pact('al1', 'bruno', { endsAtTurn: 4, endedByEmpireId: 'anna' })],
     })
     const calls = stubApi({
       ...asAnna,
       ...mapRoutes,
       ...board,
       'GET /api/matches/m1/state': () => ({ body: withAlly() }),
-      'GET /api/matches/m1/alliances/chat': () => ({ body: [] }),
-      'POST /api/matches/m1/alliances/leave': () => ({ body: leaving }),
+      'POST /api/matches/m1/alliances/al1/end': () => ({ body: ending }),
+      'POST /api/matches/m1/alliances/al1/keep': () => ({ body: withAlly() }),
     })
     renderApp('/partite/m1')
-    await userEvent.click(await screen.findByRole('button', { name: 'Alleanza' }))
-    await userEvent.click(await screen.findByRole('button', { name: "Esci dall'alleanza" }))
-    expect(calls.some((call) => call.key === 'POST /api/matches/m1/alliances/leave')).toBe(false)
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
+    await userEvent.click(await screen.findByRole('button', { name: "Termina l'alleanza" }))
+    expect(calls.some((call) => call.key === 'POST /api/matches/m1/alliances/al1/end')).toBe(false)
 
     const dialog = await screen.findByRole('dialog')
-    expect(dialog).toHaveTextContent('fino ad allora resti alleato')
-    await userEvent.click(within(dialog).getByRole('button', { name: "Esci dall'alleanza" }))
+    expect(dialog).toHaveTextContent("Terminare l'alleanza con Repubblica Ambrosiana?")
+    expect(dialog).toHaveTextContent('fino ad allora restate alleati')
+    await userEvent.click(within(dialog).getByRole('button', { name: "Termina l'alleanza" }))
 
     expect(
-      await screen.findByText("Hai annunciato l'uscita: avrà effetto alla fine del turno 4."),
+      await screen.findByText('Hai annunciato la fine: avrà effetto alla fine del turno 4.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('esce alla fine del turno 4')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: "Esci dall'alleanza" })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: "Termina l'alleanza" })).not.toBeInTheDocument()
+
+    // Until it takes effect, who announced it can change their mind.
+    await userEvent.click(screen.getByRole('button', { name: 'Annulla la fine' }))
+    expect(await screen.findByRole('button', { name: "Termina l'alleanza" })).toBeInTheDocument()
+    expect(screen.queryByText(/Hai annunciato la fine/)).not.toBeInTheDocument()
   })
 
-  it('colours the map by alliance or by resources', async () => {
+  it('says when the ally announced the end, and leaves taking it back to them', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      ...board,
+      'GET /api/matches/m1/state': () => ({
+        body: withAlly({
+          alliances: [pact('al1', 'bruno', { endsAtTurn: 4, endedByEmpireId: 'bruno' })],
+        }),
+      }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
+    expect(
+      await screen.findByText(
+        'Repubblica Ambrosiana ha annunciato la fine: avrà effetto alla fine del turno 4.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Annulla la fine' })).not.toBeInTheDocument()
+  })
+
+  it('colours the map by alliances or by resources', async () => {
     stubApi({
       ...asAnna,
       ...mapRoutes,
@@ -1776,12 +1788,14 @@ describe('alliances', () => {
 
     await waitFor(() => expect(colorOf(1)).toBe('#00aa00'))
     expect(colorOf(9)).toBe('#aa0000')
+    expect(colorOf(8)).toBe('#0000aa')
 
     const views = screen.getByRole('group', { name: 'Vista della mappa' })
     await userEvent.click(within(views).getByRole('button', { name: 'Alleanze' }))
-    // Allies share a colour; an empire outside any alliance is neutral.
-    await waitFor(() => expect(colorOf(9)).toBe(colorOf(1)))
-    expect(colorOf(8)).not.toBe(colorOf(1))
+    // The player and their allies keep their colours; everyone else turns neutral.
+    await waitFor(() => expect(colorOf(8)).toBe('#d9ccbf'))
+    expect(colorOf(1)).toBe('#00aa00')
+    expect(colorOf(9)).toBe('#aa0000')
 
     await userEvent.click(within(views).getByRole('button', { name: 'Risorse' }))
     // Deeper where there is more; what the viewer may not see stays neutral.

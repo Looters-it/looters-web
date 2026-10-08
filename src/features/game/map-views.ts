@@ -7,8 +7,10 @@ export type MapView = 'political' | 'alliances' | 'resources'
  * The colour of each owned municipality in a view.
  *
  * - political: the colour of its empire;
- * - alliances: one colour per alliance (that of its first member), the
- *   empires outside any alliance in a neutral tone;
+ * - alliances: alliances are pacts between two empires, not groups, so there
+ *   is no colour of an alliance. A player sees their own empire and their
+ *   allies in their colours and everyone else neutral; who has no empire
+ *   sees in colour the empires that have at least one ally;
  * - resources: a tone as deep as the resources on the territory, only where
  *   the viewer may see them (their own territories and their allies').
  */
@@ -20,10 +22,10 @@ export function colorsFor(
   const colors = new Map<number, string>()
   const empireColor = new Map(state.empires.map((empire) => [empire.id, empire.color]))
 
-  const allianceColor = new Map<string, string>()
-  for (const alliance of state.alliances) {
-    const color = empireColor.get(alliance.members[0]?.empireId ?? '') ?? tones.neutral
-    for (const member of alliance.members) allianceColor.set(member.empireId, color)
+  const mineId = state.me?.empireId
+  const shown = new Set<string>(mineId ? [mineId] : [])
+  for (const pact of state.alliances) {
+    if (!mineId || pact.empireIds.includes(mineId)) for (const id of pact.empireIds) shown.add(id)
   }
   const visible = state.territories.filter((territory) => territory.resources !== null)
   const most = Math.max(1, ...visible.map((territory) => territory.resources ?? 0))
@@ -32,7 +34,9 @@ export function colorsFor(
     let color: string | undefined
     if (view === 'political') color = empireColor.get(territory.ownerEmpireId)
     else if (view === 'alliances')
-      color = allianceColor.get(territory.ownerEmpireId) ?? tones.neutral
+      color = shown.has(territory.ownerEmpireId)
+        ? (empireColor.get(territory.ownerEmpireId) ?? tones.neutral)
+        : tones.neutral
     else if (territory.resources === null) color = tones.neutral
     else {
       const step = Math.min(

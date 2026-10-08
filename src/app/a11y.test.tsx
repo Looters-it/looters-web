@@ -24,7 +24,7 @@ beforeEach(() => {
 
 const anna = { id: 'u1', username: 'anna', role: 'USER' }
 const asAnna = { 'GET /api/auth/me': () => ({ body: anna }) }
-const rules = { allianceMaxMembers: 3, boardMaxChars: 500 }
+const rules = { allianceMaxAllies: 2, boardMaxChars: 500 }
 const empire = (id: string, name: string, color: string, capital: string) => ({
   id,
   name,
@@ -168,13 +168,15 @@ describe('accessibility', () => {
     'Risorse per comune',
     'Unisci territori',
     'Costruzioni',
-    'Alleanza',
+    'Alleanze',
   ]) {
     it(`match page: ${page}`, async () => {
       stubApi(matchRoutes)
       renderApp('/partite/m1')
       await loadedMap()
-      await userEvent.click(await screen.findByRole('button', { name: page }))
+      // The menu entry: "Alleanze" is also the name of a view of the map.
+      const entries = await screen.findAllByRole('button', { name: page })
+      await userEvent.click(entries.at(-1)!)
       await screen.findByRole('button', { name: /menu/i })
       await expectAccessible()
     })

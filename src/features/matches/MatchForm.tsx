@@ -44,7 +44,7 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
       'blockCooldownTurns',
     ],
   ],
-  ['alliances', ['allianceMaxMembers', 'allianceLeaveNoticeTurns']],
+  ['alliances', ['allianceMaxAllies', 'allianceLeaveNoticeTurns']],
   ['board', ['boardMaxChars', 'boardMessageIntervalSec']],
 ]
 

@@ -136,16 +136,24 @@ function Transfer({ state, allies }: { state: MatchState; allies: Set<string> })
 }
 
 /** The private conversation of the alliance. */
-function Chat({ state }: { state: MatchState }) {
+function Chat({
+  state,
+  allianceId,
+  name,
+}: {
+  state: MatchState
+  allianceId: string
+  name: string
+}) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const matchId = state.match.id
   const [text, setText] = useState('')
-  const key = ['matches', 'unit', matchId, 'alliance-chat']
+  const key = ['matches', 'unit', matchId, 'alliance-chat', allianceId]
   // Under the `unit` key on purpose: it is read again whenever the match changes.
-  const chat = useQuery({ queryKey: key, queryFn: () => matchApi.chat(matchId) })
+  const chat = useQuery({ queryKey: key, queryFn: () => matchApi.chat(matchId, allianceId) })
   const say = useMutation({
-    mutationFn: () => matchApi.say(matchId, text.trim()),
+    mutationFn: () => matchApi.say(matchId, allianceId, text.trim()),
     onSuccess: (messages) => {
       queryClient.setQueryData(key, messages)
       setText('')
@@ -154,8 +162,8 @@ function Chat({ state }: { state: MatchState }) {
   const empires = new Map(state.empires.map((empire) => [empire.id, empire]))
 
   return (
-    <div className="flex flex-col gap-2 border-t pt-4">
-      <h3 className="text-base">{t('game.alliance.chat')}</h3>
+    <div className="flex flex-col gap-2">
+      <h4 className="text-base">{t('game.alliance.chatWith', { name })}</h4>
       <ul className="flex max-h-64 flex-col-reverse overflow-y-auto rounded-md border px-3">
         {chat.data?.map((message) => (
           <li key={message.id} className="border-t py-2 first:border-t-0">
@@ -175,7 +183,7 @@ function Chat({ state }: { state: MatchState }) {
         }}
       >
         <Input
-          aria-label={t('game.alliance.chatWrite')}
+          aria-label={t('game.alliance.chatWriteTo', { name })}
           placeholder={t('game.alliance.chatWrite')}
           maxLength={500}
           value={text}
@@ -190,8 +198,9 @@ function Chat({ state }: { state: MatchState }) {
 }
 
 /**
- * The player's alliance (PROMPT §2.6): members, proposals made and received,
- * the exit with its notice, transfers to allies and the private chat.
+ * The player's alliances (PROMPT §2.6). Each is a pact with one empire, with
+ * its own chat and its own end; being allied with the same empire does not
+ * make two others allies.
  */
 export function AlliancePage({ state }: { state: MatchState }) {
   const { t } = useTranslation()
@@ -199,21 +208,20 @@ export function AlliancePage({ state }: { state: MatchState }) {
   const queryClient = useQueryClient()
   const selectId = useId()
   const [target, setTarget] = useState('')
-  const [confirmLeave, setConfirmLeave] = useState(false)
+  const [ending, setEnding] = useState<string | null>(null)
+  const [chatting, setChatting] = useState<string | null>(null)
   const matchId = state.match.id
   const mineId = state.me?.empireId ?? ''
   const empires = new Map(state.empires.map((empire) => [empire.id, empire]))
 
-  const alliance = state.alliances.find((a) => a.members.some((m) => m.empireId === mineId))
-  const me = alliance?.members.find((member) => member.empireId === mineId)
-  const allies = new Set(
-    alliance?.members.map((m) => m.empireId).filter((id) => id !== mineId) ?? [],
-  )
-  const allied = new Set(state.alliances.flatMap((a) => a.members.map((m) => m.empireId)))
-  const maxMembers = Number(state.match.config.allianceMaxMembers ?? 3)
-  const hasRoom = !alliance || alliance.members.length < maxMembers
+  const pacts = state.alliances
+    .filter((pact) => pact.empireIds.includes(mineId))
+    .map((pact) => ({ ...pact, allyId: pact.empireIds.find((id) => id !== mineId) ?? '' }))
+  const allies = new Set(pacts.map((pact) => pact.allyId))
+  const maxAllies = Number(state.match.config.allianceMaxAllies ?? 2)
+  const hasRoom = pacts.length < maxAllies
   const candidates = state.empires.filter(
-    (empire) => empire.id !== mineId && empire.status === 'ACTIVE' && !allied.has(empire.id),
+    (empire) => empire.id !== mineId && empire.status === 'ACTIVE' && !allies.has(empire.id),
   )
   const incoming = state.invites.filter((invite) => invite.toEmpireId === mineId)
   const outgoing = state.invites.filter((invite) => invite.fromEmpireId === mineId)
@@ -222,7 +230,7 @@ export function AlliancePage({ state }: { state: MatchState }) {
     mutationFn: (run: () => Promise<MatchState>) => run(),
     onSuccess: (next) => {
       queryClient.setQueryData(['matches', 'state', matchId], next)
-      setConfirmLeave(false)
+      setEnding(null)
       setTarget('')
     },
   })
@@ -234,42 +242,72 @@ export function AlliancePage({ state }: { state: MatchState }) {
         {t('game.alliance.title')}
       </h2>
       <p className="text-muted-foreground text-base">
-        {t('game.alliance.intro', { max: maxMembers })}
+        {t('game.alliance.intro', { count: maxAllies })}
       </p>
 
-      {alliance ? (
-        <div className="flex flex-col gap-2">
-          <h3 className="text-base">{t('game.alliance.members')}</h3>
-          <ul className="flex flex-col gap-2">
-            {alliance.members.map((member) => {
-              const empire = empires.get(member.empireId)
-              return (
-                empire && (
-                  <li key={member.empireId} className="flex items-center gap-3">
-                    <EmpireShield color={empire.color} emblem={empire.emblem} />
-                    <span className="flex-1 font-bold">
-                      {empire.name}
-                      {member.empireId === mineId && (
-                        <span className="text-muted-foreground font-normal">
-                          {' '}
-                          ({t('game.alliance.you')})
-                        </span>
-                      )}
-                    </span>
-                    {member.leavesAtTurn !== null && (
-                      <span className="text-danger text-base">
-                        {t('game.alliance.leaving', { turn: member.leavesAtTurn })}
-                      </span>
-                    )}
-                  </li>
-                )
-              )
-            })}
-          </ul>
-        </div>
-      ) : (
-        <p>{t('game.alliance.none')}</p>
-      )}
+      <div className="flex flex-col gap-2">
+        <h3 className="text-base">{t('game.alliance.allies')}</h3>
+        {pacts.length === 0 && <p>{t('game.alliance.none')}</p>}
+        <ul className="flex flex-col gap-2">
+          {pacts.map((pact) => {
+            const empire = empires.get(pact.allyId)
+            if (!empire) return null
+            return (
+              <li key={pact.id} className="flex flex-col gap-2 rounded-md border p-3">
+                <div className="flex items-center gap-3">
+                  <EmpireShield color={empire.color} emblem={empire.emblem} />
+                  <span className="flex-1 font-bold">{empire.name}</span>
+                </div>
+                {pact.endsAtTurn !== null && (
+                  <p role="status" className="text-danger text-base">
+                    {pact.endedByEmpireId === mineId
+                      ? t('game.alliance.endingByYou', { turn: pact.endsAtTurn })
+                      : t('game.alliance.endingByThem', {
+                          name: empire.name,
+                          turn: pact.endsAtTurn,
+                        })}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="quiet"
+                    size="sm"
+                    aria-expanded={chatting === pact.id}
+                    onClick={() => setChatting(chatting === pact.id ? null : pact.id)}
+                  >
+                    {t('game.alliance.chat')}
+                  </Button>
+                  {pact.endsAtTurn === null ? (
+                    <Button
+                      variant="quiet"
+                      size="sm"
+                      onClick={() => {
+                        action.reset()
+                        setEnding(pact.id)
+                      }}
+                    >
+                      {t('game.alliance.end')}
+                    </Button>
+                  ) : (
+                    pact.endedByEmpireId === mineId && (
+                      <Button
+                        size="sm"
+                        disabled={action.isPending}
+                        onClick={() => act(() => matchApi.keepAlliance(matchId, pact.id))}
+                      >
+                        {t('game.alliance.keep')}
+                      </Button>
+                    )
+                  )}
+                </div>
+                {chatting === pact.id && (
+                  <Chat state={state} allianceId={pact.id} name={empire.name} />
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
 
       {incoming.length > 0 && (
         <div className="flex flex-col gap-2">
@@ -325,77 +363,57 @@ export function AlliancePage({ state }: { state: MatchState }) {
         </div>
       )}
 
-      {me?.leavesAtTurn != null ? (
-        <p role="status" className="text-danger">
-          {t('game.alliance.leavingYou', { turn: me.leavesAtTurn })}
-        </p>
-      ) : (
-        hasRoom && (
-          <div className="flex flex-col gap-2 border-t pt-4">
-            <h3 className="text-base">
-              {alliance ? t('game.alliance.invite') : t('game.alliance.propose')}
-            </h3>
-            {candidates.length === 0 ? (
-              <p className="text-muted-foreground">{t('game.alliance.noCandidates')}</p>
-            ) : (
-              <>
-                <Label htmlFor={selectId}>{t('game.alliance.to')}</Label>
-                <Select value={target} onValueChange={setTarget}>
-                  <SelectTrigger id={selectId} className="w-full">
-                    <SelectValue placeholder={t('game.alliance.choose')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {candidates.map((empire) => (
-                      <SelectItem key={empire.id} value={empire.id}>
-                        {empire.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  className="self-start"
-                  disabled={!target || action.isPending}
-                  onClick={() => act(() => matchApi.invite(matchId, target))}
-                >
-                  {t('game.alliance.send')}
-                </Button>
-              </>
-            )}
-          </div>
-        )
-      )}
+      <div className="flex flex-col gap-2 border-t pt-4">
+        <h3 className="text-base">{t('game.alliance.propose')}</h3>
+        {!hasRoom ? (
+          <p className="text-muted-foreground">{t('game.alliance.full', { count: maxAllies })}</p>
+        ) : candidates.length === 0 ? (
+          <p className="text-muted-foreground">{t('game.alliance.noCandidates')}</p>
+        ) : (
+          <>
+            <Label htmlFor={selectId}>{t('game.alliance.to')}</Label>
+            <Select value={target} onValueChange={setTarget}>
+              <SelectTrigger id={selectId} className="w-full">
+                <SelectValue placeholder={t('game.alliance.choose')} />
+              </SelectTrigger>
+              <SelectContent>
+                {candidates.map((empire) => (
+                  <SelectItem key={empire.id} value={empire.id}>
+                    {empire.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              className="self-start"
+              disabled={!target || action.isPending}
+              onClick={() => act(() => matchApi.invite(matchId, target))}
+            >
+              {t('game.alliance.send')}
+            </Button>
+          </>
+        )}
+      </div>
 
-      {action.error && (
+      {action.error && ending === null && (
         <p role="alert" className="text-danger">
           {errorText(action.error)}
         </p>
       )}
 
-      {alliance && allies.size > 0 && <Transfer state={state} allies={allies} />}
-      {alliance && <Chat state={state} />}
+      {allies.size > 0 && <Transfer state={state} allies={allies} />}
 
-      {alliance && me?.leavesAtTurn == null && (
-        <Button
-          variant="quiet"
-          size="sm"
-          className="self-start"
-          onClick={() => {
-            action.reset()
-            setConfirmLeave(true)
-          }}
-        >
-          {t('game.alliance.leave')}
-        </Button>
-      )}
       <ConfirmDialog
-        open={confirmLeave}
-        title={t('game.alliance.leaveTitle')}
-        description={t('game.alliance.leaveText')}
-        confirmLabel={t('game.alliance.leave')}
+        open={ending !== null}
+        title={t('game.alliance.endTitle', {
+          name: empires.get(pacts.find((pact) => pact.id === ending)?.allyId ?? '')?.name ?? '',
+        })}
+        description={t('game.alliance.endText')}
+        confirmLabel={t('game.alliance.end')}
         pending={action.isPending}
         error={action.error ? errorText(action.error) : null}
-        onConfirm={() => act(() => matchApi.leaveAlliance(matchId))}
-        onClose={() => setConfirmLeave(false)}
+        onConfirm={() => act(() => matchApi.endAlliance(matchId, ending ?? ''))}
+        onClose={() => setEnding(null)}
       />
     </section>
   )

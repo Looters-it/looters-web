@@ -102,10 +102,14 @@ export interface MatchState {
   battles: Battle[]
 }
 
+/** A pact between two empires: alliances do not form groups. */
 export interface Alliance {
   id: string
-  /** `leavesAtTurn`: the turn at whose end an announced exit takes effect. */
-  members: { empireId: string; leavesAtTurn: number | null }[]
+  empireIds: string[]
+  /** The turn at whose end the announced end takes effect; null while nobody announced it. */
+  endsAtTurn: number | null
+  /** Who announced the end: the only one who can take it back. */
+  endedByEmpireId: string | null
 }
 
 export interface ChatMessage {
@@ -311,14 +315,18 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/alliances/invites`, { toEmpireId }),
   answerInvite: (id: string, inviteId: string, action: 'accept' | 'decline' | 'withdraw') =>
     apiPost<MatchState>(`/matches/${id}/alliances/invites/${inviteId}/${action}`),
-  leaveAlliance: (id: string) => apiPost<MatchState>(`/matches/${id}/alliances/leave`),
+  endAlliance: (id: string, allianceId: string) =>
+    apiPost<MatchState>(`/matches/${id}/alliances/${allianceId}/end`),
+  keepAlliance: (id: string, allianceId: string) =>
+    apiPost<MatchState>(`/matches/${id}/alliances/${allianceId}/keep`),
   transfer: (
     id: string,
     body: { fromTerritoryId: string; toTerritoryId: string; amount: number; turn: number },
   ) => apiPost<MatchState>(`/matches/${id}/alliances/transfer`, body),
-  chat: (id: string) => apiGet<ChatMessage[]>(`/matches/${id}/alliances/chat`),
-  say: (id: string, text: string) =>
-    apiPost<ChatMessage[]>(`/matches/${id}/alliances/chat`, { text }),
+  chat: (id: string, allianceId: string) =>
+    apiGet<ChatMessage[]>(`/matches/${id}/alliances/${allianceId}/chat`),
+  say: (id: string, allianceId: string, text: string) =>
+    apiPost<ChatMessage[]>(`/matches/${id}/alliances/${allianceId}/chat`, { text }),
   board: (id: string, filters: { kind?: BoardKind; empireId?: string }) => {
     const query = new URLSearchParams()
     if (filters.kind) query.set('kind', filters.kind)

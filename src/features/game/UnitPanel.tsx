@@ -243,9 +243,7 @@ export function UnitPanel(props: {
     !isMine &&
     owner !== undefined &&
     state.alliances.some(
-      (alliance) =>
-        alliance.members.some((member) => member.empireId === mine) &&
-        alliance.members.some((member) => member.empireId === owner.id),
+      (pact) => pact.empireIds.includes(mine ?? '') && pact.empireIds.includes(owner.id),
     )
   const territoryState = state.territories.find((t) => t.id === card.data?.territory.id)
   const structuresHere = state.structures.filter(
