@@ -74,7 +74,7 @@ export function Leaderboard(props: {
                     >
                       {tags.get(empire.id)}
                     </span>
-                    {empire.id === state.match.winnerEmpireId && (
+                    {state.match.winnerEmpireIds.includes(empire.id) && (
                       <span className="rounded-pill border-foreground ml-2 border px-2 text-sm font-normal">
                         {t('game.end.winnerTag')}
                       </span>

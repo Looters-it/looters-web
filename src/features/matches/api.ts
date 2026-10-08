@@ -21,6 +21,8 @@ export interface MatchSummary {
   finishedAt: string | null
   /** The winner, once the match is over. */
   winnerEmpireId: string | null
+  /** Every winner: more than one when the match ended with empires exactly level. */
+  winnerEmpireIds: string[]
   players: number
   hasInviteCode: boolean
   owner: string
@@ -122,6 +124,8 @@ export interface Structure {
   effects: string[]
   /** Turns it still lasts, counting the current one; null if permanent. */
   turnsLeft: number | null
+  /** Turns before it can change territory again (0: now); null if it cannot move at all. */
+  moveInTurns: number | null
 }
 
 /** One structure of the catalogue as the player can use it now. */
@@ -140,6 +144,8 @@ export interface MergePreview {
   available: number
   maxUnits: number
   problem: string | null
+  /** Blocks standing on the chosen territories: the merge cancels them. */
+  blocksLost: number
 }
 
 export interface AreaOutlines {
@@ -190,7 +196,9 @@ export interface Battle {
   defenderEmpireId: string
   role: 'attacker' | 'defender' | null
   // Each side receives its own numbers only.
-  fromTerritoryIds?: string[]
+  /** Where the attack starts from: public, like its target. */
+  fromTerritoryIds: string[]
+  fromNames: string[]
   attackCost?: number
   attackForce?: number
   response?: 'DEFEND' | 'SURRENDER' | null
@@ -323,6 +331,8 @@ export const matchApi = {
   postMessage: (id: string, text: string) =>
     apiPost<{ id: string }>(`/matches/${id}/board`, { text }),
   removeMessage: (id: string, eventId: string) => apiDelete(`/matches/${id}/board/${eventId}`),
+  moveStructure: (id: string, structureId: string, body: { territoryId: string; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/structures/${structureId}/move`, body),
   catalogue: (id: string) => apiGet<CatalogueEntry[]>(`/matches/${id}/structures/catalogue`),
   build: (id: string, body: { type: string; territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/structures`, body),

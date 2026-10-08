@@ -53,6 +53,7 @@ const match = (extra: object = {}) => ({
   areas: [{ id: 'a1', name: 'Provincia di Milano' }],
   config: rules,
   isOwner: false,
+  winnerEmpireIds: [] as string[],
   ...extra,
 })
 

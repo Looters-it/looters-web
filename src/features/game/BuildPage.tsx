@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { matchApi, type CatalogueEntry, type MatchState } from '@/features/matches/api'
+import {
+  matchApi,
+  type CatalogueEntry,
+  type MatchState,
+  type Structure,
+} from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 
 /** Names and descriptions of a structure; one the interface does not know yet shows its key. */
@@ -125,6 +130,85 @@ function StructureCard(props: {
   )
 }
 
+/** Moves a structure that can change territory (the second capital) to another own territory. */
+function MoveStructure({ state, structure }: { state: MatchState; structure: Structure }) {
+  const { t } = useTranslation()
+  const errorText = useMatchErrorText()
+  const queryClient = useQueryClient()
+  const selectId = useId()
+  const [to, setTo] = useState('')
+  const matchId = state.match.id
+  const capital = state.empires.find(
+    (empire) => empire.id === state.me?.empireId,
+  )?.capitalTerritoryId
+  // Anywhere of one's own but where it is now; the capital already is one.
+  const destinations = state.territories.filter(
+    (territory) =>
+      territory.ownerEmpireId === state.me?.empireId &&
+      territory.id !== structure.territoryId &&
+      territory.id !== capital,
+  )
+  const move = useMutation({
+    mutationFn: () =>
+      matchApi.moveStructure(matchId, structure.id, {
+        territoryId: to,
+        turn: state.match.currentTurn,
+      }),
+    onSuccess: (next) => {
+      queryClient.setQueryData(['matches', 'state', matchId], next)
+      setTo('')
+    },
+  })
+
+  if ((structure.moveInTurns ?? 0) > 0) {
+    return (
+      <p className="text-muted-foreground text-base">
+        {t('game.structures.moveWait', { count: structure.moveInTurns })}
+      </p>
+    )
+  }
+  if (destinations.length === 0) {
+    return <p className="text-muted-foreground text-base">{t('game.structures.moveNowhere')}</p>
+  }
+  return (
+    <div className="flex flex-col gap-1">
+      <Label htmlFor={selectId}>{t('game.structures.moveTo')}</Label>
+      <div className="flex gap-2">
+        <Select
+          value={to}
+          onValueChange={(value) => {
+            move.reset()
+            setTo(value)
+          }}
+        >
+          <SelectTrigger id={selectId} className="w-full">
+            <SelectValue placeholder={t('game.structures.wherePlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            {destinations.map((territory) => (
+              <SelectItem
+                key={territory.id}
+                value={territory.id}
+                disabled={territory.battleId !== null}
+              >
+                {territory.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="sm" disabled={!to || move.isPending} onClick={() => move.mutate()}>
+          {t('game.structures.move')}
+        </Button>
+      </div>
+      {move.error && (
+        <p role="alert" className="text-danger">
+          {errorText(move.error)}
+        </p>
+      )}
+    </div>
+  )
+}
+
 /**
  * The catalogue of structures as cards. Whatever the api lists is shown:
  * a structure added to the catalogue appears here without a change.
@@ -174,18 +258,23 @@ export function BuildPage(props: {
         {mine.length === 0 && <p className="text-muted-foreground">{t('game.structures.none')}</p>}
         <ul className="flex flex-col gap-1">
           {mine.map((structure) => (
-            <li key={structure.id} className="flex justify-between gap-3">
-              <span>
-                {t('game.structures.activeItem', {
-                  type: text.name(structure.type),
-                  name: nameOf(structure.territoryId),
-                })}
-              </span>
-              <span className="text-muted-foreground">
-                {structure.turnsLeft === null
-                  ? t('game.structures.permanent')
-                  : t('game.structures.turnsLeft', { count: structure.turnsLeft })}
-              </span>
+            <li key={structure.id} className="flex flex-col gap-2 border-t py-2 first:border-t-0">
+              <div className="flex justify-between gap-3">
+                <span>
+                  {t('game.structures.activeItem', {
+                    type: text.name(structure.type),
+                    name: nameOf(structure.territoryId),
+                  })}
+                </span>
+                <span className="text-muted-foreground">
+                  {structure.turnsLeft === null
+                    ? t('game.structures.permanent')
+                    : t('game.structures.turnsLeft', { count: structure.turnsLeft })}
+                </span>
+              </div>
+              {structure.moveInTurns != null && (
+                <MoveStructure state={state} structure={structure} />
+              )}
             </li>
           ))}
         </ul>

@@ -119,6 +119,11 @@ export function MergePage(props: {
             <dd>{plan.available}</dd>
           </dl>
         )}
+        {plan && plan.blocksLost > 0 && (
+          <p role="alert" className="border-danger text-danger rounded-md border p-2">
+            {t('game.merge.blocksLost', { count: plan.blocksLost })}
+          </p>
+        )}
         {/* The reason is always spelled out when the merge is not possible. */}
         {plan?.problem && (
           <p className="text-danger">

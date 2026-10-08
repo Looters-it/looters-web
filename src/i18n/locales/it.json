@@ -428,7 +428,9 @@
       "PROPOSAL_EXPIRED": "La proposta non è più valida.",
       "ALLIANCE_AT_WAR": "Sei in guerra con un membro di quell'alleanza.",
       "NOT_IN_ALLIANCE": "Non fai parte di un'alleanza.",
-      "NOT_AN_ALLY": "Quell'impero non è tuo alleato."
+      "NOT_AN_ALLY": "Quell'impero non è tuo alleato.",
+      "STRUCTURE_NOT_MOVABLE": "Questa costruzione non si può spostare.",
+      "STRUCTURE_MOVED_RECENTLY": "Questa costruzione non può ancora essere spostata di nuovo."
     }
   },
   "game": {
@@ -556,7 +558,8 @@
           "SURRENDER": "Hai ceduto {{name}}.",
           "CANCELLED": "L'attacco a {{name}} è stato annullato."
         }
-      }
+      },
+      "from": "L'attacco parte da: {{names}}."
     },
     "alert": {
       "button_one": "Sotto attacco",
@@ -582,7 +585,9 @@
       "noWinner": "Nessun vincitore.",
       "fallen": "caduto al turno {{turn}}",
       "winnerTag": "vincitore",
-      "resources": "{{count}} risorse"
+      "resources": "{{count}} risorse",
+      "tie": "Parità: hanno vinto {{names}}.",
+      "youTied": "Parità: hai vinto insieme a {{names}}."
     },
     "map": {
       "legendCapital": "Capitale",
@@ -627,7 +632,12 @@
         "ONE_PER_EMPIRE": "Ne hai già una: non puoi averne un'altra.",
         "COOLDOWN": "Su questo comune ce n'è stata una da poco: devi aspettare.",
         "NOT_ENOUGH_RESOURCES": "Il comune non ha abbastanza risorse."
-      }
+      },
+      "move": "Sposta",
+      "moveTo": "Sposta in un altro tuo comune",
+      "moveWait_one": "Potrai spostarla tra {{count}} turno.",
+      "moveWait_other": "Potrai spostarla tra {{count}} turni.",
+      "moveNowhere": "Per spostarla serve un altro tuo comune che non sia la capitale."
     },
     "merge": {
       "title": "Unisci territori",
@@ -651,7 +661,9 @@
         "TOO_MANY": "Un'area può contenere al massimo {{max}} comuni.",
         "NOT_CONTIGUOUS": "I comuni scelti non sono tutti confinanti tra loro.",
         "NOT_ENOUGH_RESOURCES": "I comuni scelti non hanno abbastanza risorse per pagare l'unione."
-      }
+      },
+      "blocksLost_one": "Attenzione: su uno di questi comuni c'è un blocco militare. Unendoli il blocco viene cancellato, senza rimborso.",
+      "blocksLost_other": "Attenzione: su questi comuni ci sono {{count}} blocchi militari. Unendoli vengono cancellati, senza rimborso."
     },
     "board": {
       "title": "Bacheca",
@@ -698,7 +710,8 @@
         "ALLIANCE_LEFT": "{{empireName}} ha annunciato l'uscita dalla sua alleanza.",
         "MATCH_STARTED": "La partita è iniziata.",
         "MATCH_FINISHED": "La partita è finita. Ha vinto {{winnerName}}.",
-        "UNKNOWN": "È successo qualcosa."
+        "UNKNOWN": "È successo qualcosa.",
+        "MATCH_FINISHED_TIE": "La partita è finita in parità. Hanno vinto {{winnerName}}."
       }
     },
     "alliance": {

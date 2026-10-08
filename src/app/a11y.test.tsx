@@ -67,6 +67,7 @@ const state = {
     currentTurn: 3,
     turnEndsAt: new Date(Date.now() + 3_600_000).toISOString(),
     winnerEmpireId: null,
+    winnerEmpireIds: [] as string[],
     owner: 'bruno',
     areas: [{ id: 'a1', name: 'Provincia di Milano' }],
     config: rules,

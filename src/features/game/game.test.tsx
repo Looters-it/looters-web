@@ -120,6 +120,7 @@ function running(territories: object[], me: object = {}, turn = 3) {
       turnEndsAt: new Date(Date.now() + 3_725_000).toISOString(),
       finishedAt: null,
       winnerEmpireId: null,
+      winnerEmpireIds: [] as string[],
       players: 2,
       hasInviteCode: false,
       owner: 'bruno',
@@ -579,6 +580,7 @@ describe('attack', () => {
       attackerEmpireId: 'anna',
       defenderEmpireId: 'bruno',
       role: 'attacker',
+      fromNames: ['Lodi'],
       fromTerritoryIds: ['ta1', 'ta2'],
       attackCost: 180,
       attackForce: 300,
@@ -680,6 +682,8 @@ describe('answering an attack', () => {
     attackerEmpireId: 'bruno',
     defenderEmpireId: 'anna',
     role: 'defender',
+    fromTerritoryIds: ['tb'],
+    fromNames: ['Lodi'],
     response: null,
     defenseForce: 100,
     defenseCost: 50,
@@ -809,6 +813,7 @@ describe('answering an attack', () => {
               attackerEmpireId: 'anna',
               defenderEmpireId: 'bruno',
               role: 'attacker',
+              fromNames: ['Lodi'],
               fromTerritoryIds: ['ta1'],
               attackCost: 100,
               attackForce: 200,
@@ -819,6 +824,8 @@ describe('answering an attack', () => {
               status: 'RESOLVED',
               outcome: 'ATTACKER_WON',
               role: 'attacker',
+              fromTerritoryIds: ['tb'],
+              fromNames: ['Lodi'],
               targetName: 'Crema',
             },
           ],
@@ -977,6 +984,7 @@ describe('capital and end of the match', () => {
       ...state.match,
       status: 'FINISHED',
       winnerEmpireId: 'anna' as never,
+      winnerEmpireIds: ['anna'],
       finishedAt: new Date().toISOString() as never,
     }
     state.empires = [
@@ -1095,6 +1103,49 @@ describe('structures', () => {
         '"kind":"block","color":"","text":"5"',
       ),
     )
+  })
+
+  it('moves the second capital to another own municipality, when its wait is over', async () => {
+    const withCapital = (territoryId: string, moveInTurns: number) => ({
+      ...running([...mine, territory('ta3', 'Sesto San Giovanni', 'anna', 3, 50)]),
+      structures: [
+        {
+          id: 's1',
+          type: 'SECOND_CAPITAL',
+          territoryId,
+          empireId: 'anna',
+          effects: ['BACKUP_CAPITAL'],
+          turnsLeft: null,
+          moveInTurns,
+        },
+      ],
+    })
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/structures/catalogue': () => ({ body: [] }),
+      'GET /api/matches/m1/state': () => ({ body: withCapital('ta2', 0) }),
+      'POST /api/matches/m1/structures/s1/move': () => ({ body: withCapital('ta3', 4) }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Costruzioni' }))
+
+    await userEvent.click(
+      await screen.findByRole('combobox', { name: 'Sposta in un altro tuo comune' }),
+    )
+    // Not where it is, and not the capital, which already is one.
+    expect(screen.queryByRole('option', { name: 'Monza' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Milano' })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('option', { name: 'Sesto San Giovanni' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Sposta' }))
+
+    await waitFor(() =>
+      expect(
+        calls.find((call) => call.key === 'POST /api/matches/m1/structures/s1/move')?.body,
+      ).toEqual({ territoryId: 'ta3', turn: 3 }),
+    )
+    expect(await screen.findByText('Potrai spostarla tra 4 turni.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sposta' })).not.toBeInTheDocument()
   })
 
   it('says that a blocked municipality cannot be attacked', async () => {

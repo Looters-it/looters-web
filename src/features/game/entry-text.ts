@@ -7,7 +7,14 @@ export function useEntryText() {
   const { t, i18n } = useTranslation()
   return (entry: BoardEntry): string => {
     if (entry.type === 'MESSAGE') return entry.data.text ?? ''
-    const suffix = entry.type === 'BATTLE_RESOLVED' ? `_${entry.data.outcome}` : ''
+    // Some events read differently by how they went: the outcome of a battle, a match
+    // that ended level.
+    const suffix =
+      entry.type === 'BATTLE_RESOLVED'
+        ? `_${entry.data.outcome}`
+        : entry.type === 'MATCH_FINISHED' && entry.data.result
+          ? `_${entry.data.result}`
+          : ''
     const key = `game.board.events.${entry.type}${suffix}`
     return i18n.exists(key)
       ? t(

@@ -45,6 +45,9 @@ export function BattlesPage(props: { state: MatchState; onRespond: () => void })
             {open.map((battle) => (
               <li key={battle.id} className="flex flex-col gap-1 rounded-md border p-3">
                 <p className="font-bold">{headline(battle)}</p>
+                <p className="text-base">
+                  {t('game.battles.from', { names: battle.fromNames.join(', ') })}
+                </p>
                 {battle.role === 'attacker' && (
                   <p className="text-muted-foreground text-base">
                     {t('game.battles.yourCost', { count: battle.attackCost ?? 0 })}{' '}

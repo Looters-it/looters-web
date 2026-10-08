@@ -67,7 +67,8 @@ function MatchInfo({ state }: { state: MatchState }) {
   const { match } = state
   const now = useNow()
   const overdue = match.status === 'OPEN' && new Date(match.startAt).getTime() < now
-  const winner = state.empires.find((empire) => empire.id === match.winnerEmpireId)
+  const winners = state.empires.filter((empire) => match.winnerEmpireIds.includes(empire.id))
+  const iWon = winners.some((empire) => empire.id === state.me?.empireId)
 
   return (
     <section className="flex flex-col gap-1">
@@ -104,11 +105,15 @@ function MatchInfo({ state }: { state: MatchState }) {
       {match.status === 'FINISHED' && (
         <p role="status" className="border-foreground rounded-md border p-3 text-lg">
           {t('game.end.finished')}{' '}
-          {!winner
+          {winners.length === 0
             ? t('game.end.noWinner')
-            : winner.id === state.me?.empireId
-              ? t('game.end.youWon')
-              : t('game.end.winner', { name: winner.name })}
+            : winners.length > 1
+              ? t(iWon ? 'game.end.youTied' : 'game.end.tie', {
+                  names: winners.map((empire) => empire.name).join(', '),
+                })
+              : iWon
+                ? t('game.end.youWon')
+                : t('game.end.winner', { name: winners[0]?.name ?? '' })}
         </p>
       )}
       {match.status !== 'FINISHED' && state.me?.status === 'FALLEN' && (

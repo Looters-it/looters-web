@@ -81,6 +81,7 @@ export function BattleAlert(props: {
                 {t('game.alert.title', { empire: attacker?.name ?? '', name: battle.targetName })}
               </DialogTitle>
               <DialogDescription>
+                {t('game.battles.from', { names: battle.fromNames.join(', ') })}{' '}
                 {battle.status === 'OPEN' && !battle.response && t('game.alert.intro')}
               </DialogDescription>
             </DialogHeader>
