@@ -2,7 +2,7 @@ import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { FakeWebSocket, guest, healthy, stubApi } from '@/test/fakes'
+import { FakeWebSocket, guest, stubApi } from '@/test/fakes'
 import { renderApp } from '@/test/render'
 
 vi.mock('maplibre-gl', async () => {
@@ -18,49 +18,20 @@ vi.mock('maplibre-gl', async () => {
 beforeEach(() => FakeWebSocket.install())
 
 describe('homepage', () => {
-  it('shows the Italian interface and the state of each service', async () => {
-    stubApi({ ...healthy, ...guest })
+  it('shows the Italian interface and invites guests to sign in', async () => {
+    stubApi({ ...guest })
     renderApp()
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Conquista i comuni')
-    expect(await screen.findAllByText('attivo')).toHaveLength(4)
-  })
-
-  it('reports the database down and jobs still waiting', async () => {
-    stubApi({
-      ...guest,
-      'GET /api/health/ready': () => ({
-        status: 503,
-        body: {
-          status: 'unavailable',
-          database: false,
-          jobs: { lastPongAt: null },
-          battleQueue: true,
-        },
-      }),
-    })
-    renderApp()
-
-    expect(await screen.findByText('non raggiungibile')).toBeInTheDocument()
-    expect(screen.getAllByText('attivo')).toHaveLength(2)
-    expect(screen.getByText('in attesa')).toBeInTheDocument()
-  })
-
-  it('reports the API unreachable when the request fails', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.reject(new TypeError('network'))),
-    )
-    renderApp()
-
-    expect(await screen.findByText('non raggiungibile')).toBeInTheDocument()
-    expect(screen.getAllByText('in attesa')).toHaveLength(3)
+    expect(await screen.findByText(/Accedi per creare una partita/)).toBeInTheDocument()
+    expect(await screen.findByText(/Non ci sono ancora partite/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Crea una partita' })).not.toBeInTheDocument()
   })
 })
 
 describe('online counter', () => {
   it('shows the count pushed by the server and follows its changes', async () => {
-    stubApi({ ...healthy, ...guest })
+    stubApi({ ...guest })
     renderApp()
     expect(screen.queryByText(/conness/)).not.toBeInTheDocument()
 
@@ -77,7 +48,7 @@ describe('online counter', () => {
 
   it('hides the count while disconnected and reconnects by itself', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    stubApi({ ...healthy, ...guest })
+    stubApi({ ...guest })
     renderApp()
     const first = FakeWebSocket.latest
     act(() => {
@@ -102,7 +73,7 @@ describe('account popover', () => {
   }
 
   it('signs in with username and password and reopens the socket', async () => {
-    const calls = stubApi({ ...healthy, ...guest, 'POST /api/auth/login': () => ({ body: mario }) })
+    const calls = stubApi({ ...guest, 'POST /api/auth/login': () => ({ body: mario }) })
     renderApp()
     const guestSocket = FakeWebSocket.latest
 
@@ -123,7 +94,6 @@ describe('account popover', () => {
 
   it('explains a refused login', async () => {
     stubApi({
-      ...healthy,
       ...guest,
       'POST /api/auth/login': () => ({
         status: 401,
@@ -144,7 +114,6 @@ describe('account popover', () => {
 
   it('registers with username, email and password', async () => {
     const calls = stubApi({
-      ...healthy,
       ...guest,
       'POST /api/auth/register': () => ({ status: 201, body: mario }),
     })
@@ -167,7 +136,6 @@ describe('account popover', () => {
 
   it('says when the username is taken', async () => {
     stubApi({
-      ...healthy,
       ...guest,
       'POST /api/auth/register': () => ({
         status: 409,
@@ -188,7 +156,6 @@ describe('account popover', () => {
 
   it('restores the session on load and signs out', async () => {
     const calls = stubApi({
-      ...healthy,
       'GET /api/auth/me': () => ({ body: mario }),
       'POST /api/auth/logout': () => ({ status: 204 }),
     })
@@ -202,7 +169,7 @@ describe('account popover', () => {
   })
 
   it('signs the user out and explains when the server revokes the session', async () => {
-    stubApi({ ...healthy, 'GET /api/auth/me': () => ({ body: mario }) })
+    stubApi({ 'GET /api/auth/me': () => ({ body: mario }) })
     renderApp()
     await screen.findByRole('button', { name: 'Account di mario_rossi' })
     const revoked = FakeWebSocket.latest

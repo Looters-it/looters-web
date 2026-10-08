@@ -45,6 +45,27 @@ describe('admin dashboard', () => {
     expect(screen.getByText('Connessi adesso').nextSibling).toHaveTextContent('57')
   })
 
+  it('shows the state of each service, written out', async () => {
+    stubApi({
+      ...asAdmin,
+      ...stats,
+      'GET /api/health/ready': () => ({
+        status: 503,
+        body: {
+          status: 'unavailable',
+          database: false,
+          jobs: { lastPongAt: null },
+          battleQueue: true,
+        },
+      }),
+    })
+    renderApp('/admin')
+
+    expect(await screen.findByText('non raggiungibile')).toBeInTheDocument()
+    expect(screen.getAllByText('attivo')).toHaveLength(2)
+    expect(screen.getByText('in attesa')).toBeInTheDocument()
+  })
+
   it('lists the sessions and revokes one after confirmation', async () => {
     const session = (id: string, username: string, extra = {}) => ({
       id,

@@ -7,6 +7,12 @@ type Handler = (body: unknown) => { status?: number; body?: unknown }
  * Unlisted requests answer 404, so a test notices an unexpected call.
  */
 export function stubApi(routes: Record<string, Handler>) {
+  // What every page asks for when nothing has been created yet.
+  const defaults: Record<string, Handler> = {
+    'GET /api/geo/areas': () => ({ body: [] }),
+    'GET /api/matches?page=1': () => ({ body: { page: 1, pageSize: 6, total: 0, matches: [] } }),
+    'GET /api/matches/mine': () => ({ body: [] }),
+  }
   const calls: { key: string; body: unknown }[] = []
   vi.stubGlobal(
     'fetch',
@@ -14,7 +20,10 @@ export function stubApi(routes: Record<string, Handler>) {
       const key = `${init.method ?? 'GET'} ${input}`
       const body: unknown = typeof init.body === 'string' ? JSON.parse(init.body) : init.body
       calls.push({ key, body })
-      const result = routes[key]?.(body) ?? { status: 404, body: { error: { code: 'NOT_FOUND' } } }
+      const result = (routes[key] ?? defaults[key])?.(body) ?? {
+        status: 404,
+        body: { error: { code: 'NOT_FOUND' } },
+      }
       const status = result.status ?? 200
       return Promise.resolve(
         new Response(status === 204 ? null : JSON.stringify(result.body ?? {}), { status }),

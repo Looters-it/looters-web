@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useSession } from '@/features/auth/session-context'
+import { SystemStatusCard } from '@/features/home/SystemStatusCard'
 
 import { adminApi } from './api'
 import { useErrorText, useFormat } from './hooks'
@@ -31,11 +32,14 @@ export function OverviewTab() {
   const show = (value: number | undefined | null) => (value == null ? '–' : format.number(value))
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <Stat label={t('admin.overview.users')} value={show(stats.data?.users)} />
-      <Stat label={t('admin.overview.matchesRunning')} value={show(stats.data?.matchesRunning)} />
-      {/* Live from the socket; the fetched value covers the first moments. */}
-      <Stat label={t('admin.overview.online')} value={show(online ?? stats.data?.online)} />
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label={t('admin.overview.users')} value={show(stats.data?.users)} />
+        <Stat label={t('admin.overview.matchesRunning')} value={show(stats.data?.matchesRunning)} />
+        {/* Live from the socket; the fetched value covers the first moments. */}
+        <Stat label={t('admin.overview.online')} value={show(online ?? stats.data?.online)} />
+      </div>
+      <SystemStatusCard />
     </div>
   )
 }
