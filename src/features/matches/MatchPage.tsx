@@ -652,7 +652,13 @@ export function MatchPage() {
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="quiet" size="sm" onClick={() => open('menu')}>
+              {/* The way back: on a phone as tall as a fingertip needs. */}
+              <Button
+                variant="quiet"
+                size="sm"
+                className="max-md:h-10 max-md:px-4"
+                onClick={() => open('menu')}
+              >
                 {t('game.menu.back')}
               </Button>
               {/* The pages of the empire share a bar with their links. */}

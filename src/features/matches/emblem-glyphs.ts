@@ -9,7 +9,8 @@ export const GLYPHS: Record<string, string> = {
   bande: 'M3 5h18v3.5H3zM3 10.25h18v3.5H3zM3 15.5h18V19H3z',
   scacchi: 'M3 3h6v6H3zM15 3h6v6h-6zM9 9h6v6H9zM3 15h6v6H3zM15 15h6v6h-6z',
   monte: 'M12 3l10 18H2z',
-  luna: 'M14 2a10 10 0 1 0 0 20 8 8 0 0 1 0-20z',
+  // A crescent: the earlier drawing closed on itself and showed nothing at all.
+  luna: 'M12 3a6.4 6.4 0 0 0 9 9 9 9 0 1 1-9-9z',
 }
 
 export const SHIELD = 'M12 1.5l9 3.2v6.6c0 5.4-3.7 9.7-9 11.9-5.3-2.2-9-6.5-9-11.9V4.700z'

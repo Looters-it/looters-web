@@ -33,7 +33,8 @@ export function AccountPopover() {
           className="text-primary-foreground hover:bg-primary-hover tracking-normal normal-case"
         >
           <CircleUserRound className="size-5" />
-          {user && <span className="max-w-32 truncate">{user.username}</span>}
+          {/* On a phone the icon is enough: the name is in its label and in the panel. */}
+          {user && <span className="hidden max-w-32 truncate sm:inline">{user.username}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent

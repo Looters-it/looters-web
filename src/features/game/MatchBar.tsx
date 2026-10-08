@@ -30,9 +30,9 @@ export function MatchBar(props: {
     : null
 
   return createPortal(
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 sm:gap-4">
       {props.alert}
-      <dl className="flex items-center gap-x-5 text-base whitespace-nowrap [&_dd]:font-mono [&_dd]:font-bold [&_div]:flex [&_div]:items-baseline [&_div]:gap-1.5">
+      <dl className="flex items-center gap-x-3 text-sm whitespace-nowrap sm:gap-x-5 sm:text-base [&_dd]:font-mono [&_dd]:font-bold [&_div]:flex [&_div]:items-baseline [&_div]:gap-1.5">
         <div>
           <dt className="sr-only sm:not-sr-only">{t('game.bar.online')}</dt>
           <dd>
@@ -46,7 +46,7 @@ export function MatchBar(props: {
               <dd>{match.currentTurn}</dd>
             </div>
             {match.turnEndsAt && (
-              <div className="hidden sm:flex">
+              <div>
                 <dt className="sr-only">{t('game.bar.timeLeft')}</dt>
                 <dd>
                   <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />

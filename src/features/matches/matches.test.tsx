@@ -569,3 +569,18 @@ describe('match page', () => {
     expect(await screen.findByRole('heading', { name: 'Pagina non trovata' })).toBeInTheDocument()
   })
 })
+
+describe('emblems', () => {
+  it('are drawings with a surface: every arc reaches its end', async () => {
+    const { GLYPHS } = await import('./emblem-glyphs')
+    // An arc whose radius is shorter than half the way to its end is stretched into a
+    // half circle; two of those back and forth enclose nothing, and the emblem vanishes.
+    for (const [name, path] of Object.entries(GLYPHS)) {
+      const arcs = [...path.matchAll(/a([\d.]+) [\d.]+ \d [01] [01] ?(-?[\d.]+)[ ,]?(-?[\d.]+)/g)]
+      for (const arc of arcs) {
+        const [radius, dx, dy] = [Number(arc[1]), Number(arc[2]), Number(arc[3])]
+        expect(Math.hypot(dx, dy) / 2, `${name}: ${arc[0]}`).toBeLessThanOrEqual(radius * 1.01)
+      }
+    }
+  })
+})
