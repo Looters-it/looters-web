@@ -3,6 +3,15 @@ server {
   listen 8080;
   root /usr/share/nginx/html;
   index index.html;
+  server_tokens off;
+
+  # Behind another proxy (the TLS terminator in production) the client address comes
+  # from its X-Forwarded-For; REAL_IP_FROM is the network that proxy is trusted on.
+  # The default trusts nobody, so the header of a client is never believed.
+  set_real_ip_from ${REAL_IP_FROM};
+  real_ip_header X-Forwarded-For;
+
+  include /etc/nginx/security-headers.conf;
 
   # Map tiles and JSON compress well; the api sends them uncompressed.
   gzip on;
@@ -38,17 +47,23 @@ server {
     proxy_read_timeout 1h;
   }
 
+  # A location with its own add_header drops those of the server: they are included again.
   location /fonts/ {
     expires 30d;
     add_header Cache-Control "public";
+    include /etc/nginx/security-headers.conf;
   }
 
   location /assets/ {
     expires 1y;
     add_header Cache-Control "public, immutable";
+    include /etc/nginx/security-headers.conf;
   }
 
   location / {
+    # The page itself is never cached: it names the assets of the current release.
+    add_header Cache-Control "no-cache";
+    include /etc/nginx/security-headers.conf;
     try_files $uri /index.html;
   }
 }
