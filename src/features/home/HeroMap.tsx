@@ -10,9 +10,9 @@ import { EmpireShield } from '@/features/matches/Emblem'
 
 import { Demo, boundsOf, demoStage, type DemoEvent } from './demo'
 
-/** Municipalities on the stage, time between two moves, and lines of chronicle kept. */
+/** Municipalities on the stage, the pauses between one move and the next, and lines of chronicle kept. */
 const STAGE_SIZE = 320
-const STEP_MS = 1100
+const PAUSES_MS = [3000, 2000, 5000, 3000]
 const LOG_SIZE = 4
 
 interface LogLine {
@@ -70,15 +70,26 @@ export function HeroMap({
   useEffect(() => {
     if (!demo) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const timer = setInterval(() => {
-      if (document.hidden) return
-      const event = demo.game.step()
-      if (!event) return
-      setMove((value) => value + 1)
-      setFlash([event.unitId])
-      setLog((lines) => [{ id: nextId.current++, event }, ...lines].slice(0, LOG_SIZE))
-    }, STEP_MS)
-    return () => clearInterval(timer)
+    // An uneven pace, like news that comes when it comes: the pauses go round in turn.
+    let beat = 0
+    let timer: ReturnType<typeof setTimeout>
+    const play = () => {
+      timer = setTimeout(
+        () => {
+          beat += 1
+          play()
+          if (document.hidden) return
+          const event = demo.game.step()
+          if (!event) return
+          setMove((value) => value + 1)
+          setFlash([event.unitId])
+          setLog((lines) => [{ id: nextId.current++, event }, ...lines].slice(0, LOG_SIZE))
+        },
+        PAUSES_MS[beat % PAUSES_MS.length],
+      )
+    }
+    play()
+    return () => clearTimeout(timer)
   }, [demo])
 
   const view = useMemo(() => {
