@@ -383,6 +383,74 @@ describe('match page', () => {
     await waitFor(() => expect(map.state.get(2)?.color).toBeUndefined())
   })
 
+  it('puts an uploaded logo in place of the emblem, and takes it away again', async () => {
+    const mine = {
+      ...bruno,
+      id: 'e2',
+      name: 'Ducato del Ticino',
+      username: 'anna',
+      capitalTerritoryId: 't2',
+      logoUrl: null as string | null,
+    }
+    const myCapital = {
+      ...brunoCapital,
+      id: 't2',
+      name: 'Monza',
+      ownerEmpireId: 'e2',
+      geoUnitIds: [2],
+      resources: 263,
+    }
+    const state = (logoUrl: string | null) => ({
+      match: match({ players: 2 }),
+      me: { empireId: 'e2', annexLeft: 1, turnValue: 60, allocationMode: 'EQUAL' },
+      empires: [
+        { ...bruno, logoUrl: null },
+        { ...mine, logoUrl },
+      ],
+      territories: [brunoCapital, myCapital],
+      online,
+      battles,
+      structures: [],
+      alliances: [],
+      invites: [],
+    })
+    const url = '/api/matches/m1/empires/e2/logo?v=1'
+    const calls = stubApi({
+      ...asAnna,
+      ...options,
+      ...mapOf,
+      'GET /api/matches/m1/state': () => ({ body: state(null) }),
+      'PUT /api/matches/m1/empire/logo': () => ({ body: state(url) }),
+      'DELETE /api/matches/m1/empires/e2/logo': () => ({ body: state(null) }),
+    })
+    renderApp('/partite/m1')
+    await userEvent.click(await screen.findByRole('button', { name: 'La partita' }))
+    const panel = (await screen.findByRole('heading', { name: 'Il tuo impero' })).parentElement!
+    expect(panel.querySelector('image')).toBeNull()
+
+    // Too heavy: said at once, nothing is sent.
+    const input = screen.getByLabelText('Immagine del logo')
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array(250_000)], 'big.png', { type: 'image/png' }),
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent('supera i 200 KB')
+    expect(calls.some((call) => call.key === 'PUT /api/matches/m1/empire/logo')).toBe(false)
+
+    const file = new File([new Uint8Array([137, 80, 78, 71])], 'logo.png', { type: 'image/png' })
+    await userEvent.upload(input, file)
+    // The file itself is sent, and the picture takes the place of the emblem.
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'PUT /api/matches/m1/empire/logo')?.body).toBe(file),
+    )
+    await waitFor(() => expect(panel.querySelector('image')).toHaveAttribute('href', url))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rimuovi il logo' }))
+    await waitFor(() => expect(panel.querySelector('image')).toBeNull())
+    expect(screen.getByRole('button', { name: 'Carica un logo' })).toBeInTheDocument()
+  })
+
   it('explains a refused registration and asks for the invite code when needed', async () => {
     stubApi({
       ...asAnna,

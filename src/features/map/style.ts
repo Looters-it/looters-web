@@ -211,6 +211,20 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         },
       },
       {
+        // The arms of the empire on its capital: emblem or uploaded logo, drawn over the
+        // disc, which stays visible where the image is missing.
+        id: 'capital-arms',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['all', ['==', ['get', 'kind'], 'capital'], ['!=', ['get', 'icon'], '']],
+        layout: {
+          'icon-image': ['get', 'icon'],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.8, 14, 1.1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+      },
+      {
         // Accumulation alerts: a red disc with an exclamation mark, a shape and not just a colour.
         id: 'alert-discs',
         type: 'circle',
@@ -280,6 +294,9 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-font': [EMPIRE_FONT],
           'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 9, 17],
           'text-max-width': 8,
+          // Under the capital, whose arms stay in view above the name.
+          'text-anchor': 'top',
+          'text-offset': [0, 0.9],
           // Larger empires win when names collide.
           'symbol-sort-key': ['-', ['get', 'size']],
         },

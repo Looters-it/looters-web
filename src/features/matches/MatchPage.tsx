@@ -247,21 +247,21 @@ export function MatchPage() {
   // Capitals (always visible to everyone) and accumulation alerts, drawn on the map.
   const markers = useMemo<MapMarker[]>(() => {
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
-    const colorOf = new Map(
-      state?.empires.map((empire) => [empire.capitalTerritoryId, empire.color]),
-    )
+    const empireOf = new Map(state?.empires.map((empire) => [empire.capitalTerritoryId, empire]))
     return (state?.territories ?? []).flatMap((territory) => {
       const point = points.get(territory.geoUnitIds[0] ?? -1)
       if (!point) return []
       const at = { lon: point.lon, lat: point.lat }
-      const capitalColor = colorOf.get(territory.id)
+      const capitalOf = empireOf.get(territory.id)
       return [
-        ...(capitalColor
+        ...(capitalOf
           ? [
               {
                 id: `capital:${territory.id}`,
                 kind: 'capital' as const,
-                color: capitalColor,
+                color: capitalOf.color,
+                emblem: capitalOf.emblem,
+                logo: capitalOf.logoUrl,
                 ...at,
               },
             ]
@@ -499,7 +499,12 @@ export function MatchPage() {
                   <UnitCard name={unit.name}>
                     {then ? (
                       <p className="flex items-center gap-2">
-                        <EmpireShield color={then.color} emblem={then.emblem} className="size-6" />
+                        <EmpireShield
+                          color={then.color}
+                          emblem={then.emblem}
+                          logo={then.logoUrl}
+                          className="size-6"
+                        />
                         {t('match.unit.owned', { name: then.name })}
                       </p>
                     ) : (
@@ -518,6 +523,7 @@ export function MatchPage() {
                         <EmpireShield
                           color={empire.color}
                           emblem={empire.emblem}
+                          logo={empire.logoUrl}
                           className="size-6"
                         />
                         {t('match.unit.owned', { name: empire.name })}

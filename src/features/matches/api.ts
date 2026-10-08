@@ -52,6 +52,8 @@ export interface Empire {
   /** Municipalities controlled. */
   units: number
   fallenTurn: number | null
+  /** The image the player uploaded in place of the emblem, if any. */
+  logoUrl: string | null
   /** Total resources: sent only when the match is over. */
   resources?: number
 }
@@ -303,6 +305,10 @@ export const matchApi = {
   units: (id: string) => apiGet<UnitPoint[]>(`/matches/${id}/units`),
   join: (id: string, body: { geoUnitId: number; empire: EmpireIdentity; inviteCode?: string }) =>
     apiPost<MatchState>(`/matches/${id}/join`, body),
+  /** Puts an image (PNG, JPEG or WebP) in place of the emblem of the player's empire. */
+  setLogo: (id: string, file: Blob) => apiPut<MatchState>(`/matches/${id}/empire/logo`, file),
+  removeLogo: (id: string, empireId: string) =>
+    apiDelete<MatchState>(`/matches/${id}/empires/${empireId}/logo`),
   /** Leaves a match that has not started: the starting municipality is free again. */
   withdraw: (id: string) => apiDelete<MatchState>(`/matches/${id}/empire`),
   updateEmpire: (id: string, empire: EmpireIdentity) =>

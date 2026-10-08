@@ -129,7 +129,12 @@ export function Board(props: {
     return (
       <li key={entry.id} className="flex items-start gap-2 border-t py-2 first:border-t-0">
         {isMessage && author && (
-          <EmpireShield color={author.color} emblem={author.emblem} className="mt-0.5 size-6" />
+          <EmpireShield
+            color={author.color}
+            emblem={author.emblem}
+            logo={author.logoUrl}
+            className="mt-0.5 size-6"
+          />
         )}
         <div className="min-w-0 flex-1">
           {isMessage && <p className="font-bold">{entry.data.empireName}</p>}

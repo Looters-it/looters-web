@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,9 @@ import { EmpireShield } from './Emblem'
 import { EmpireFields } from './EmpireFields'
 import { useMatchErrorText } from './errors'
 
+/** The same limit the api applies, checked here first to spare the upload. */
+const LOGO_MAX_BYTES = 200 * 1024
+
 /** The player's own empire; name, colour, emblem and motto can change until the match starts. */
 export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire }) {
   const { t } = useTranslation()
@@ -17,6 +20,9 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<EmpireIdentity | null>(null)
   const [leaving, setLeaving] = useState(false)
+  const [logoProblem, setLogoProblem] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const fileId = useId()
   const { match } = state
 
   const options = useQuery({ queryKey: ['matches', 'options'], queryFn: matchApi.options })
@@ -39,6 +45,12 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
       queryClient.setQueryData(['matches', 'state', match.id], next)
       setLeaving(false)
     },
+  })
+  // An image in place of the emblem: a file sets it, null removes it.
+  const logo = useMutation({
+    mutationFn: (file: File | null) =>
+      file ? matchApi.setLogo(match.id, file) : matchApi.removeLogo(match.id, empire.id),
+    onSuccess: (next) => queryClient.setQueryData(['matches', 'state', match.id], next),
   })
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -76,7 +88,12 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
       ) : (
         <>
           <div className="flex items-center gap-3">
-            <EmpireShield color={empire.color} emblem={empire.emblem} className="size-12" />
+            <EmpireShield
+              color={empire.color}
+              emblem={empire.emblem}
+              logo={empire.logoUrl}
+              className="size-12"
+            />
             <div className="min-w-0">
               <p className="truncate font-bold">{empire.name}</p>
               {empire.motto && <p className="text-muted-foreground italic">{empire.motto}</p>}
@@ -92,6 +109,62 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
                 </>
               )}
             </p>
+          )}
+          {match.status !== 'FINISHED' && (
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* A real file input, hidden: the button next to it opens it. */}
+                <input
+                  ref={fileInput}
+                  id={fileId}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    event.target.value = ''
+                    logo.reset()
+                    if (!file) return
+                    if (file.size > LOGO_MAX_BYTES) {
+                      setLogoProblem(t('match.empire.logoTooLarge'))
+                      return
+                    }
+                    setLogoProblem(null)
+                    logo.mutate(file)
+                  }}
+                />
+                <label htmlFor={fileId} className="sr-only">
+                  {t('match.empire.logoFile')}
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={logo.isPending}
+                  onClick={() => fileInput.current?.click()}
+                >
+                  {empire.logoUrl ? t('match.empire.logoChange') : t('match.empire.logoAdd')}
+                </Button>
+                {empire.logoUrl && (
+                  <Button
+                    variant="quiet"
+                    size="sm"
+                    disabled={logo.isPending}
+                    onClick={() => {
+                      setLogoProblem(null)
+                      logo.mutate(null)
+                    }}
+                  >
+                    {t('match.empire.logoRemove')}
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-base">{t('match.empire.logoHint')}</p>
+              {(logoProblem ?? logo.error) && (
+                <p role="alert" className="text-danger">
+                  {logoProblem ?? (logo.error ? errorText(logo.error) : '')}
+                </p>
+              )}
+            </div>
           )}
           {match.status === 'OPEN' ? (
             <div className="flex flex-wrap gap-2">

@@ -31,6 +31,7 @@ import {
   UNITS_LAYER,
   UNITS_SOURCE,
 } from './style'
+import { capitalIconId, ensureCapitalIcons } from './capital-icon'
 import { mapColors } from './theme'
 
 export interface MapUnit {
@@ -46,6 +47,9 @@ export interface MapMarker {
   lat: number
   /** Colour of the empire, for a capital. */
   color?: string
+  /** For a capital: what is drawn on it, the emblem or the uploaded logo of the empire. */
+  emblem?: string
+  logo?: string | null
   /** Short text drawn on the sign: the turns a block still lasts. */
   text?: string
 }
@@ -74,6 +78,12 @@ const NO_COLORS: ReadonlyMap<number, string> = new Map()
 const NO_IDS: readonly number[] = []
 const NO_LABELS: readonly EmpireLabel[] = []
 const NO_MARKERS: readonly MapMarker[] = []
+
+/** What is drawn on a capital, if the marker is one and says so. */
+const armsOf = (marker: MapMarker) =>
+  marker.kind === 'capital' && marker.color && marker.emblem
+    ? { color: marker.color, emblem: marker.emblem, logo: marker.logo ?? null }
+    : null
 const NO_TAGS: readonly OwnerTag[] = []
 
 const PHONE = '(max-width: 767px)'
@@ -296,14 +306,37 @@ export function GameMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    map.getSource<GeoJSONSource>(MARKERS_SOURCE)?.setData({
-      type: 'FeatureCollection',
-      features: markers.map((marker) => ({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
-        properties: { kind: marker.kind, color: marker.color ?? '', text: marker.text ?? '' },
-      })),
-    })
+    const write = (icons: Set<string>) => {
+      map.getSource<GeoJSONSource>(MARKERS_SOURCE)?.setData({
+        type: 'FeatureCollection',
+        features: markers.map((marker) => {
+          const icon = armsOf(marker) ? capitalIconId(armsOf(marker)!) : ''
+          return {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
+            properties: {
+              kind: marker.kind,
+              color: marker.color ?? '',
+              text: marker.text ?? '',
+              // Only an image the map really has: otherwise the plain disc stays.
+              icon: icons.has(icon) ? icon : '',
+            },
+          }
+        }),
+      })
+    }
+    // At once with what is there, then again when the arms of the capitals are drawn.
+    write(new Set())
+    let cancelled = false
+    const arms = markers.flatMap((marker) => armsOf(marker) ?? [])
+    if (arms.length > 0 && typeof map.hasImage === 'function') {
+      void ensureCapitalIcons(map, arms).then((icons) => {
+        if (!cancelled && icons.size > 0) write(icons)
+      })
+    }
+    return () => {
+      cancelled = true
+    }
   }, [markers, ready])
 
   useEffect(() => {

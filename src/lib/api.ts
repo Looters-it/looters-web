@@ -31,7 +31,9 @@ async function request<T>(
       ? {}
       : body instanceof FormData
         ? { body } // the browser sets the multipart boundary itself
-        : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
+        : body instanceof Blob
+          ? { headers: { 'content-type': body.type }, body } // a file sent as it is
+          : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
   })
   if (response.status === 204) return undefined as T
   if (response.ok || options.accept?.includes(response.status)) {

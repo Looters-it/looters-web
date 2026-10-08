@@ -255,7 +255,7 @@ export function AlliancePage({ state }: { state: MatchState }) {
             return (
               <li key={pact.id} className="flex flex-col gap-2 rounded-md border p-3">
                 <div className="flex items-center gap-3">
-                  <EmpireShield color={empire.color} emblem={empire.emblem} />
+                  <EmpireShield color={empire.color} emblem={empire.emblem} logo={empire.logoUrl} />
                   <span className="flex-1 font-bold">{empire.name}</span>
                 </div>
                 {pact.endsAtTurn !== null && (

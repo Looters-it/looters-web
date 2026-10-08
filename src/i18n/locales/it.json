@@ -358,7 +358,14 @@
       },
       "withdraw": "Ritirati dalla partita",
       "withdrawTitle": "Ritirarti dalla partita?",
-      "withdrawText": "Il tuo impero viene cancellato e il comune di partenza torna libero. Finché la partita non inizia puoi iscriverti di nuovo, anche scegliendo un altro comune."
+      "withdrawText": "Il tuo impero viene cancellato e il comune di partenza torna libero. Finché la partita non inizia puoi iscriverti di nuovo, anche scegliendo un altro comune.",
+      "logoAdd": "Carica un logo",
+      "logoChange": "Cambia il logo",
+      "logoRemove": "Rimuovi il logo",
+      "logoFile": "Immagine del logo",
+      "logoHint": "Un'immagine al posto dello stemma: PNG, JPEG o WebP, al massimo 200 KB. La vedono tutti.",
+      "logoTooLarge": "L'immagine supera i 200 KB: scegline una più leggera.",
+      "logoModerate": "Rimuovi il logo di {{name}}"
     },
     "players": {
       "title": "Imperi",
@@ -439,7 +446,9 @@
       "TOO_MANY_ALLIES": "Hai già il numero massimo di alleati.",
       "ALLIANCE_ENDING": "La fine di questa alleanza è già stata annunciata.",
       "ALLIANCE_NOT_ENDING": "Nessuno ha annunciato la fine di questa alleanza.",
-      "NOT_YOUR_ANNOUNCEMENT": "Solo chi ha annunciato la fine può annullarla."
+      "NOT_YOUR_ANNOUNCEMENT": "Solo chi ha annunciato la fine può annullarla.",
+      "UNSUPPORTED_IMAGE": "Il file non è un'immagine PNG, JPEG o WebP.",
+      "IMAGE_TOO_LARGE": "L'immagine supera i 200 KB."
     }
   },
   "game": {

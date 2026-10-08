@@ -1,6 +1,8 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import type { MatchState } from '@/features/matches/api'
+import { useSession } from '@/features/auth/session-context'
+import { matchApi, type MatchState } from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +20,13 @@ export function Leaderboard(props: {
   const { t } = useTranslation()
   const { state } = props
   const tags = empireTags(state.empires)
+  const { user } = useSession()
+  const queryClient = useQueryClient()
+  const canModerate = state.match.isOwner || user?.role === 'ADMIN'
+  const removeLogo = useMutation({
+    mutationFn: (empireId: string) => matchApi.removeLogo(state.match.id, empireId),
+    onSuccess: (next) => queryClient.setQueryData(['matches', 'state', state.match.id], next),
+  })
   const empires = [...state.empires].sort(
     (a, b) => b.units - a.units || a.name.localeCompare(b.name),
   )
@@ -63,7 +72,7 @@ export function Leaderboard(props: {
             >
               <div className="flex items-center gap-3">
                 <span className="w-6 font-mono text-lg font-bold">{index + 1}</span>
-                <EmpireShield color={empire.color} emblem={empire.emblem} />
+                <EmpireShield color={empire.color} emblem={empire.emblem} logo={empire.logoUrl} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">
                     {empire.name}
@@ -86,6 +95,17 @@ export function Leaderboard(props: {
                       empire.fallenTurn !== null &&
                       ` · ${t('game.end.fallen', { turn: empire.fallenTurn })}`}
                   </p>
+                  {/* Who runs the match can take down a picture that should not be there. */}
+                  {canModerate && empire.logoUrl && empire.id !== state.me?.empireId && (
+                    <button
+                      type="button"
+                      className="hover:text-danger cursor-pointer text-base underline underline-offset-2"
+                      disabled={removeLogo.isPending}
+                      onClick={() => removeLogo.mutate(empire.id)}
+                    >
+                      {t('match.empire.logoModerate', { name: empire.name })}
+                    </button>
+                  )}
                 </div>
                 <span className="font-mono text-sm whitespace-nowrap">
                   {t('match.players.units', { count: empire.units })}

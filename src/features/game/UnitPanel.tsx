@@ -260,7 +260,12 @@ export function UnitPanel(props: {
           <div className="flex flex-col gap-1">
             {owner ? (
               <p className="flex items-center gap-2">
-                <EmpireShield color={owner.color} emblem={owner.emblem} className="size-6" />
+                <EmpireShield
+                  color={owner.color}
+                  emblem={owner.emblem}
+                  logo={owner.logoUrl}
+                  className="size-6"
+                />
                 {t('match.unit.owned', { name: owner.name })}
               </p>
             ) : (
