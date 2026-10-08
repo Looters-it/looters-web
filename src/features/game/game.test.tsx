@@ -191,7 +191,7 @@ describe('match bar', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: running(mine) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
 
     const bar = await screen.findByRole('banner')
     expect(await within(bar).findByText('1/2')).toBeInTheDocument()
@@ -209,7 +209,7 @@ describe('match bar', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: state }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await screen.findByRole('button', { name: 'Classifica' })
 
     const socket = FakeWebSocket.latest
@@ -238,7 +238,7 @@ describe('panel menu', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: running(mine) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
 
     await userEvent.click(await screen.findByRole('button', { name: 'Classifica' }))
     expect(screen.getByRole('heading', { name: 'Classifica' })).toBeInTheDocument()
@@ -254,7 +254,7 @@ describe('panel menu', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: running(mine) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     await userEvent.click(await screen.findByRole('button', { name: 'Classifica' }))
 
@@ -294,7 +294,7 @@ describe('resources per municipality', () => {
         return { body: current }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Risorse per comune' }))
     return calls
   }
@@ -429,7 +429,7 @@ describe('municipality card and annexation', () => {
         body: sesto({ cost: 50, left: 1, payFrom: payers }),
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
 
     act(() => map.click({ id: 1, name: 'Milano' }))
@@ -473,7 +473,7 @@ describe('municipality card and annexation', () => {
         return { body: after }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 3, name: 'Sesto San Giovanni' }))
 
@@ -520,7 +520,7 @@ describe('municipality card and annexation', () => {
         'GET /api/matches/m1/state': () => ({ body: running(mine) }),
         'GET /api/matches/m1/units/3': () => ({ body: sesto(annex) }),
       })
-      const view = renderApp('/partite/m1')
+      const view = renderApp('/match/m1')
       const map = await loadedMap()
       act(() => map.click({ id: 3, name: 'Sesto San Giovanni' }))
 
@@ -602,7 +602,7 @@ describe('attack', () => {
         return { status: 201, body: { ...running(mine), battles: [battle] } }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 9, name: 'Lodi' }))
 
@@ -662,7 +662,7 @@ describe('attack', () => {
         'GET /api/matches/m1/state': () => ({ body: running(mine) }),
         'GET /api/matches/m1/units/9': () => ({ body: lodi(attack) }),
       })
-      const view = renderApp('/partite/m1')
+      const view = renderApp('/match/m1')
       const map = await loadedMap()
       act(() => map.click({ id: 9, name: 'Lodi' }))
 
@@ -707,7 +707,7 @@ describe('answering an attack', () => {
         return { body: attackedState(battle) }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
 
     const alert = await within(await screen.findByRole('banner')).findByRole('button', {
@@ -765,7 +765,7 @@ describe('answering an attack', () => {
         return { body: attackedState(battle) }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Sotto attacco' }))
 
     const dialog = await screen.findByRole('dialog')
@@ -786,7 +786,7 @@ describe('answering an attack', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: attackedState(incoming()) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Risorse per comune' }))
 
     expect(screen.getByText(/bloccato: in uno scontro/)).toBeInTheDocument()
@@ -834,7 +834,7 @@ describe('answering an attack', () => {
         },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Scontri' }))
 
     expect(screen.getByText('Repubblica Ambrosiana attacca Monza')).toBeInTheDocument()
@@ -876,7 +876,7 @@ describe('capital and end of the match', () => {
       ...mapRoutes,
       'GET /api/matches/m1/state': () => ({ body: running(withAlert) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
 
     await waitFor(() =>
@@ -910,7 +910,7 @@ describe('capital and end of the match', () => {
         return { body: after() }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 2, name: 'Monza' }))
 
@@ -935,7 +935,7 @@ describe('capital and end of the match', () => {
       'GET /api/matches/m1/state': () => ({ body: running(mine, { capitalMoveInTurns: 2 }) }),
       'GET /api/matches/m1/units/2': () => ({ body: monza }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 2, name: 'Monza' }))
 
@@ -964,7 +964,7 @@ describe('capital and end of the match', () => {
         },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
 
     expect(
@@ -994,7 +994,7 @@ describe('capital and end of the match', () => {
       { ...state.empires[1]!, resources: 300 } as never,
     ]
     stubApi({ ...asAnna, ...mapRoutes, 'GET /api/matches/m1/state': () => ({ body: state }) })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
 
     expect(await screen.findByText(/Partita conclusa\. Hai vinto!/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Classifica' }))
@@ -1063,7 +1063,7 @@ describe('structures', () => {
         return { status: 201, body: { ...running(mine), structures: [block] } }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     await userEvent.click(await screen.findByRole('button', { name: 'Costruzioni' }))
 
@@ -1129,7 +1129,7 @@ describe('structures', () => {
       'GET /api/matches/m1/state': () => ({ body: withCapital('ta2', 0) }),
       'POST /api/matches/m1/structures/s1/move': () => ({ body: withCapital('ta3', 4) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Costruzioni' }))
 
     await userEvent.click(
@@ -1178,7 +1178,7 @@ describe('structures', () => {
         },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 9, name: 'Lodi' }))
 
@@ -1240,7 +1240,7 @@ describe('merging territories', () => {
         },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     await userEvent.click(await screen.findByRole('button', { name: 'Unisci territori' }))
 
@@ -1319,7 +1319,7 @@ describe('merging territories', () => {
         return { body: current() }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 3, name: 'Sesto San Giovanni' }))
 
@@ -1397,7 +1397,7 @@ describe('board', () => {
 
   it('shows the latest entry and how many are new, then the whole list when opened', async () => {
     stubApi(boardOf(running(mine)))
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
 
     // Closed: only the latest entry, and the badge of what is new.
@@ -1444,7 +1444,7 @@ describe('board', () => {
         }),
       }),
     )
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
 
@@ -1460,7 +1460,7 @@ describe('board', () => {
         'GET /api/matches/m1/board?kind=battles&empireId=bruno': () => ({ body: [] }),
       }),
     )
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
 
@@ -1495,7 +1495,7 @@ describe('board', () => {
         },
       }),
     )
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
 
@@ -1523,7 +1523,7 @@ describe('board', () => {
         }),
       }),
     )
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
     await userEvent.type(within(board()).getByRole('textbox'), 'Ancora io')
@@ -1536,7 +1536,7 @@ describe('board', () => {
 
   it('is read-only for spectators', async () => {
     stubApi(boardOf(running([mine[2]!], { status: 'FALLEN' })))
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
 
@@ -1557,7 +1557,7 @@ describe('board', () => {
         },
       }),
     )
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await userEvent.click(await within(board()).findByRole('button', { name: 'Apri la bacheca' }))
 
@@ -1613,7 +1613,7 @@ describe('alliances', () => {
         body: { ...state, invites: [{ id: 'i2', fromEmpireId: 'anna', toEmpireId: 'bruno' }] },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
 
     expect(screen.getByText('Non hai alleati.')).toBeInTheDocument()
@@ -1646,7 +1646,7 @@ describe('alliances', () => {
         body: { ...state, invites: [], alliances: [pact('al1', 'carla')] },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
     await userEvent.click(screen.getByRole('button', { name: 'Accetta' }))
 
@@ -1668,7 +1668,7 @@ describe('alliances', () => {
         body: withAlly({ alliances: [pact('al1', 'bruno'), pact('al2', 'carla')] }),
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
     expect(
       await screen.findByText('Hai già 2 alleati, il massimo in questa partita.'),
@@ -1693,7 +1693,7 @@ describe('alliances', () => {
       },
       'POST /api/matches/m1/alliances/transfer': () => ({ body: withAlly() }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
 
     await userEvent.click(await screen.findByRole('combobox', { name: 'Dal tuo comune' }))
@@ -1735,7 +1735,7 @@ describe('alliances', () => {
       'POST /api/matches/m1/alliances/al1/end': () => ({ body: ending }),
       'POST /api/matches/m1/alliances/al1/keep': () => ({ body: withAlly() }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
     await userEvent.click(await screen.findByRole('button', { name: "Termina l'alleanza" }))
     expect(calls.some((call) => call.key === 'POST /api/matches/m1/alliances/al1/end')).toBe(false)
@@ -1767,7 +1767,7 @@ describe('alliances', () => {
         }),
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Alleanze' }))
     expect(
       await screen.findByText(
@@ -1784,7 +1784,7 @@ describe('alliances', () => {
       ...board,
       'GET /api/matches/m1/state': () => ({ body: withAlly() }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     const colorOf = (id: number) => map.state.get(id)?.color
 
@@ -1849,7 +1849,7 @@ describe('history of the turns', () => {
 
   it('lists the closed turns as cards that open on what happened', async () => {
     stubApi(routes())
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Storico dei turni' }))
 
     const second = await screen.findByRole('button', { name: /Turno 2/ })
@@ -1870,7 +1870,7 @@ describe('history of the turns', () => {
 
   it('shows the map as it was, moves between turns and comes back to the present', async () => {
     stubApi(routes())
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     const colorOf = (id: number) => map.state.get(id)?.color
     await waitFor(() => expect(colorOf(9)).toBe('#aa0000'))
@@ -1913,7 +1913,7 @@ describe('bots', () => {
       state.empires[1]!,
     ]
     stubApi({ ...asAnna, ...mapRoutes, 'GET /api/matches/m1/state': () => ({ body: state }) })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'Classifica' }))
 
     const cards = screen

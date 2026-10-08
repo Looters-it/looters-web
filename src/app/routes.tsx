@@ -12,6 +12,7 @@ import { MatchList } from '@/features/home/MatchList'
 import { ErrorPage } from './ErrorPage'
 import { Layout } from './Layout'
 import { NotFoundPage } from './NotFoundPage'
+import { OldMatchAddress } from './OldMatchAddress'
 
 export const routes: RouteObject[] = [
   {
@@ -29,7 +30,9 @@ export const routes: RouteObject[] = [
           { path: '/partite', element: <MatchList /> },
           { path: '/come-funziona', element: <HowItWorks /> },
           { path: '/partite/nuova', element: <NewMatchPage /> },
-          { path: '/partite/:id', element: <MatchPage /> },
+          { path: '/match/:id', element: <MatchPage /> },
+          // The address matches had before: links already shared keep working.
+          { path: '/partite/:id', element: <OldMatchAddress /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

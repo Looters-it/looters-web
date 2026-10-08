@@ -25,7 +25,7 @@ function NewMatchForm({ options }: { options: MatchOptions }) {
       if (open) await matchApi.open(match.id).catch(() => undefined)
       return match
     },
-    onSuccess: (match) => navigate(`/partite/${match.id}`),
+    onSuccess: (match) => navigate(`/match/${match.id}`),
   })
 
   const submit = (event: FormEvent<HTMLFormElement>) => {

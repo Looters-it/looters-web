@@ -39,7 +39,7 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   const filled = Math.min(100, Math.round((match.players / match.maxPlayers) * 100))
 
   return (
-    <li className="bg-card text-card-foreground flex flex-col gap-3 overflow-hidden rounded-lg border p-4">
+    <li className="bg-card text-card-foreground relative flex flex-col gap-3 overflow-hidden rounded-lg border p-4 transition-shadow hover:shadow-lg">
       <MatchPreview
         matchId={match.id}
         className="bg-primary/15 -mx-4 -mt-4 h-36 rounded-t-lg p-2"
@@ -47,7 +47,13 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
           {/* In a card the title is the text font, bold: the display font is for headings. */}
-          <b className="truncate text-lg">{match.name}</b>
+          {/* The whole card leads to the match: the link is its title, stretched over it. */}
+          <Link
+            to={`/match/${match.id}`}
+            className="truncate text-lg font-bold outline-none after:absolute after:inset-0 focus-visible:underline"
+          >
+            {match.name}
+          </Link>
           {mine && (
             <span className="rounded-pill bg-secondary flex-none px-2 text-sm font-bold text-white">
               {t('home.matches.yours')}
@@ -75,10 +81,10 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
           </span>
         </p>
       </div>
-      <div className="mt-auto">
+      <div className="relative z-10 mt-auto self-start">
         {mine ? (
           <Button asChild variant="outline" size="sm">
-            <Link to={`/partite/${match.id}`}>{t('home.matches.enter')}</Link>
+            <Link to={`/match/${match.id}`}>{t('home.matches.enter')}</Link>
           </Button>
         ) : full ? (
           <Button size="sm" disabled>
@@ -86,7 +92,7 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
           </Button>
         ) : (
           <Button asChild size="sm">
-            <Link to={`/partite/${match.id}`}>{t('home.matches.join')}</Link>
+            <Link to={`/match/${match.id}`}>{t('home.matches.join')}</Link>
           </Button>
         )}
       </div>

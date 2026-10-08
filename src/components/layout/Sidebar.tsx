@@ -36,7 +36,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation()
   const { user, sessionEnded, logout, dismissSessionEnded } = useSession()
   const { pathname } = useLocation()
-  const inMatch = useMatch('/partite/:id') !== null
+  const inMatch = useMatch('/match/:id') !== null
   // After signing in, back to the page the guest was on (a match, for instance).
   const signIn =
     pathname === '/' || pathname === '/accesso'

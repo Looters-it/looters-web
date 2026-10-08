@@ -137,19 +137,19 @@ describe('match list', () => {
     const own = await screen.findByRole('region', { name: 'Le tue partite' })
     expect(await within(own).findByRole('link', { name: 'Entra' })).toHaveAttribute(
       'href',
-      '/partite/m3',
+      '/match/m3',
     )
     const list = await screen.findByRole('region', { name: 'Partite in corso' })
     const rows = await within(list).findAllByRole('listitem')
     expect(within(rows[0]!).getByRole('link', { name: 'Partecipa' })).toHaveAttribute(
       'href',
-      '/partite/m1',
+      '/match/m1',
     )
     expect(rows[0]).toHaveTextContent('1 di 100 giocatori')
     expect(within(rows[1]!).getByRole('button', { name: 'Al completo' })).toBeDisabled()
     expect(within(rows[2]!).getByRole('link', { name: 'Entra' })).toHaveAttribute(
       'href',
-      '/partite/m3',
+      '/match/m3',
     )
     expect(rows[2]).toHaveTextContent('turno 4')
     // Among all the matches, the player's own is marked.
@@ -284,7 +284,7 @@ describe('match page', () => {
         invites: [],
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
 
     expect(await screen.findByRole('heading', { name: 'Milano e provincia' })).toBeInTheDocument()
     expect(screen.getByText('Iscrizioni aperte')).toBeInTheDocument()
@@ -360,7 +360,7 @@ describe('match page', () => {
         return { body: before }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
 
     act(() => map.click({ id: 2, name: 'Monza' }))
@@ -441,7 +441,7 @@ describe('match page', () => {
       'PUT /api/matches/m1/empire/logo': () => ({ body: state(url) }),
       'DELETE /api/matches/m1/empires/e2/logo': () => ({ body: state(null) }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await userEvent.click(await screen.findByRole('button', { name: 'La partita' }))
     const panel = (await screen.findByRole('heading', { name: 'Il tuo impero' })).parentElement!
     expect(panel.querySelector('image')).toBeNull()
@@ -490,7 +490,7 @@ describe('match page', () => {
         body: { error: { code: 'INVITE_CODE_REQUIRED', message: 'x' } },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     const map = await loadedMap()
     act(() => map.click({ id: 2, name: 'Monza' }))
 
@@ -520,7 +520,7 @@ describe('match page', () => {
         invites: [],
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     expect(await screen.findByText('Accedi per partecipare a questa partita.')).toBeInTheDocument()
   })
 
@@ -554,7 +554,7 @@ describe('match page', () => {
         return { body: current() }
       },
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
 
     expect(await screen.findByText(/Questa bozza la vedi solo tu/)).toBeInTheDocument()
     // No registration on a draft, and no map yet.
@@ -570,7 +570,7 @@ describe('match page', () => {
 
   it('shows the not-found page for a match that does not exist', async () => {
     stubApi({ ...guest })
-    renderApp('/partite/nope')
+    renderApp('/match/nope')
     expect(await screen.findByRole('heading', { name: 'Pagina non trovata' })).toBeInTheDocument()
   })
 })

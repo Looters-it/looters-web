@@ -299,7 +299,7 @@ describe('a page that breaks', () => {
       ...guest,
       'GET /api/matches/m1/state': () => ({ body: { match: { id: 'm1', status: 'RUNNING' } } }),
     })
-    renderApp('/partite/m1?token=secret')
+    renderApp('/match/m1?token=secret')
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Qualcosa si è rotto')
@@ -317,7 +317,7 @@ describe('a page that breaks', () => {
     }
     expect(report.kind).toBe('render')
     // The path of the page, never its query string.
-    expect(report.path).toBe('/partite/m1')
+    expect(report.path).toBe('/match/m1')
     expect(report.message).not.toBe('')
     // Reported once, however many times the page tries again.
     expect(calls.filter((call) => call.key === 'POST /api/client-errors')).toHaveLength(1)

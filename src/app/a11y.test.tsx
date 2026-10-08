@@ -153,7 +153,7 @@ describe('accessibility', () => {
 
   it('match page: menu, map and board', async () => {
     stubApi(matchRoutes)
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     await screen.findByRole('button', { name: 'Classifica' })
     await expectAccessible()
@@ -171,7 +171,7 @@ describe('accessibility', () => {
   ]) {
     it(`match page: ${page}`, async () => {
       stubApi(matchRoutes)
-      renderApp('/partite/m1')
+      renderApp('/match/m1')
       await loadedMap()
       // The menu entry: "Alleanze" is also the name of a view of the map.
       const entries = await screen.findAllByRole('button', { name: page })
@@ -222,7 +222,7 @@ describe('without a pointer or without telling colours apart', () => {
         },
       }),
     })
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
 
     const search = await screen.findByRole('searchbox', { name: 'Cerca un comune' })
@@ -238,7 +238,7 @@ describe('without a pointer or without telling colours apart', () => {
 
   it('writes the tag of the owner on every municipality, and next to the empire in the leaderboard', async () => {
     stubApi(matchRoutes)
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     const owners = () =>
       (
@@ -266,7 +266,7 @@ describe('without a pointer or without telling colours apart', () => {
 
   it('names the map for who reaches it with the keyboard', async () => {
     stubApi(matchRoutes)
-    renderApp('/partite/m1')
+    renderApp('/match/m1')
     await loadedMap()
     expect(FakeMap.latest.getCanvas()).toHaveAttribute(
       'aria-label',
