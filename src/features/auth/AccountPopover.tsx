@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { LoginForm, RegisterForm } from './AuthForms'
 import { useSession } from './session-context'
+import { LanguageSelect } from '@/i18n/LanguageSelect'
 
 /** Sign-in and registration live in a popover opened from the navbar (PROMPT §11). */
 export function AccountPopover() {
@@ -75,6 +76,7 @@ export function AccountPopover() {
             </Tabs>
           </div>
         )}
+        <LanguageSelect />
       </PopoverContent>
     </Popover>
   )

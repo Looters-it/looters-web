@@ -9,7 +9,8 @@
     "online_one": "giocatore connesso",
     "online_other": "giocatori connessi",
     "admin": "Dashboard admin",
-    "skip": "Vai al contenuto"
+    "skip": "Vai al contenuto",
+    "language": "Lingua"
   },
   "home": {
     "title": "Conquista i comuni, uno alla volta",
