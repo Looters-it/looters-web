@@ -1,3 +1,4 @@
+import i18next from 'i18next'
 import {
   Map as MapLibreMap,
   NavigationControl,
@@ -26,6 +27,7 @@ import {
   EMPIRES_SOURCE,
   FILL_LAYER,
   MARKERS_SOURCE,
+  OWNERS_SOURCE,
   UNITS_LAYER,
   UNITS_SOURCE,
 } from './style'
@@ -48,6 +50,14 @@ export interface MapMarker {
   text?: string
 }
 
+/** The tag of the owning empire, written on a municipality. */
+export interface OwnerTag {
+  id: number
+  lon: number
+  lat: number
+  tag: string
+}
+
 /** A name drawn over an empire at low zoom. */
 export interface EmpireLabel {
   id: string
@@ -64,6 +74,7 @@ const NO_COLORS: ReadonlyMap<number, string> = new Map()
 const NO_IDS: readonly number[] = []
 const NO_LABELS: readonly EmpireLabel[] = []
 const NO_MARKERS: readonly MapMarker[] = []
+const NO_TAGS: readonly OwnerTag[] = []
 
 const PHONE = '(max-width: 767px)'
 
@@ -73,6 +84,8 @@ interface Props {
   colors?: ReadonlyMap<number, string>
   empireLabels?: readonly EmpireLabel[]
   markers?: readonly MapMarker[]
+  /** Tags of the owners on their municipalities: ownership without relying on colour. */
+  ownerTags?: readonly OwnerTag[]
   /** Outlines of merged areas, each drawn as one polygon with its name. */
   areas?: FeatureCollection | null
   selected?: MapUnit | null
@@ -102,6 +115,7 @@ export function GameMap({
   colors = NO_COLORS,
   empireLabels = NO_LABELS,
   markers = NO_MARKERS,
+  ownerTags = NO_TAGS,
   areas = null,
   selected = null,
   highlightedIds = NO_IDS,
@@ -161,6 +175,8 @@ export function GameMap({
     })
     map.touchZoomRotate.disableRotation()
     map.keyboard.disableRotation()
+    // The canvas takes the focus for the arrow keys: it needs a name.
+    map.getCanvas().setAttribute('aria-label', i18next.t('game.map.canvas'))
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     mapRef.current = map
     applied.current = {
@@ -289,6 +305,19 @@ export function GameMap({
       })),
     })
   }, [markers, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.getSource<GeoJSONSource>(OWNERS_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: ownerTags.map((owner) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [owner.lon, owner.lat] },
+        properties: { tag: owner.tag },
+      })),
+    })
+  }, [ownerTags, ready])
 
   useEffect(() => {
     const map = mapRef.current

@@ -8,6 +8,7 @@ export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
 export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
+export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
@@ -64,6 +65,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       },
       [EMPIRES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [MARKERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [OWNERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
@@ -236,6 +238,21 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-ignore-placement': true,
         },
         paint: { 'text-color': colors.halo },
+      },
+      {
+        // The tag of the owning empire on its municipalities: who owns what can be read
+        // without telling colours apart. Names and signs are placed first and win.
+        id: 'owner-tags',
+        type: 'symbol',
+        source: OWNERS_SOURCE,
+        layout: {
+          'text-field': ['get', 'tag'],
+          'text-font': [UNIT_FONT],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 9, 9, 11, 13, 13],
+          'text-offset': [0, 1.1],
+          'text-padding': 6,
+        },
+        paint: { 'text-color': colors.ink, 'text-halo-color': colors.halo, 'text-halo-width': 1.4 },
       },
       {
         id: 'unit-labels',

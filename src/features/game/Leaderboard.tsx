@@ -4,6 +4,8 @@ import type { MatchState } from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
 import { cn } from '@/lib/utils'
 
+import { empireTags } from './tags'
+
 /**
  * The ranking by municipalities controlled (resources stay hidden until the
  * end, PROMPT §9 #10). Each empire shows one square per municipality;
@@ -15,6 +17,7 @@ export function Leaderboard(props: {
 }) {
   const { t } = useTranslation()
   const { state } = props
+  const tags = empireTags(state.empires)
   const empires = [...state.empires].sort(
     (a, b) => b.units - a.units || a.name.localeCompare(b.name),
   )
@@ -64,6 +67,13 @@ export function Leaderboard(props: {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">
                     {empire.name}
+                    {/* The tag written on the empire's municipalities on the map. */}
+                    <span
+                      className="text-muted-foreground ml-2 font-mono text-sm font-normal"
+                      aria-label={t('game.tag', { tag: tags.get(empire.id) ?? '' })}
+                    >
+                      {tags.get(empire.id)}
+                    </span>
                     {empire.id === state.match.winnerEmpireId && (
                       <span className="rounded-pill border-foreground ml-2 border px-2 text-sm font-normal">
                         {t('game.end.winnerTag')}

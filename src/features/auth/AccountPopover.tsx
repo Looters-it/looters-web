@@ -35,7 +35,11 @@ export function AccountPopover() {
           {user && <span className="max-w-32 truncate">{user.username}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent
+        align="end"
+        className="w-80"
+        aria-label={user ? t('nav.accountOf', { username: user.username }) : t('nav.account')}
+      >
         {user ? (
           <div className="flex flex-col gap-3">
             <p>

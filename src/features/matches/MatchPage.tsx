@@ -15,13 +15,15 @@ import { BuildPage } from '@/features/game/BuildPage'
 import { historyQuery, turnQuery } from '@/features/game/history'
 import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
+import { empireTags } from '@/features/game/tags'
+import { UnitSearch } from '@/features/game/UnitSearch'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MatchBar } from '@/features/game/MatchBar'
 import { MergePage } from '@/features/game/MergePage'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
-import type { EmpireLabel, MapMarker, MapUnit } from '@/features/map/GameMap'
+import type { EmpireLabel, MapMarker, MapUnit, OwnerTag } from '@/features/map/GameMap'
 import { LazyGameMap } from '@/features/map/LazyGameMap'
 import { UnitCard } from '@/features/map/UnitCard'
 import { ApiError } from '@/lib/api'
@@ -198,6 +200,32 @@ export function MatchPage() {
     const colors = state ? colorsFor(state, mapView, MAP_TONES) : new Map<number, string>()
     return { empires, byUnit, colors }
   }, [state, mapView])
+
+  // The tag of the owner on each municipality: ownership readable without colours.
+  const tags = useMemo(() => empireTags(state?.empires ?? []), [state?.empires])
+  const [showTags, setShowTags] = useState(() => {
+    try {
+      return localStorage.getItem('map.tags') !== 'off'
+    } catch {
+      return true
+    }
+  })
+  const ownerTags = useMemo<OwnerTag[]>(() => {
+    if (!showTags) return []
+    const points = new Map(units.data?.map((unit) => [unit.id, unit]))
+    const owners: Record<string, string> =
+      reviewing?.ownership ??
+      Object.fromEntries(
+        (state?.territories ?? []).flatMap((territory) =>
+          territory.geoUnitIds.map((unitId) => [String(unitId), territory.ownerEmpireId]),
+        ),
+      )
+    return Object.entries(owners).flatMap(([unitId, empireId]) => {
+      const point = points.get(Number(unitId))
+      const tag = tags.get(empireId)
+      return point && tag ? [{ id: point.id, lon: point.lon, lat: point.lat, tag }] : []
+    })
+  }, [reviewing, showTags, state?.territories, tags, units.data])
 
   // Each empire is named at its capital.
   const labels = useMemo<EmpireLabel[]>(() => {
@@ -452,6 +480,7 @@ export function MatchPage() {
             colors={reviewing ? pastColors : ownership.colors}
             empireLabels={reviewing ? NOTHING : labels}
             markers={reviewing ? NOTHING : markers}
+            ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             selected={selected}
             highlightedIds={reviewing ? NOTHING : highlighted}
@@ -559,6 +588,25 @@ export function MatchPage() {
               ))}
             </div>
           )}
+          <button
+            type="button"
+            aria-pressed={showTags}
+            onClick={() => {
+              const next = !showTags
+              setShowTags(next)
+              try {
+                localStorage.setItem('map.tags', next ? 'on' : 'off')
+              } catch {
+                // Not remembered, that is all.
+              }
+            }}
+            className={cn(
+              'absolute top-14 left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors',
+              showTags ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
+            )}
+          >
+            {t('game.map.tags')}
+          </button>
           {/* The board sits over the map, bottom left; on a phone it has its own tab. */}
           <Board
             state={state}
@@ -580,6 +628,15 @@ export function MatchPage() {
           <>
             <MatchInfo state={state} />
             {menu}
+            {hasMap && units.data && (
+              <UnitSearch
+                units={units.data}
+                onSelect={(unit) => {
+                  selectFromList(unit)
+                  onMapSelect(unit)
+                }}
+              />
+            )}
           </>
         ) : (
           <>

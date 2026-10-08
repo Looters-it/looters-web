@@ -260,8 +260,8 @@ describe('panel menu', () => {
     const cards = screen
       .getAllByRole('listitem')
       .filter((item) => item.textContent?.includes('comun'))
-    expect(cards[0]).toHaveTextContent('1Ducato del Ticinoanna2 comuni')
-    expect(cards[1]).toHaveTextContent('2Repubblica Ambrosianabruno1 comune')
+    expect(cards[0]).toHaveTextContent('1Ducato del TicinoDTanna2 comuni')
+    expect(cards[1]).toHaveTextContent('2Repubblica AmbrosianaRAbruno1 comune')
     // Never a total of resources in the ranking.
     expect(screen.queryByText(/risorse/i, { selector: 'ol *' })).not.toBeInTheDocument()
 

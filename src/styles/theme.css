@@ -49,12 +49,12 @@
   --color-key-soft: color-mix(in srgb, var(--color-parchment) 60%, var(--color-khaki-beige-300));
   --color-free: color-mix(in srgb, var(--color-parchment) 72%, var(--color-khaki-beige-400));
   --color-primary: var(--color-hunter-green-700);
-  --color-primary-hover: var(--color-hunter-green-600);
+  --color-primary-hover: var(--color-hunter-green-800);
   --color-on-primary: var(--color-hunter-green-50);
   --color-focus: var(--color-hunter-green-600);
   --color-ok: var(--color-hunter-green-600);
   --color-danger: var(--color-crushed-berry-600);
-  --color-danger-hover: var(--color-crushed-berry-500);
+  --color-danger-hover: var(--color-crushed-berry-700);
   --color-on-danger: var(--color-crushed-berry-50);
   --color-shade: color-mix(in srgb, var(--color-khaki-beige-900) 32%, transparent);
 

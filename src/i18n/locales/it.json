@@ -8,7 +8,8 @@
     "accountOf": "Account di {{username}}",
     "online_one": "giocatore connesso",
     "online_other": "giocatori connessi",
-    "admin": "Dashboard admin"
+    "admin": "Dashboard admin",
+    "skip": "Vai al contenuto"
   },
   "home": {
     "title": "Conquista i comuni, uno alla volta",
@@ -589,7 +590,9 @@
       "view": "Vista della mappa",
       "political": "Politica",
       "alliances": "Alleanze",
-      "resources": "Risorse"
+      "resources": "Risorse",
+      "canvas": "Mappa: frecce per spostarsi, più e meno per lo zoom",
+      "tags": "Sigle degli imperi"
     },
     "structures": {
       "title": "Costruzioni",
@@ -747,7 +750,18 @@
       "previous": "Turno precedente",
       "next": "Turno successivo",
       "bar": "Revisione dello storico"
-    }
+    },
+    "search": {
+      "label": "Cerca un comune",
+      "placeholder": "Scrivi almeno due lettere",
+      "results": "Comuni trovati",
+      "none": "Nessun comune con questo nome.",
+      "found_one": "{{count}} comune trovato",
+      "found_other": "{{count}} comuni trovati",
+      "more_one": "e un altro: scrivi qualche lettera in più",
+      "more_other": "e altri {{count}}: scrivi qualche lettera in più"
+    },
+    "tag": "sigla {{tag}}"
   },
   "crash": {
     "title": "Qualcosa si è rotto",

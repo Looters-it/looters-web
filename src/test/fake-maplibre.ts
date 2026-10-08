@@ -20,7 +20,7 @@ export class FakeMap {
   featuresAtPoint: { id: number; properties: Record<string, unknown> }[] = []
   readonly sourceData = new Map<string, unknown>()
   removed = false
-  readonly canvas = { style: { cursor: '' } }
+  readonly canvas = document.createElement('canvas')
   readonly touchZoomRotate = { disableRotation: () => undefined }
   readonly keyboard = { disableRotation: () => undefined }
 
