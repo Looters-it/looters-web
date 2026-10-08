@@ -23,9 +23,11 @@ const buttonVariants = cva(
         ghost: 'border-transparent bg-transparent text-foreground hover:bg-accent',
       },
       size: {
-        default: 'min-h-9 px-4 pt-1.5 pb-1 text-[15px]',
-        sm: 'min-h-8 px-3 pt-1 pb-0.5 text-[13px]',
-        lg: 'min-h-12 px-7 pt-2 pb-1.5 text-[17px]',
+        // The heading font sits high on its line: the uneven padding puts the letters,
+        // as they are drawn, in the middle of the button (measured, not guessed).
+        default: 'min-h-9 px-4 pt-[7px] pb-[3px] text-[15px]',
+        sm: 'min-h-8 px-3 pt-1.5 pb-0 text-[13px]',
+        lg: 'min-h-12 px-7 pt-2.5 pb-1 text-[17px]',
         icon: 'size-9',
         'icon-sm': 'size-8',
       },
