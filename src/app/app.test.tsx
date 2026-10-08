@@ -24,7 +24,6 @@ describe('homepage', () => {
     renderApp()
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Saccheggia i tuoi vicini!')
-    expect(await screen.findByText(/Non ci sono ancora partite/)).toBeInTheDocument()
     // A guest is not offered to create a match: the call to action leads to the sign-in page.
     expect(screen.queryByRole('link', { name: 'Crea una partita' })).not.toBeInTheDocument()
     await userEvent.click(await screen.findByRole('link', { name: 'Accedi per giocare' }))

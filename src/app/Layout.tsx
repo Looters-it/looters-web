@@ -36,7 +36,11 @@ function Frame() {
       </a>
       <Sidebar />
       {/* Beside the sidebar on a wide screen; under the floating button on a narrow one. */}
-      <main id="contenuto" tabIndex={-1} className="min-h-dvh outline-none max-lg:pt-14 lg:pl-60">
+      <main
+        id="contenuto"
+        tabIndex={-1}
+        className="min-h-dvh outline-none max-lg:pt-14 lg:pl-[16.5rem]"
+      >
         <Outlet />
       </main>
     </div>

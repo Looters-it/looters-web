@@ -56,7 +56,7 @@ function Transfer({ state, allies }: { state: MatchState; allies: Set<string> })
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 border-t pt-4">
+    <form onSubmit={submit} className="flex flex-col gap-3 pt-4">
       <h3 className="text-base">{t('game.alliance.transfer')}</h3>
       <div className="flex flex-col gap-1">
         <Label htmlFor={fromId}>{t('game.alliance.transferFrom')}</Label>
@@ -166,7 +166,7 @@ function Chat({
       <h4 className="text-base">{t('game.alliance.chatWith', { name })}</h4>
       <ul className="flex max-h-64 flex-col-reverse overflow-y-auto rounded-md border px-3">
         {chat.data?.map((message) => (
-          <li key={message.id} className="border-t py-2 first:border-t-0">
+          <li key={message.id} className="py-2">
             <span className="font-bold">{empires.get(message.empireId)?.name}</span>{' '}
             <span className="break-words">{message.text}</span>
           </li>
@@ -363,7 +363,7 @@ export function AlliancePage({ state }: { state: MatchState }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-2 border-t pt-4">
+      <div className="flex flex-col gap-2 pt-4">
         <h3 className="text-base">{t('game.alliance.propose')}</h3>
         {!hasRoom ? (
           <p className="text-muted-foreground">{t('game.alliance.full', { count: maxAllies })}</p>

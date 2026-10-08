@@ -35,7 +35,7 @@ export function ProfilePage() {
           <dd>{t(`profile.roles.${user.role}`)}</dd>
         </dl>
         <LanguageSelect />
-        <div className="flex flex-wrap gap-2 border-t pt-4">
+        <div className="flex flex-wrap gap-2 pt-4">
           {user.role === 'ADMIN' && (
             <Button asChild variant="outline">
               <Link to="/admin">{t('nav.admin')}</Link>

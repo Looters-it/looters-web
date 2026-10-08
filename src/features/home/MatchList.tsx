@@ -39,10 +39,10 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   const filled = Math.min(100, Math.round((match.players / match.maxPlayers) * 100))
 
   return (
-    <li className="bg-card text-card-foreground flex w-[17.5rem] flex-none snap-start flex-col gap-3 overflow-hidden rounded-lg border p-4 sm:w-80">
+    <li className="bg-card text-card-foreground flex flex-col gap-3 overflow-hidden rounded-lg border p-4">
       <MatchPreview
         matchId={match.id}
-        className="bg-primary/15 -mx-4 -mt-4 h-36 rounded-t-lg border-b p-2"
+        className="bg-primary/15 -mx-4 -mt-4 h-36 rounded-t-lg p-2"
       />
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
@@ -94,9 +94,8 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   )
 }
 
-/** A row of cards that scrolls sideways, each stopping at the edge. */
-const ROW =
-  'flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:thin] -mx-4 px-4 sm:-mx-8 sm:px-8'
+/** Cards side by side, as many as fit, wrapping onto more rows. */
+const ROW = 'grid gap-4 grid-cols-[repeat(auto-fill,minmax(17.5rem,1fr))]'
 
 /**
  * The band under the hero: the player's own matches, then the matches being
@@ -166,9 +165,9 @@ export function MatchList() {
         aria-labelledby="active-matches"
       >
         <div className="flex flex-col items-start gap-4">
-          <h2 id="active-matches" className="text-2xl">
+          <h1 id="active-matches" className="text-3xl sm:text-4xl">
             {t('home.matches.title')}
-          </h2>
+          </h1>
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
               <Label htmlFor={nameId}>{t('home.matches.name')}</Label>

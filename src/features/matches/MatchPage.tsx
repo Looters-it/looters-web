@@ -627,12 +627,12 @@ export function MatchPage() {
           />
         </div>
       ) : (
-        <div className="bg-muted hidden flex-1 border-r md:block" />
+        <div className="bg-muted hidden flex-1 md:block" />
       )}
 
       <aside
         className={cn(
-          'flex w-full flex-col gap-5 overflow-y-auto p-4 pb-20 max-lg:pt-16 md:w-[26rem] md:flex-none md:border-l md:pb-4',
+          'flex w-full flex-col gap-5 overflow-y-auto p-4 pb-20 max-lg:pt-16 md:w-[26rem] md:flex-none md:pb-4',
           hasMap && phoneTab !== 'panel' && 'hidden md:flex',
         )}
       >
@@ -747,7 +747,7 @@ export function MatchPage() {
         <div
           role="tablist"
           aria-label={t('game.menu.tabs')}
-          className="bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t md:hidden"
+          className="bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 md:hidden"
         >
           {(['map', 'panel', 'board'] as const).map((tab) => (
             <button

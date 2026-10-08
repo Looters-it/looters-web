@@ -56,6 +56,23 @@
   --color-danger: #7a0b1a;
   --color-ok: var(--color-hunter-green-800);
 }
+/* The same for what is a card only on a wide screen (the sidebar). */
+@media (min-width: 64rem) {
+  .card-scope-lg {
+    --color-foreground: var(--color-card-foreground);
+    --color-muted-foreground: var(--color-card-muted);
+    --color-border: #5b7ea3;
+    --color-input: var(--color-card-muted);
+    --color-ring: var(--color-deep-space-blue);
+    --color-primary: var(--color-card-link);
+    --color-primary-foreground: #f3f6fb;
+    --color-accent: #b7c8e8;
+    --color-muted: #7f9cd0;
+    --color-background: #f3f6fb;
+    --color-danger: #7a0b1a;
+    --color-ok: var(--color-hunter-green-800);
+  }
+}
 
 /* The controls MapLibre draws by itself, in the colours of the page. */
 .maplibregl-ctrl-group {

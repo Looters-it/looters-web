@@ -51,7 +51,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
         {user ? (
           <>
-            <Item to="/#mie-partite" icon={<Swords aria-hidden />} onClick={onNavigate}>
+            <Item to="/partite" icon={<Swords aria-hidden />} onClick={onNavigate}>
               {t('nav.myMatches')}
             </Item>
             <Item to="/profilo" icon={<CircleUserRound aria-hidden />} onClick={onNavigate}>
@@ -65,10 +65,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           </>
         ) : (
           <>
-            <Item to="/#come-funziona" icon={<Info aria-hidden />} onClick={onNavigate}>
+            <Item to="/come-funziona" icon={<Info aria-hidden />} onClick={onNavigate}>
               {t('nav.how')}
             </Item>
-            <Item to="/#partite" icon={<Trophy aria-hidden />} onClick={onNavigate}>
+            <Item to="/partite" icon={<Trophy aria-hidden />} onClick={onNavigate}>
               {t('nav.matches')}
             </Item>
           </>
@@ -139,8 +139,8 @@ export function Sidebar() {
       className={cn(
         // Narrow: a strip that lets the page through, holding the button and the figures.
         'pointer-events-none fixed inset-x-0 top-0 z-30 flex items-start gap-2 p-2',
-        // Wide: the sidebar itself.
-        'lg:bg-background lg:text-foreground lg:pointer-events-auto lg:inset-y-0 lg:right-auto lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:border-r lg:p-0 lg:py-5',
+        // Wide: the sidebar itself, a card floating over the page with air on every side.
+        'card-scope-lg lg:bg-card lg:text-card-foreground lg:pointer-events-auto lg:inset-y-3 lg:right-auto lg:left-3 lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:rounded-xl lg:p-0 lg:py-5 lg:shadow-lg',
       )}
     >
       <Button
@@ -157,11 +157,11 @@ export function Sidebar() {
       {/* The figures of the match being played: filled in by MatchBar. */}
       <div
         id="navbar-match"
-        className="pointer-events-auto lg:order-last lg:border-t lg:px-5 lg:pt-4 lg:empty:hidden"
+        className="pointer-events-auto lg:order-last lg:px-5 lg:pt-4 lg:empty:hidden"
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-background text-foreground top-0 left-0 flex h-dvh w-72 max-w-[85vw] translate-x-0 translate-y-0 flex-col gap-6 rounded-none border-0 border-r px-2 py-5 sm:max-w-[85vw]">
+        <DialogContent className="bg-card text-card-foreground top-3 left-3 flex h-[calc(100dvh-1.5rem)] w-72 max-w-[calc(100vw-1.5rem)] translate-x-0 translate-y-0 flex-col gap-6 rounded-xl border-0 px-2 py-5 sm:max-w-[calc(100vw-1.5rem)]">
           <DialogTitle className="sr-only">{t('nav.menu')}</DialogTitle>
           <DialogDescription className="sr-only">{t('nav.main')}</DialogDescription>
           <SidebarBody onNavigate={() => setOpen(false)} />

@@ -146,7 +146,7 @@ export function MergePage(props: {
         </Button>
       </form>
 
-      <div className="flex flex-col gap-2 border-t pt-4">
+      <div className="flex flex-col gap-2 pt-4">
         <h3 className="text-base">{t('game.merge.areas')}</h3>
         {areas.length === 0 && <p className="text-muted-foreground">{t('game.merge.noAreas')}</p>}
         <ul className="flex flex-col gap-1">

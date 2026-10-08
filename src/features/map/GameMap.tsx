@@ -404,7 +404,7 @@ export function GameMap({
       <div ref={container} className="h-full w-full" />
       {info && !phone && createPortal(info, popupNode)}
       {info && phone && (
-        <div className="animate-in bg-background slide-in-from-bottom-8 absolute inset-x-0 bottom-0 z-10 max-h-[60%] overflow-y-auto rounded-t-xl border-t p-4 duration-200">
+        <div className="animate-in bg-background slide-in-from-bottom-8 absolute inset-x-0 bottom-0 z-10 max-h-[60%] overflow-y-auto rounded-t-xl p-4 duration-200">
           {info}
         </div>
       )}

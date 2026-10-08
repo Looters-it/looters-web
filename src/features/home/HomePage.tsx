@@ -6,13 +6,12 @@ import { Button } from '@/components/ui/button'
 import { useSession } from '@/features/auth/session-context'
 
 import { HeroMap } from './HeroMap'
-import { HowItWorks } from './HowItWorks'
-import { MatchList } from './MatchList'
 
 /**
  * The homepage: a hero as wide as the page, all map, playing a demonstration
  * by itself; on its right the map fades into the page and carries what the
- * game is and the way in. Underneath, the matches being played, side by side.
+ * game is and the way in. The matches and how the game works have pages of
+ * their own, reached from the sidebar.
  */
 export function HomePage() {
   const { t } = useTranslation()
@@ -25,17 +24,14 @@ export function HomePage() {
       bottom: 48,
       left: 32,
       // (The sidebar takes 15rem of the width on a wide screen.)
-      right: wide ? Math.round((window.innerWidth - 240) * 0.42) : 32,
+      right: wide ? Math.round((window.innerWidth - 264) * 0.42) : 32,
     }
   })
 
   return (
     <div className="flex flex-col max-lg:-mt-14">
-      <div className="bg-surface relative border-b">
-        <HeroMap
-          fitPadding={fitPadding}
-          className="h-[52vh] min-h-80 lg:h-[calc(100vh-13rem)] lg:min-h-[30rem]"
-        />
+      <div className="bg-surface relative">
+        <HeroMap fitPadding={fitPadding} className="h-[58vh] min-h-80 lg:h-dvh lg:min-h-[30rem]" />
         {/* The map fades into the page: to the right on a wide screen, downwards on a phone. */}
         <div
           aria-hidden="true"
@@ -62,8 +58,6 @@ export function HomePage() {
           )}
         </section>
       </div>
-      <MatchList />
-      <HowItWorks />
     </div>
   )
 }

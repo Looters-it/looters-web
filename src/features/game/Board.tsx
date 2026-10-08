@@ -127,7 +127,7 @@ export function Board(props: {
     const isMessage = entry.type === 'MESSAGE'
     const place = entry.data.territoryName
     return (
-      <li key={entry.id} className="flex items-start gap-2 border-t py-2 first:border-t-0">
+      <li key={entry.id} className="flex items-start gap-2 py-2">
         {isMessage && author && (
           <EmpireShield
             color={author.color}
@@ -184,7 +184,7 @@ export function Board(props: {
     >
       {open && (
         <>
-          <div className="grid grid-cols-2 gap-2 border-b p-3">
+          <div className="grid grid-cols-2 gap-2 p-3">
             <div className="flex flex-col gap-1">
               <label htmlFor={kindId} className="text-base">
                 {t('game.board.kind')}
@@ -241,7 +241,7 @@ export function Board(props: {
           </ul>
 
           {canWrite ? (
-            <form onSubmit={submit} className="flex flex-col gap-1 border-t p-3">
+            <form onSubmit={submit} className="flex flex-col gap-1 p-3">
               <div className="flex gap-2">
                 <Input
                   aria-label={t('game.board.write')}
@@ -269,9 +269,7 @@ export function Board(props: {
               )}
             </form>
           ) : (
-            <p className="text-muted-foreground border-t p-3 text-base">
-              {t('game.board.readOnly')}
-            </p>
+            <p className="text-muted-foreground p-3 text-base">{t('game.board.readOnly')}</p>
           )}
         </>
       )}
@@ -284,7 +282,7 @@ export function Board(props: {
           onClick={() => setExpanded(!expanded)}
           className={cn(
             'hover:bg-accent flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left',
-            expanded && 'border-t',
+            expanded && '',
           )}
         >
           <span className="font-display text-base">{t('game.board.title')}</span>

@@ -2,19 +2,15 @@ import { useTranslation } from 'react-i18next'
 
 const STEPS = ['start', 'grow', 'fight', 'win'] as const
 
-/** The game in four steps, for who arrives without knowing it ("Come funziona"). */
+/** The page "Come funziona": the game in four steps, for who arrives without knowing it. */
 export function HowItWorks() {
   const { t } = useTranslation()
   return (
-    <section
-      id="come-funziona"
-      aria-labelledby="how-title"
-      className="bg-surface scroll-mt-16 border-t px-4 py-10 sm:px-8"
-    >
+    <section aria-labelledby="how-title" className="px-4 py-10 sm:px-8">
       <div className="flex flex-col gap-6">
-        <h2 id="how-title" className="text-2xl">
+        <h1 id="how-title" className="text-3xl sm:text-4xl">
           {t('home.how.title')}
-        </h2>
+        </h1>
         <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {STEPS.map((step, index) => (
             <li

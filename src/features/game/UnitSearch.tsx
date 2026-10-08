@@ -52,7 +52,7 @@ export function UnitSearch(props: {
       {matches.length > 0 && (
         <ul className="flex flex-col rounded-md border" aria-label={t('game.search.results')}>
           {matches.slice(0, MAX_RESULTS).map((unit) => (
-            <li key={unit.id} className="border-t first:border-t-0">
+            <li key={unit.id} className="">
               <button
                 type="button"
                 className="hover:bg-accent w-full cursor-pointer px-3 py-2 text-left transition-colors"
@@ -66,7 +66,7 @@ export function UnitSearch(props: {
             </li>
           ))}
           {matches.length > MAX_RESULTS && (
-            <li className="text-muted-foreground border-t px-3 py-2 text-base">
+            <li className="text-muted-foreground px-3 py-2 text-base">
               {t('game.search.more', { count: matches.length - MAX_RESULTS })}
             </li>
           )}

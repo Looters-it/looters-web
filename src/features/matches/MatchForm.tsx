@@ -235,7 +235,7 @@ export function MatchFields(props: {
           <span aria-hidden="true">{advanced ? '−' : '+'}</span>
         </button>
         {advanced && (
-          <div className="flex flex-col gap-4 border-t p-3">
+          <div className="flex flex-col gap-4 p-3">
             {locked && <p className="text-muted-foreground">{t('match.form.rulesLocked')}</p>}
             {RULE_GROUPS.map(([group, keys]) => (
               <fieldset key={group} className="flex flex-col gap-2" disabled={locked}>

@@ -20,7 +20,7 @@ export function LanguageSelect() {
   if (languages.length < 2) return null
 
   return (
-    <div className="flex flex-col gap-1 border-t pt-3">
+    <div className="flex flex-col gap-1 pt-3">
       <Label htmlFor={id}>{t('nav.language')}</Label>
       <Select value={i18n.language} onValueChange={(code) => void setLanguage(code)}>
         <SelectTrigger id={id} className="w-full">

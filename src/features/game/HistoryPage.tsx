@@ -26,7 +26,7 @@ function TurnEvents(props: {
       {turn.data.events.map((entry) => {
         const place = entry.data.territoryName
         return (
-          <li key={entry.id} className="border-t py-2 first:border-t-0">
+          <li key={entry.id} className="py-2">
             <p className="break-words">{entryText(entry)}</p>
             {entry.geoUnitId !== null && place && (
               <button
@@ -90,7 +90,7 @@ export function HistoryPage(props: {
                 )}
               </button>
               {expanded && (
-                <div className="flex flex-col gap-3 border-t px-3 py-3">
+                <div className="flex flex-col gap-3 px-3 py-3">
                   <TurnEvents matchId={matchId} turn={turn} onGoTo={props.onGoTo} />
                   <Button
                     variant={props.review === turn ? 'default' : 'quiet'}

@@ -180,7 +180,7 @@ function IncomeRule({ state, territories }: { state: MatchState; territories: Te
   })
 
   return (
-    <div className="flex flex-col gap-1 border-t pt-4">
+    <div className="flex flex-col gap-1 pt-4">
       <Label htmlFor={id}>{t('game.resources.rule', { count: state.me?.turnValue ?? 0 })}</Label>
       <Select
         value={mode}

@@ -113,7 +113,7 @@ const mapOf = {
   }),
 }
 
-describe('match list on the homepage', () => {
+describe('match list', () => {
   const page = (matches: object[], total = matches.length) => ({
     body: { page: 1, pageSize: 6, total, matches },
   })
@@ -131,7 +131,7 @@ describe('match list on the homepage', () => {
         body: [match({ id: 'm3', name: 'La mia', status: 'RUNNING', currentTurn: 4 })],
       }),
     })
-    renderApp()
+    renderApp('/partite')
 
     // The player's own matches come first, in a row of their own.
     const own = await screen.findByRole('region', { name: 'Le tue partite' })
@@ -155,10 +155,6 @@ describe('match list on the homepage', () => {
     // Among all the matches, the player's own is marked.
     expect(rows[2]).toHaveTextContent('la tua')
     expect(rows[0]).not.toHaveTextContent('la tua')
-    expect(screen.getByRole('link', { name: 'Crea una partita' })).toHaveAttribute(
-      'href',
-      '/partite/nuova',
-    )
   })
 
   it('filters by name and moves between pages', async () => {
@@ -168,7 +164,7 @@ describe('match list on the homepage', () => {
       'GET /api/matches?page=2': () => page([match({ id: 'm9', name: 'Seconda pagina' })], 13),
       'GET /api/matches?page=1&name=brian': () => page([]),
     })
-    renderApp()
+    renderApp('/partite')
 
     expect(await screen.findByText('Pagina 1 di 3')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Successiva' }))

@@ -253,12 +253,12 @@ export function BuildPage(props: {
         ))}
       </ul>
 
-      <div className="flex flex-col gap-2 border-t pt-4">
+      <div className="flex flex-col gap-2 pt-4">
         <h3 className="text-base">{t('game.structures.active')}</h3>
         {mine.length === 0 && <p className="text-muted-foreground">{t('game.structures.none')}</p>}
         <ul className="flex flex-col gap-1">
           {mine.map((structure) => (
-            <li key={structure.id} className="flex flex-col gap-2 border-t py-2 first:border-t-0">
+            <li key={structure.id} className="flex flex-col gap-2 py-2">
               <div className="flex justify-between gap-3">
                 <span>
                   {t('game.structures.activeItem', {

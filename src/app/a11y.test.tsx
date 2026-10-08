@@ -133,7 +133,7 @@ describe('accessibility', () => {
   it('homepage, for a guest', async () => {
     stubApi({ ...guest })
     renderApp()
-    await screen.findByText(/Non ci sono ancora partite/)
+    await screen.findByRole('link', { name: 'Accedi per giocare' })
     await expectAccessible()
   })
 
@@ -193,7 +193,7 @@ describe('without a pointer or without telling colours apart', () => {
   it('skips the navbar with the first Tab', async () => {
     stubApi({ ...guest })
     renderApp()
-    await screen.findByText(/Non ci sono ancora partite/)
+    await screen.findByRole('link', { name: 'Accedi per giocare' })
     await userEvent.tab()
     const skip = screen.getByRole('link', { name: 'Vai al contenuto' })
     expect(skip).toHaveFocus()
