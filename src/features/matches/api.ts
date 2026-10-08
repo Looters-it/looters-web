@@ -16,6 +16,9 @@ export interface MatchSummary {
   turnHours: number
   currentTurn: number
   turnEndsAt: string | null
+  finishedAt: string | null
+  /** The winner, once the match is over. */
+  winnerEmpireId: string | null
   players: number
   hasInviteCode: boolean
   owner: string
@@ -44,6 +47,9 @@ export interface Empire {
   capitalTerritoryId: string | null
   /** Municipalities controlled. */
   units: number
+  fallenTurn: number | null
+  /** Total resources: sent only when the match is over. */
+  resources?: number
 }
 
 export interface Territory {
@@ -59,6 +65,8 @@ export interface Territory {
   weight: number | null
   /** The open battle it is the target or a source of, if any. */
   battleId: string | null
+  /** Accumulation alert: an attack is probably being prepared here. */
+  alert: boolean
 }
 
 export interface MatchState {
@@ -70,6 +78,10 @@ export interface MatchState {
     /** What the empire earns when this turn ends. */
     turnValue: number
     allocationMode: 'EQUAL' | 'WEIGHTED'
+    /** FALLEN: the player watches as a spectator. */
+    status: 'ACTIVE' | 'FALLEN'
+    /** Turns to wait before the capital can move again; 0 = now. */
+    capitalMoveInTurns: number
   } | null
   empires: Empire[]
   /** Owned territories only; every other municipality is free. */
@@ -80,7 +92,7 @@ export interface MatchState {
   battles: Battle[]
 }
 
-export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER'
+export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER' | 'CANCELLED'
 
 export interface Battle {
   id: string
@@ -202,6 +214,8 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/annex`, body),
   allocate: (id: string, body: { amounts: Record<string, number>; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/allocate`, body),
+  moveCapital: (id: string, body: { territoryId: string; turn: number }) =>
+    apiPost<MatchState>(`/matches/${id}/capital`, body),
   previewAttack: (id: string, body: { targetGeoUnitId: number; fromTerritoryIds: string[] }) =>
     apiPost<AttackPreview>(`/matches/${id}/attacks/preview`, body),
   attack: (

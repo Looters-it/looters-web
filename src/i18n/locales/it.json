@@ -396,7 +396,9 @@
       "TARGET_IS_YOURS": "Non puoi attaccare un tuo comune.",
       "TARGET_PROTECTED": "Quel comune è protetto fino alla fine del turno.",
       "NOT_THE_DEFENDER": "Solo l'impero attaccato può rispondere.",
-      "BATTLE_ANSWERED": "Hai già risposto a questo attacco."
+      "BATTLE_ANSWERED": "Hai già risposto a questo attacco.",
+      "ALREADY_CAPITAL": "Questo comune è già la capitale.",
+      "CAPITAL_MOVED_RECENTLY": "La capitale è stata spostata da poco: devi aspettare."
     }
   },
   "game": {
@@ -462,7 +464,14 @@
       "attackProtected": "Questo comune è stato appena acquisito: è protetto fino alla fine del turno.",
       "attackInBattle": "Questo comune è già coinvolto in uno scontro.",
       "attackNotAdjacent": "Non confina con nessun tuo comune: non puoi attaccarlo.",
-      "attackNoForce": "Nessun tuo comune confinante può attaccare: servono risorse e non deve essere in uno scontro."
+      "attackNoForce": "Nessun tuo comune confinante può attaccare: servono risorse e non deve essere in uno scontro.",
+      "alert": "Allerta di accumulo: qui si concentra più di metà delle risorse dell'impero.",
+      "capitalTitle": "Capitale",
+      "moveCapital": "Sposta qui la capitale",
+      "capitalWait_one": "Potrai spostare la capitale tra {{count}} turno.",
+      "capitalWait_other": "Potrai spostare la capitale tra {{count}} turni.",
+      "capitalInBattle": "La capitale non si può spostare da o verso un comune in uno scontro.",
+      "capitalHint": "Se la capitale viene conquistata, il tuo impero cade."
     },
     "attack": {
       "title": "Attacco a {{name}}",
@@ -496,12 +505,14 @@
         "attacker": {
           "ATTACKER_WON": "Hai conquistato {{name}}.",
           "DEFENDER_WON": "Il tuo attacco a {{name}} è stato respinto.",
-          "SURRENDER": "{{name}} si è arreso: è tuo, e metà del costo ti è stata restituita."
+          "SURRENDER": "{{name}} si è arreso: è tuo, e metà del costo ti è stata restituita.",
+          "CANCELLED": "L'attacco a {{name}} è stato annullato: il costo ti è stato restituito."
         },
         "defender": {
           "ATTACKER_WON": "Hai perso {{name}}.",
           "DEFENDER_WON": "Hai difeso {{name}}.",
-          "SURRENDER": "Hai ceduto {{name}}."
+          "SURRENDER": "Hai ceduto {{name}}.",
+          "CANCELLED": "L'attacco a {{name}} è stato annullato."
         }
       }
     },
@@ -520,6 +531,21 @@
       "resolving": "Risposta inviata. In attesa dell'esito…",
       "close": "Chiudi",
       "next": "Prossimo attacco"
+    },
+    "end": {
+      "spectator": "Il tuo impero è caduto. Resti nella partita come spettatore.",
+      "finished": "Partita conclusa.",
+      "winner": "Ha vinto {{name}}.",
+      "youWon": "Hai vinto!",
+      "noWinner": "Nessun vincitore.",
+      "fallen": "caduto al turno {{turn}}",
+      "winnerTag": "vincitore",
+      "resources": "{{count}} risorse"
+    },
+    "map": {
+      "legendCapital": "Capitale",
+      "legendAlert": "Allerta di accumulo",
+      "legendAttack": "Sotto attacco"
     }
   }
 }

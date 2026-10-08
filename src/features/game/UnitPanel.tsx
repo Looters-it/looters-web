@@ -99,6 +99,61 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
   )
 }
 
+/** Moving the capital here: once every few turns, and never during a battle on it. */
+function CapitalAction(props: { state: MatchState; card: UnitCardData; isCapital: boolean }) {
+  const { t } = useTranslation()
+  const errorText = useMatchErrorText()
+  const queryClient = useQueryClient()
+  const { state, card } = props
+  const matchId = state.match.id
+  const wait = state.me?.capitalMoveInTurns ?? 0
+  const capital = state.territories.find(
+    (territory) =>
+      territory.id ===
+      state.empires.find((empire) => empire.id === state.me?.empireId)?.capitalTerritoryId,
+  )
+
+  const move = useMutation({
+    mutationFn: () =>
+      matchApi.moveCapital(matchId, {
+        territoryId: card.territory.id,
+        turn: state.match.currentTurn,
+      }),
+    onSuccess: (next) => queryClient.setQueryData(['matches', 'state', matchId], next),
+  })
+
+  return (
+    <section className="flex flex-col gap-2 rounded-md border p-3" aria-labelledby="capital-box">
+      <h3 id="capital-box" className="text-base">
+        {t('game.unit.capitalTitle')}
+      </h3>
+      {props.isCapital ? (
+        <p className="text-muted-foreground">{t('game.unit.capitalHint')}</p>
+      ) : wait > 0 ? (
+        <p className="text-muted-foreground">{t('game.unit.capitalWait', { count: wait })}</p>
+      ) : card.territory.inBattle || capital?.battleId ? (
+        <p className="text-muted-foreground">{t('game.unit.capitalInBattle')}</p>
+      ) : (
+        <>
+          {move.error && (
+            <p role="alert" className="text-danger">
+              {errorText(move.error)}
+            </p>
+          )}
+          <Button
+            variant="outline"
+            className="self-start"
+            disabled={move.isPending}
+            onClick={() => move.mutate()}
+          >
+            {t('game.unit.moveCapital')}
+          </Button>
+        </>
+      )}
+    </section>
+  )
+}
+
 /**
  * The card of the selected municipality: who holds it, its state, the
  * action available, and its neighbours, each of which can be opened in turn.
@@ -128,6 +183,8 @@ export function UnitPanel(props: {
     ? empires.get(card.data.territory.ownerEmpireId)
     : undefined
   const mine = state.me?.empireId
+  const isMine = mine !== undefined && card.data?.territory.ownerEmpireId === mine
+  const territoryState = state.territories.find((t) => t.id === card.data?.territory.id)
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="unit-title">
@@ -159,7 +216,17 @@ export function UnitPanel(props: {
                 ` · ${t('match.unit.capital')}`}
               {card.data.territory.protected && ` · ${t('match.unit.protected')}`}
             </p>
+            {territoryState?.alert && <p className="text-danger">{t('game.unit.alert')}</p>}
           </div>
+
+          {isMine && state.match.status === 'RUNNING' && state.me?.status === 'ACTIVE' && (
+            <CapitalAction
+              key={`capital:${unit.id}:${state.match.currentTurn}`}
+              state={state}
+              card={card.data}
+              isCapital={owner?.capitalTerritoryId === card.data.territory.id}
+            />
+          )}
 
           <AnnexAction
             key={`${unit.id}:${state.match.currentTurn}`}

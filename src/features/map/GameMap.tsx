@@ -23,6 +23,7 @@ import {
   buildStyle,
   EMPIRES_SOURCE,
   FILL_LAYER,
+  MARKERS_SOURCE,
   UNITS_LAYER,
   UNITS_SOURCE,
 } from './style'
@@ -31,6 +32,16 @@ import { mapColors } from './theme'
 export interface MapUnit {
   id: number
   name: string
+}
+
+/** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
+export interface MapMarker {
+  id: string
+  kind: 'capital' | 'alert'
+  lon: number
+  lat: number
+  /** Colour of the empire, for a capital. */
+  color?: string
 }
 
 /** A name drawn over an empire at low zoom. */
@@ -48,6 +59,7 @@ setWorkerUrl(workerUrl)
 const NO_COLORS: ReadonlyMap<number, string> = new Map()
 const NO_IDS: readonly number[] = []
 const NO_LABELS: readonly EmpireLabel[] = []
+const NO_MARKERS: readonly MapMarker[] = []
 
 const PHONE = '(max-width: 767px)'
 
@@ -56,6 +68,7 @@ interface Props {
   /** Colour of each owned municipality; the others are drawn as free. */
   colors?: ReadonlyMap<number, string>
   empireLabels?: readonly EmpireLabel[]
+  markers?: readonly MapMarker[]
   selected?: MapUnit | null
   highlightedIds?: readonly number[]
   /** Municipalities under attack, marked for everyone with a pulsing red border. */
@@ -82,6 +95,7 @@ export function GameMap({
   area,
   colors = NO_COLORS,
   empireLabels = NO_LABELS,
+  markers = NO_MARKERS,
   selected = null,
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
@@ -255,6 +269,19 @@ export function GameMap({
       })),
     })
   }, [empireLabels, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.getSource<GeoJSONSource>(MARKERS_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: markers.map((marker) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
+        properties: { kind: marker.kind, color: marker.color ?? '' },
+      })),
+    })
+  }, [markers, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
   const anchored = anchor && anchor.id === selected?.id ? anchor.at : null

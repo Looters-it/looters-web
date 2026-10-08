@@ -7,6 +7,7 @@ export const UNITS_SOURCE = 'units'
 export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
 export const EMPIRES_SOURCE = 'empires'
+export const MARKERS_SOURCE = 'markers'
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
@@ -61,6 +62,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         ...(area.bounds ? { bounds: area.bounds } : {}),
       },
       [EMPIRES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [MARKERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
       { id: 'ground', type: 'background', paint: { 'background-color': colors.ground } },
@@ -127,6 +129,48 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'line-width': ['case', featureFlag('attacked'), 3.5, 0],
           'line-dasharray': [2, 1.5],
         },
+      },
+      {
+        // Capitals: a ringed disc in the empire's colour, always visible to everyone.
+        id: 'capital-markers',
+        type: 'circle',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'capital'],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4, 10, 8],
+          'circle-color': ['get', 'color'],
+          'circle-stroke-color': colors.ink,
+          'circle-stroke-width': 2.5,
+        },
+      },
+      {
+        // Accumulation alerts: a red disc with an exclamation mark, a shape and not just a colour.
+        id: 'alert-discs',
+        type: 'circle',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'alert'],
+        paint: {
+          'circle-radius': 9,
+          'circle-color': colors.attacked,
+          'circle-stroke-color': colors.halo,
+          'circle-stroke-width': 1.5,
+          'circle-translate': [12, -12],
+        },
+      },
+      {
+        id: 'alert-marks',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'alert'],
+        layout: {
+          'text-field': '!',
+          'text-font': [EMPIRE_FONT],
+          'text-size': 13,
+          'text-offset': [0.92, -0.92],
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: { 'text-color': colors.halo },
       },
       {
         id: 'unit-labels',

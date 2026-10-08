@@ -13,7 +13,7 @@ import { MatchBar } from '@/features/game/MatchBar'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
-import type { EmpireLabel, MapUnit } from '@/features/map/GameMap'
+import type { EmpireLabel, MapMarker, MapUnit } from '@/features/map/GameMap'
 import { LazyGameMap } from '@/features/map/LazyGameMap'
 import { UnitCard } from '@/features/map/UnitCard'
 import { ApiError } from '@/lib/api'
@@ -35,6 +35,7 @@ function MatchInfo({ state }: { state: MatchState }) {
   const { match } = state
   const now = useNow()
   const overdue = match.status === 'OPEN' && new Date(match.startAt).getTime() < now
+  const winner = state.empires.find((empire) => empire.id === match.winnerEmpireId)
 
   return (
     <section className="flex flex-col gap-1">
@@ -66,6 +67,21 @@ function MatchInfo({ state }: { state: MatchState }) {
       {overdue && (
         <p role="status" className="text-danger">
           {t('match.info.lateStart', { min: Number(match.config.minPlayersToStart ?? 2) })}
+        </p>
+      )}
+      {match.status === 'FINISHED' && (
+        <p role="status" className="border-foreground rounded-md border p-3 text-lg">
+          {t('game.end.finished')}{' '}
+          {!winner
+            ? t('game.end.noWinner')
+            : winner.id === state.me?.empireId
+              ? t('game.end.youWon')
+              : t('game.end.winner', { name: winner.name })}
+        </p>
+      )}
+      {match.status !== 'FINISHED' && state.me?.status === 'FALLEN' && (
+        <p role="status" className="border-danger text-danger rounded-md border p-3">
+          {t('game.end.spectator')}
         </p>
       )}
     </section>
@@ -127,6 +143,35 @@ export function MatchPage() {
       return point
         ? [{ id: empire.id, name: empire.name, lon: point.lon, lat: point.lat, size: empire.units }]
         : []
+    })
+  }, [state, units.data])
+
+  // Capitals (always visible to everyone) and accumulation alerts, drawn on the map.
+  const markers = useMemo<MapMarker[]>(() => {
+    const points = new Map(units.data?.map((unit) => [unit.id, unit]))
+    const colorOf = new Map(
+      state?.empires.map((empire) => [empire.capitalTerritoryId, empire.color]),
+    )
+    return (state?.territories ?? []).flatMap((territory) => {
+      const point = points.get(territory.geoUnitIds[0] ?? -1)
+      if (!point) return []
+      const at = { lon: point.lon, lat: point.lat }
+      const capitalColor = colorOf.get(territory.id)
+      return [
+        ...(capitalColor
+          ? [
+              {
+                id: `capital:${territory.id}`,
+                kind: 'capital' as const,
+                color: capitalColor,
+                ...at,
+              },
+            ]
+          : []),
+        ...(territory.alert
+          ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
+          : []),
+      ]
     })
   }, [state, units.data])
 
@@ -269,6 +314,7 @@ export function MatchPage() {
           area={area.data}
           colors={ownership.colors}
           empireLabels={labels}
+          markers={markers}
           selected={selected}
           highlightedIds={highlighted}
           attackedIds={attacked}

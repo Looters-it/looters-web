@@ -77,6 +77,7 @@ const brunoCapital = {
   resources: null,
   weight: null,
   battleId: null,
+  alert: false,
 }
 
 const online = { connected: 0, total: 1 }

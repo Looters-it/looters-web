@@ -62,11 +62,30 @@ export function Leaderboard(props: {
                 <span className="w-6 font-mono text-lg font-bold">{index + 1}</span>
                 <EmpireShield color={empire.color} emblem={empire.emblem} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">{empire.name}</p>
-                  <p className="text-muted-foreground truncate text-base">{empire.username}</p>
+                  <p className="truncate font-bold">
+                    {empire.name}
+                    {empire.id === state.match.winnerEmpireId && (
+                      <span className="rounded-pill border-foreground ml-2 border px-2 text-sm font-normal">
+                        {t('game.end.winnerTag')}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-muted-foreground truncate text-base">
+                    {empire.username}
+                    {empire.status === 'FALLEN' &&
+                      empire.fallenTurn !== null &&
+                      ` · ${t('game.end.fallen', { turn: empire.fallenTurn })}`}
+                  </p>
                 </div>
                 <span className="font-mono text-sm whitespace-nowrap">
                   {t('match.players.units', { count: empire.units })}
+                  {/* Totals are revealed only when the match is over. */}
+                  {empire.resources !== undefined && (
+                    <>
+                      <br />
+                      {t('game.end.resources', { count: empire.resources })}
+                    </>
+                  )}
                 </span>
               </div>
               {/* One square per municipality: capital outlined, protected hollow. */}

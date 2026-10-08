@@ -83,6 +83,7 @@ const empire = (
   username,
   capitalTerritoryId: capital,
   units,
+  fallenTurn: null,
 })
 const territory = (
   id: string,
@@ -101,6 +102,7 @@ const territory = (
   resources,
   weight: resources === null ? null : 1,
   battleId: null,
+  alert: false,
   ...extra,
 })
 
@@ -116,6 +118,8 @@ function running(territories: object[], me: object = {}, turn = 3) {
       turnHours: 24,
       currentTurn: turn,
       turnEndsAt: new Date(Date.now() + 3_725_000).toISOString(),
+      finishedAt: null,
+      winnerEmpireId: null,
       players: 2,
       hasInviteCode: false,
       owner: 'bruno',
@@ -123,7 +127,15 @@ function running(territories: object[], me: object = {}, turn = 3) {
       config: rules,
       isOwner: false,
     },
-    me: { empireId: 'anna', annexLeft: 1, turnValue: 70, allocationMode: 'EQUAL', ...me },
+    me: {
+      empireId: 'anna',
+      annexLeft: 1,
+      turnValue: 70,
+      allocationMode: 'EQUAL',
+      status: 'ACTIVE',
+      capitalMoveInTurns: 0,
+      ...me,
+    },
     empires: [
       empire('bruno', 'Repubblica Ambrosiana', 'bruno', '#aa0000', 'tb', 1),
       empire('anna', 'Ducato del Ticino', 'anna', '#00aa00', 'ta1', territories.length - 1),
@@ -823,5 +835,158 @@ describe('answering an attack', () => {
     expect(await screen.findByRole('dialog')).toHaveTextContent(
       'Repubblica Ambrosiana attacca Monza',
     )
+  })
+})
+
+// ---------- Capital, fall and end of the match ----------
+
+describe('capital and end of the match', () => {
+  const monza = {
+    geoUnitId: 2,
+    name: 'Monza',
+    territory: {
+      id: 'ta2',
+      name: 'Monza',
+      ownerEmpireId: 'anna',
+      protected: false,
+      inBattle: false,
+      resources: 100,
+    },
+    neighbours: [],
+    annex: null,
+    attack: null,
+  }
+
+  it('marks capitals and accumulation alerts on the map', async () => {
+    const withAlert = mine.map((t) => (t.id === 'ta2' ? { ...t, alert: true } : t))
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: running(withAlert) }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+
+    await waitFor(() =>
+      expect(map.sourceData.get('markers')).toMatchObject({
+        features: [
+          // Anna's capital, Milano, in her colour.
+          {
+            geometry: { coordinates: [9.19, 45.46] },
+            properties: { kind: 'capital', color: '#00aa00' },
+          },
+          { geometry: { coordinates: [9.27, 45.58] }, properties: { kind: 'alert' } },
+        ],
+      }),
+    )
+  })
+
+  it('moves the capital to another own municipality', async () => {
+    let moved = false
+    const after = () => {
+      const state = running(mine, { capitalMoveInTurns: 3 })
+      state.empires[1]!.capitalTerritoryId = 'ta2'
+      return state
+    }
+    const calls = stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: moved ? after() : running(mine) }),
+      'GET /api/matches/m1/units/2': () => ({ body: monza }),
+      'POST /api/matches/m1/capital': () => {
+        moved = true
+        return { body: after() }
+      },
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    act(() => map.click({ id: 2, name: 'Monza' }))
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Sposta qui la capitale' }))
+    await waitFor(() =>
+      expect(calls.find((call) => call.key === 'POST /api/matches/m1/capital')?.body).toEqual({
+        territoryId: 'ta2',
+        turn: 3,
+      }),
+    )
+    // Now it is the capital, and the next move has to wait.
+    expect(
+      await screen.findByText('Se la capitale viene conquistata, il tuo impero cade.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sposta qui la capitale' })).not.toBeInTheDocument()
+  })
+
+  it('says how long to wait before the capital can move again', async () => {
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: running(mine, { capitalMoveInTurns: 2 }) }),
+      'GET /api/matches/m1/units/2': () => ({ body: monza }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+    act(() => map.click({ id: 2, name: 'Monza' }))
+
+    expect(await screen.findByText('Potrai spostare la capitale tra 2 turni.')).toBeInTheDocument()
+  })
+
+  it('turns the player of a fallen empire into a spectator', async () => {
+    const state = running([mine[2]!], { status: 'FALLEN' })
+    state.empires[1] = {
+      ...state.empires[1]!,
+      status: 'FALLEN',
+      capitalTerritoryId: null as never,
+      units: 0,
+      fallenTurn: 2 as never,
+    }
+    stubApi({
+      ...asAnna,
+      ...mapRoutes,
+      'GET /api/matches/m1/state': () => ({ body: state }),
+      'GET /api/matches/m1/units/9': () => ({
+        body: {
+          ...monza,
+          geoUnitId: 9,
+          name: 'Lodi',
+          territory: { ...monza.territory, id: 'tb', ownerEmpireId: 'bruno', resources: null },
+        },
+      }),
+    })
+    renderApp('/partite/m1')
+    const map = await loadedMap()
+
+    expect(
+      await screen.findByText('Il tuo impero è caduto. Resti nella partita come spettatore.'),
+    ).toBeInTheDocument()
+    // A spectator can look, not act.
+    act(() => map.click({ id: 9, name: 'Lodi' }))
+    expect(await screen.findByRole('heading', { name: 'Lodi', level: 2 })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Prepara attacco' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Classifica' }))
+    expect(screen.getByText(/caduto al turno 2/)).toBeInTheDocument()
+  })
+
+  it('announces the winner and reveals the resources of every empire when the match is over', async () => {
+    const state = running(mine)
+    state.match = {
+      ...state.match,
+      status: 'FINISHED',
+      winnerEmpireId: 'anna' as never,
+      finishedAt: new Date().toISOString() as never,
+    }
+    state.empires = [
+      { ...state.empires[0]!, resources: 410 } as never,
+      { ...state.empires[1]!, resources: 300 } as never,
+    ]
+    stubApi({ ...asAnna, ...mapRoutes, 'GET /api/matches/m1/state': () => ({ body: state }) })
+    renderApp('/partite/m1')
+
+    expect(await screen.findByText(/Partita conclusa\. Hai vinto!/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Classifica' }))
+    expect(screen.getByText('vincitore')).toBeInTheDocument()
+    expect(screen.getByText(/300 risorse/)).toBeInTheDocument()
+    expect(screen.getByText(/410 risorse/)).toBeInTheDocument()
   })
 })
