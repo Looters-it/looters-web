@@ -21,13 +21,13 @@ export interface MapColors {
 
 export function mapColors(): MapColors {
   return {
-    ground: themeColor('parchment'),
-    free: themeColor('khaki-beige-300'),
-    border: themeColor('khaki-beige-800'),
-    ink: themeColor('khaki-beige-950'),
-    halo: themeColor('parchment'),
-    selected: themeColor('hunter-green-800'),
-    highlight: themeColor('hunter-green-500'),
+    ground: themeColor('ground'),
+    free: themeColor('free'),
+    border: themeColor('dim'),
+    ink: themeColor('ink'),
+    halo: themeColor('ground'),
+    selected: themeColor('deep-space-blue'),
+    highlight: themeColor('watermelon'),
     attacked: themeColor('crushed-berry-600'),
   }
 }

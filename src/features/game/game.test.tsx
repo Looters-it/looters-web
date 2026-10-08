@@ -1795,15 +1795,15 @@ describe('alliances', () => {
     const views = screen.getByRole('group', { name: 'Vista della mappa' })
     await userEvent.click(within(views).getByRole('button', { name: 'Alleanze' }))
     // The player and their allies keep their colours; everyone else turns neutral.
-    await waitFor(() => expect(colorOf(8)).toBe('#d9ccbf'))
+    await waitFor(() => expect(colorOf(8)).toBe('#d5dbe6'))
     expect(colorOf(1)).toBe('#00aa00')
     expect(colorOf(9)).toBe('#aa0000')
 
     await userEvent.click(within(views).getByRole('button', { name: 'Risorse' }))
     // Deeper where there is more; what the viewer may not see stays neutral.
-    await waitFor(() => expect(colorOf(1)).toBe('#2c4224'))
+    await waitFor(() => expect(colorOf(1)).toBe('#0b3954'))
     expect(colorOf(3)).not.toBe(colorOf(1))
-    expect(colorOf(8)).toBe('#d9ccbf')
+    expect(colorOf(8)).toBe('#d5dbe6')
   })
 })
 

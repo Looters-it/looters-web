@@ -1,5 +1,5 @@
 import { CircleUserRound } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -11,16 +11,11 @@ import { LoginForm, RegisterForm } from './AuthForms'
 import { useSession } from './session-context'
 import { LanguageSelect } from '@/i18n/LanguageSelect'
 
-import { onOpenAccountPanel } from './account-panel'
-
 /** Sign-in and registration live in a popover opened from the navbar (PROMPT §11). */
 export function AccountPopover() {
   const { t } = useTranslation()
   const { user, sessionEnded, logout, dismissSessionEnded } = useSession()
   const [open, setOpen] = useState(false)
-
-  // Another part of the page may ask for this panel: the call to action for guests.
-  useEffect(() => onOpenAccountPanel(() => setOpen(true)), [])
 
   const onOpenChange = (next: boolean) => {
     setOpen(next)

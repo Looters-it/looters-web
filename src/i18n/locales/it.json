@@ -13,8 +13,8 @@
     "language": "Lingua"
   },
   "home": {
-    "title": "Conquista i comuni, uno alla volta",
-    "intro": "Looters è un gioco di conquista a turni sulla mappa dei comuni italiani. Parti da un comune, annetti i vicini e contendi il territorio agli altri imperi.",
+    "title": "Saccheggia i tuoi vicini!",
+    "intro": "In Looters crei uno Stato dal tuo comune preferito e conquisti l'intera mappa.",
     "status": {
       "title": "Stato del sistema",
       "api": "Servizio di gioco",
@@ -64,12 +64,6 @@
       "yours": "la tua",
       "pages": "Pagine delle partite"
     },
-    "points": {
-      "real": "Si gioca sui confini veri dei comuni.",
-      "hidden": "Le risorse dei nemici restano nascoste: ogni attacco è una scommessa.",
-      "turns": "Un turno alla volta, anche in cento sulla stessa mappa."
-    },
-    "createGuestHint": "Serve un account per creare una partita o partecipare. Registrarsi richiede un minuto.",
     "demo": {
       "label": "Dimostrazione del gioco sulla mappa",
       "badge": "Dimostrazione: imperi inventati",
@@ -107,6 +101,10 @@
       "RATE_LIMITED": "Troppi tentativi. Riprova tra qualche minuto.",
       "VALIDATION": "Controlla i dati inseriti.",
       "UNKNOWN": "Qualcosa non ha funzionato. Riprova."
+    },
+    "page": {
+      "title": "Entra in Looters",
+      "intro": "Accedi con il tuo account oppure creane uno: basta un nome utente e una password."
     }
   },
   "admin": {

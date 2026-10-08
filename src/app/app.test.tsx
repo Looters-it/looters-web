@@ -23,13 +23,51 @@ describe('homepage', () => {
     stubApi({ ...guest })
     renderApp()
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Conquista i comuni')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Saccheggia i tuoi vicini!')
     expect(await screen.findByText(/Non ci sono ancora partite/)).toBeInTheDocument()
-    // A guest is not offered to create a match: the call to action opens the sign-in panel.
+    // A guest is not offered to create a match: the call to action leads to the sign-in page.
     expect(screen.queryByRole('link', { name: 'Crea una partita' })).not.toBeInTheDocument()
-    await userEvent.click(await screen.findByRole('button', { name: 'Accedi per giocare' }))
-    const panel = await screen.findByRole('dialog', { name: 'Accesso e registrazione' })
-    expect(within(panel).getByRole('tab', { name: 'Registrati' })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('link', { name: 'Accedi per giocare' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Entra in Looters' })).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'Accedi' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Registrati' })).toBeInTheDocument()
+  })
+
+  it('signs in on its own page and goes on to where the player was headed', async () => {
+    let signedIn = false
+    const calls = stubApi({
+      'GET /api/auth/me': () =>
+        signedIn
+          ? { body: { id: 'u1', username: 'anna', role: 'USER' } }
+          : { status: 401, body: { error: { code: 'UNAUTHENTICATED' } } },
+      'POST /api/auth/login': () => {
+        signedIn = true
+        return { body: { id: 'u1', username: 'anna', role: 'USER' } }
+      },
+    })
+    // An address from outside is never followed: only a path of this site.
+    renderApp('/accesso?poi=https://altrove.example')
+    await userEvent.type(await screen.findByLabelText('Nome utente'), 'anna')
+    await userEvent.type(screen.getByLabelText('Password'), 'password-123')
+    await userEvent.click(screen.getByRole('button', { name: 'Accedi' }))
+
+    // Back on the homepage, now with the way to create a match.
+    expect(await screen.findByRole('link', { name: 'Crea una partita' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Entra in Looters' })).not.toBeInTheDocument()
+    expect(calls.find((call) => call.key === 'POST /api/auth/login')?.body).toEqual({
+      username: 'anna',
+      password: 'password-123',
+    })
+  })
+
+  it('opens the sign-in page on registration when asked to', async () => {
+    stubApi({ ...guest })
+    renderApp('/accesso?modo=registrati')
+    expect(await screen.findByRole('tab', { name: 'Registrati' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
   })
 
   it('plays a demonstration on the map: empires grow, and a chronicle says what happens', async () => {

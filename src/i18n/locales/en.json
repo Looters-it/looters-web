@@ -13,8 +13,8 @@
     "language": "Language"
   },
   "home": {
-    "title": "Conquer the municipalities, one at a time",
-    "intro": "Looters is a turn-based conquest game on the map of Italian municipalities. Start from one, annex its neighbours and fight the other empires for the land.",
+    "title": "Loot your neighbours!",
+    "intro": "In Looters you found a State from your favourite municipality and conquer the whole map.",
     "status": {
       "title": "System status",
       "api": "Game service",
@@ -64,12 +64,6 @@
       "yours": "yours",
       "pages": "Pages of matches"
     },
-    "points": {
-      "real": "Played on the real boundaries of the municipalities.",
-      "hidden": "Your enemies' resources stay hidden: every attack is a gamble.",
-      "turns": "One turn at a time, even with a hundred players on the same map."
-    },
-    "createGuestHint": "You need an account to create a match or join one. Registering takes a minute.",
     "demo": {
       "label": "Demonstration of the game on the map",
       "badge": "Demonstration: made-up empires",
@@ -107,6 +101,10 @@
       "RATE_LIMITED": "Too many attempts. Try again in a few minutes.",
       "VALIDATION": "Check the details you entered.",
       "UNKNOWN": "Something went wrong. Try again."
+    },
+    "page": {
+      "title": "Enter Looters",
+      "intro": "Sign in with your account or create one: a username and a password are enough."
     }
   },
   "admin": {

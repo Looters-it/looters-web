@@ -25,7 +25,14 @@ interface LogLine {
  * municipalities, to show at a glance what the game is. It can be moved and
  * tapped like the map of a match; it stands still for who asked for less motion.
  */
-export function HeroMap({ className }: { className?: string }) {
+export function HeroMap({
+  className,
+  fitPadding,
+}: {
+  className?: string
+  /** Room to leave around the stage: the part of the hero that is covered by its text. */
+  fitPadding?: { top: number; right: number; bottom: number; left: number }
+}) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<MapUnit | null>(null)
   const [log, setLog] = useState<LogLine[]>([])
@@ -131,6 +138,7 @@ export function HeroMap({ className }: { className?: string }) {
       <LazyGameMap
         area={staged}
         embedded
+        fitPadding={fitPadding}
         colors={view.colors}
         empireLabels={view.labels}
         markers={view.markers}

@@ -112,6 +112,11 @@ interface Props {
    * two fingers (or ctrl + wheel) move the map.
    */
   embedded?: boolean
+  /**
+   * Room to leave around the area when the map first opens, in pixels: for a
+   * map partly covered by something else, so that the area is where it shows.
+   */
+  fitPadding?: number | { top: number; right: number; bottom: number; left: number }
   className?: string
 }
 
@@ -134,6 +139,7 @@ export function GameMap({
   renderInfo,
   focus = null,
   embedded = false,
+  fitPadding,
   className,
 }: Props) {
   const container = useRef<HTMLDivElement>(null)
@@ -173,7 +179,7 @@ export function GameMap({
       container: container.current,
       style: buildStyle(area, mapColors(), window.location.origin),
       ...(area.bounds
-        ? { bounds: area.bounds, fitBoundsOptions: { padding: 24 } }
+        ? { bounds: area.bounds, fitBoundsOptions: { padding: fitPadding ?? 24 } }
         : { center: [12.5, 42], zoom: 5 }),
       minZoom: 4,
       maxZoom: 16,
@@ -230,7 +236,7 @@ export function GameMap({
       map.remove()
     }
     // A different area (or a new version of its data) is a different map.
-  }, [area, embedded])
+  }, [area, embedded, fitPadding])
 
   // Owner colours: only the municipalities that changed are touched.
   useEffect(() => {

@@ -37,37 +37,46 @@
   --color-hunter-green-900: #162112;
   --color-hunter-green-950: #10170c;
 
-  /* page ground chosen by the project owner */
+  /* the palette chosen by the project owner (8 October 2026): deep blue to command,
+     watermelon for what must stand out, powder blue for cards */
+  --color-deep-space-blue: #0b3954;
+  --color-watermelon: #ee4266;
+  --color-powder-blue: #99b2dd;
+
+  /* page ground of the first theme: still used by empire colours on the map */
   --color-parchment: #fef5eb;
 
-  /* roles: parchment ground, dark leather ink, green for command, berry red for war */
-  --color-ground: var(--color-parchment);
-  --color-surface: color-mix(in srgb, var(--color-parchment) 84%, var(--color-khaki-beige-400));
-  --color-ink: var(--color-khaki-beige-950);
-  --color-dim: var(--color-khaki-beige-700);
-  --color-key: var(--color-khaki-beige-500);
-  --color-key-soft: color-mix(in srgb, var(--color-parchment) 60%, var(--color-khaki-beige-300));
-  --color-free: color-mix(in srgb, var(--color-parchment) 72%, var(--color-khaki-beige-400));
-  --color-primary: var(--color-hunter-green-700);
-  --color-primary-hover: var(--color-hunter-green-800);
-  --color-on-primary: var(--color-hunter-green-50);
-  --color-focus: var(--color-hunter-green-600);
+  /* roles. Neutrals are tints and shades of the palette, written as plain values because
+     the map reads them and cannot resolve a mix. */
+  --color-ground: #f3f6fb;
+  --color-surface: #e1e9f5;
+  --color-ink: #072a3e;
+  --color-dim: #1b445f;
+  --color-key: #5b7ea3;
+  --color-key-soft: #cfdbef;
+  --color-free: #dbe2ee;
+  --color-primary: var(--color-deep-space-blue);
+  --color-primary-hover: #072838;
+  --color-on-primary: #f3f6fb;
+  --color-focus: var(--color-deep-space-blue);
   --color-ok: var(--color-hunter-green-600);
   --color-danger: var(--color-crushed-berry-600);
   --color-danger-hover: var(--color-crushed-berry-700);
   --color-on-danger: var(--color-crushed-berry-50);
-  --color-shade: color-mix(in srgb, var(--color-khaki-beige-900) 32%, transparent);
+  --color-shade: color-mix(in srgb, var(--color-deep-space-blue) 32%, transparent);
 
   /* the same roles under the names shadcn/ui components expect */
   --color-background: var(--color-ground);
   --color-foreground: var(--color-ink);
-  --color-card: var(--color-ground);
+  --color-card: var(--color-powder-blue);
   --color-card-foreground: var(--color-ink);
   --color-popover: var(--color-ground);
   --color-popover-foreground: var(--color-ink);
   --color-primary-foreground: var(--color-on-primary);
-  --color-secondary: var(--color-surface);
-  --color-secondary-foreground: var(--color-ink);
+  --color-secondary: var(--color-watermelon);
+  /* near black: white on watermelon is too faint to read */
+  --color-secondary-hover: #f2607e;
+  --color-secondary-foreground: #03121b;
   --color-muted: var(--color-surface);
   --color-muted-foreground: var(--color-dim);
   --color-accent: var(--color-key-soft);

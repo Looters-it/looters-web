@@ -73,6 +73,13 @@ describe('contrast of the theme', () => {
     ['danger', 'muted'],
     ['primary', 'background'],
     ['primary', 'muted'],
+    // cards are powder blue
+    ['card-foreground', 'card'],
+    ['muted-foreground', 'card'],
+    ['primary', 'card'],
+    // watermelon carries dark text
+    ['secondary-foreground', 'secondary'],
+    ['secondary-foreground', 'secondary-hover'],
   ])('%s on %s is readable as text', (text, ground) => {
     expect(contrast(text, ground)).toBeGreaterThanOrEqual(4.5)
   })

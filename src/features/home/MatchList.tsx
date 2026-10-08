@@ -37,12 +37,12 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   const filled = Math.min(100, Math.round((match.players / match.maxPlayers) * 100))
 
   return (
-    <li className="bg-background flex w-[17.5rem] flex-none snap-start flex-col gap-3 rounded-lg border p-4 sm:w-80">
+    <li className="bg-card text-card-foreground flex w-[17.5rem] flex-none snap-start flex-col gap-3 rounded-lg border p-4 sm:w-80">
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
           <b className="font-display truncate text-lg font-normal">{match.name}</b>
           {mine && (
-            <span className="rounded-pill bg-primary text-primary-foreground flex-none px-2 text-sm">
+            <span className="rounded-pill bg-secondary text-secondary-foreground flex-none px-2 text-sm">
               {t('home.matches.yours')}
             </span>
           )}
@@ -54,7 +54,7 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
         </p>
       </div>
       <div className="flex flex-col gap-1">
-        <div aria-hidden="true" className="bg-muted rounded-pill h-1.5 overflow-hidden">
+        <div aria-hidden="true" className="bg-background/70 rounded-pill h-1.5 overflow-hidden">
           <div className="bg-primary h-full" style={{ width: `${String(filled)}%` }} />
         </div>
         <p className="flex flex-wrap justify-between gap-x-4 font-mono text-sm">

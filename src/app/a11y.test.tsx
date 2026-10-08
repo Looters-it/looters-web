@@ -145,6 +145,13 @@ describe('accessibility', () => {
     await expectAccessible()
   })
 
+  it('sign-in page', async () => {
+    stubApi({ ...guest })
+    renderApp('/accesso')
+    await screen.findByRole('heading', { name: 'Entra in Looters' })
+    await expectAccessible()
+  })
+
   it('new match form', async () => {
     stubApi({ ...asAnna })
     renderApp('/partite/nuova')
