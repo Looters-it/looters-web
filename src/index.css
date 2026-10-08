@@ -11,18 +11,6 @@
   --radius-lg: 8px;
   --radius-xl: 10px;
 
-  /* A gentle rise and fall, for what floats under the pointer. */
-  --animate-bob: bob 0.5s ease-in-out infinite;
-  @keyframes bob {
-    0%,
-    100% {
-      translate: 0 0;
-    }
-    50% {
-      translate: 0 -5px;
-    }
-  }
-
   /* Spring used by buttons on hover. */
   --ease-spring: cubic-bezier(0.2, 1.5, 0.4, 1);
 }

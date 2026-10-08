@@ -12,15 +12,14 @@ import { Crest } from './Crest'
 import { OnlineCounter } from './OnlineCounter'
 
 /**
- * An entry of the menu: a button in the primary colour and the heading font,
- * which bobs up and down under the pointer and changes nothing else.
+ * An entry of the menu: plain words in the heading font.
  */
 function Item(props: { to: string; children: string; onClick?: () => void }) {
   return (
     <Link
       to={props.to}
       onClick={props.onClick}
-      className="font-display rounded-pill bg-deep-space-blue hover:animate-bob focus-visible:animate-bob px-4 pt-2.5 pb-1.5 text-lg tracking-[0.02em] text-white shadow-md outline-none"
+      className="font-display focus-visible:outline-ring rounded-md px-3 py-2 text-lg tracking-[0.02em] focus-visible:outline-2"
     >
       {props.children}
     </Link>
