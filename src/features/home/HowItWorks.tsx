@@ -11,7 +11,7 @@ export function HowItWorks() {
       aria-labelledby="how-title"
       className="bg-surface scroll-mt-16 border-t px-4 py-10 sm:px-8"
     >
-      <div className="mx-auto flex max-w-[100rem] flex-col gap-6">
+      <div className="flex flex-col gap-6">
         <h2 id="how-title" className="text-2xl">
           {t('home.how.title')}
         </h2>

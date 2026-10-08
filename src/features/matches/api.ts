@@ -188,6 +188,15 @@ export interface TurnHistory {
   ownership: Record<string, string>
 }
 
+/** A small picture of a match: a grid of cells, free or of an empire's colour. */
+export interface MatchPreview {
+  columns: number
+  rows: number
+  /** x, y, x, y… */
+  free: number[]
+  owned: Record<string, number[]>
+}
+
 export type BoardKind =
   'messages' | 'empires' | 'annexations' | 'battles' | 'capitals' | 'areas' | 'alliances' | 'match'
 
@@ -311,6 +320,7 @@ export const matchApi = {
   setLogo: (id: string, file: Blob) => apiPut<MatchState>(`/matches/${id}/empire/logo`, file),
   removeLogo: (id: string, empireId: string) =>
     apiDelete<MatchState>(`/matches/${id}/empires/${empireId}/logo`),
+  preview: (id: string) => apiGet<MatchPreview>(`/matches/${id}/preview`),
   /** Leaves a match that has not started: the starting municipality is free again. */
   withdraw: (id: string) => apiDelete<MatchState>(`/matches/${id}/empire`),
   updateEmpire: (id: string, empire: EmpireIdentity) =>

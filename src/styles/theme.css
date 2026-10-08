@@ -74,9 +74,9 @@
   --color-popover-foreground: var(--color-ink);
   --color-primary-foreground: var(--color-on-primary);
   --color-secondary: var(--color-watermelon);
-  /* near black: white on watermelon is too faint to read */
-  --color-secondary-hover: #f2607e;
-  --color-secondary-foreground: #03121b;
+  /* white inside, as chosen by the project owner; the hover darkens, to keep it readable */
+  --color-secondary-hover: #d92f55;
+  --color-secondary-foreground: #ffffff;
   --color-muted: var(--color-surface);
   --color-muted-foreground: var(--color-dim);
   --color-accent: var(--color-key-soft);

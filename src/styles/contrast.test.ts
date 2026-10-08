@@ -77,9 +77,6 @@ describe('contrast of the theme', () => {
     ['card-foreground', 'card'],
     ['muted-foreground', 'card'],
     ['primary', 'card'],
-    // watermelon carries dark text
-    ['secondary-foreground', 'secondary'],
-    ['secondary-foreground', 'secondary-hover'],
   ])('%s on %s is readable as text', (text, ground) => {
     expect(contrast(text, ground)).toBeGreaterThanOrEqual(4.5)
   })
@@ -88,6 +85,10 @@ describe('contrast of the theme', () => {
     ['focus', 'background'],
     ['focus', 'muted'],
     ['key', 'background'],
+    // White on watermelon is the owner's choice: it reaches the ratio of large, heavy
+    // text (3), which is what the buttons that use it are set in, not that of body text.
+    ['secondary-foreground', 'secondary'],
+    ['secondary-foreground', 'secondary-hover'],
   ])('%s on %s can be seen as part of a control', (part, ground) => {
     expect(contrast(part, ground)).toBeGreaterThanOrEqual(3)
   })

@@ -17,6 +17,8 @@ import { useSession } from '@/features/auth/session-context'
 import { matchApi, type MatchSummary, type SizeFilter } from '@/features/matches/api'
 import { useMatchFormat } from '@/features/matches/format'
 
+import { MatchPreview } from './MatchPreview'
+
 const SIZES: {
   value: SizeFilter | 'all'
   key: 'sizeAll' | 'sizeFree' | 'sizeS' | 'sizeM' | 'sizeL'
@@ -37,13 +39,17 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
   const filled = Math.min(100, Math.round((match.players / match.maxPlayers) * 100))
 
   return (
-    <li className="bg-card text-card-foreground flex w-[17.5rem] flex-none snap-start flex-col gap-3 rounded-lg border p-4 sm:w-80">
+    <li className="bg-card text-card-foreground flex w-[17.5rem] flex-none snap-start flex-col gap-3 overflow-hidden rounded-lg border p-4 sm:w-80">
+      <MatchPreview
+        matchId={match.id}
+        className="bg-primary/15 -mx-4 -mt-4 h-36 rounded-t-lg border-b p-2"
+      />
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
           {/* In a card the title is the text font, bold: the display font is for headings. */}
           <b className="truncate text-lg">{match.name}</b>
           {mine && (
-            <span className="rounded-pill bg-secondary text-secondary-foreground flex-none px-2 text-sm">
+            <span className="rounded-pill bg-secondary flex-none px-2 text-sm font-bold text-white">
               {t('home.matches.yours')}
             </span>
           )}
@@ -136,7 +142,7 @@ export function MatchList() {
   )
 
   return (
-    <div className="mx-auto flex w-full max-w-[100rem] flex-col gap-8 px-4 py-8 sm:px-8">
+    <div className="flex w-full flex-col gap-8 px-4 py-10 sm:px-8">
       {mine.data && mine.data.length > 0 && (
         <section
           id="mie-partite"
@@ -159,7 +165,7 @@ export function MatchList() {
         className="flex scroll-mt-16 flex-col gap-3"
         aria-labelledby="active-matches"
       >
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="flex flex-col items-start gap-4">
           <h2 id="active-matches" className="text-2xl">
             {t('home.matches.title')}
           </h2>

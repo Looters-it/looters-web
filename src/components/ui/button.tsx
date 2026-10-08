@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils'
 // 36px tall (32px small), growing a little and unhurriedly on hover; the main action is deep blue, and
 // `secondary` (watermelon) is for the one thing on a page that must stand out.
 const buttonVariants = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-pill border font-bold whitespace-nowrap uppercase tracking-[0.09em] outline-none transition-[scale,transform,background-color,border-color,color] duration-500 ease-in-out hover:scale-[1.03] active:scale-[0.98] active:duration-150 focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:border-dashed disabled:border-accent disabled:bg-transparent disabled:text-muted-foreground disabled:hover:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-pill border font-display font-normal whitespace-nowrap tracking-[0.02em] outline-none transition-[scale,transform,background-color,border-color,color] duration-500 ease-in-out hover:scale-[1.03] active:scale-[0.98] active:duration-150 focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:border-dashed disabled:border-accent disabled:bg-transparent disabled:text-muted-foreground disabled:hover:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
           'border-primary bg-primary text-primary-foreground hover:border-primary-hover hover:bg-primary-hover',
         secondary:
-          'border-secondary bg-secondary text-secondary-foreground hover:border-secondary-hover hover:bg-secondary-hover',
+          'border-secondary bg-secondary text-white hover:border-secondary-hover hover:bg-secondary-hover',
         destructive:
           'border-destructive bg-destructive text-on-danger hover:border-danger-hover hover:bg-danger-hover',
         outline: 'border-foreground bg-transparent text-foreground hover:bg-accent',
