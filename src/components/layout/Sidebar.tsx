@@ -51,37 +51,44 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <b className="font-display text-2xl font-normal">{t('app.name')}</b>
       </Link>
 
-      <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
-        {user ? (
-          <>
-            <Item to="/matches" onClick={onNavigate}>
-              {t('nav.myMatches')}
-            </Item>
-            <Item to="/profilo" onClick={onNavigate}>
-              {t('nav.profile')}
-            </Item>
-            {user.role === 'ADMIN' && (
-              <Item to="/admin" onClick={onNavigate}>
-                {t('nav.admin')}
-              </Item>
-            )}
-          </>
-        ) : (
-          <>
-            <Item to="/come-funziona" onClick={onNavigate}>
-              {t('nav.how')}
-            </Item>
-            <Item to="/matches" onClick={onNavigate}>
-              {t('nav.matches')}
-            </Item>
-          </>
+      <div className="flex flex-col gap-1">
+        {/* Above the entries: who opens the menu sees first that the game is alive. */}
+        {!inMatch && (
+          <div className="px-3 py-2">
+            <OnlineCounter />
+          </div>
         )}
-      </nav>
+        <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
+          {user ? (
+            <>
+              <Item to="/matches" onClick={onNavigate}>
+                {t('nav.myMatches')}
+              </Item>
+              <Item to="/profilo" onClick={onNavigate}>
+                {t('nav.profile')}
+              </Item>
+              {user.role === 'ADMIN' && (
+                <Item to="/admin" onClick={onNavigate}>
+                  {t('nav.admin')}
+                </Item>
+              )}
+            </>
+          ) : (
+            <>
+              <Item to="/come-funziona" onClick={onNavigate}>
+                {t('nav.how')}
+              </Item>
+              <Item to="/matches" onClick={onNavigate}>
+                {t('nav.matches')}
+              </Item>
+            </>
+          )}
+        </nav>
+      </div>
 
       <div className="mt-auto flex flex-col gap-3 px-3">
         {/* The language is chosen here, by guests and players alike. */}
         <LanguageSelect />
-        {!inMatch && <OnlineCounter />}
         {user ? (
           <>
             <p className="flex items-center gap-2 text-base" title={t('auth.signedInAs')}>
