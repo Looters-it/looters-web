@@ -87,6 +87,36 @@
 }
 
 /* Every animation and transition yields to the user's preference. */
+/*
+ * Floating labels. A label right before a field sits inside it, where a
+ * placeholder would, while the field is empty and at rest; it rises to its place
+ * above as soon as the field is focused or holds a value. The label stays a real
+ * label in the markup: only its position changes.
+ */
+[data-slot='label']:has(+ [data-slot='input']),
+[data-slot='label']:has(+ [data-slot='select-trigger']) {
+  transition:
+    translate 200ms ease-out,
+    color 200ms ease-out;
+}
+[data-slot='label']:has(+ [data-slot='input']:placeholder-shown:not(:focus):not(:-webkit-autofill)),
+[data-slot='label']:has(+ [data-slot='select-trigger'][data-placeholder]) {
+  /* Half its own line, the gap to the field, half the field. */
+  translate: 1.375rem calc(0.5em + 0.25rem + 1.375rem);
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+}
+[data-slot='label']:has(+ [data-slot='select-trigger'][data-size='sm'][data-placeholder]) {
+  translate: 1.375rem calc(0.5em + 0.25rem + 1.125rem);
+}
+/* The field's own placeholder shows only once the label has made room for it. */
+[data-slot='label'] + [data-slot='input']:not(:focus)::placeholder {
+  color: transparent;
+}
+[data-slot='label'] + [data-slot='select-trigger'][data-placeholder] [data-slot='select-value'] {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

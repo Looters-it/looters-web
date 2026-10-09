@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+function Input({ className, type, placeholder, ...props }: React.ComponentProps<'input'>) {
   return (
     <input
       type={type}
+      // Never empty: `:placeholder-shown` is how a floating label knows the field is.
+      placeholder={placeholder || ' '}
       data-slot="input"
       className={cn(
         // The same shape as a button: a pill with a border, as tall as one.
