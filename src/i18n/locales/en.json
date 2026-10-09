@@ -921,7 +921,7 @@
     },
     "tag": "tag {{tag}}",
     "hud": {
-      "players": "{{players}}/{{max}} players",
+      "players": "players",
       "online": "{{count}}/{{total}} connected"
     },
     "fab": {

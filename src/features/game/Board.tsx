@@ -293,11 +293,12 @@ export function Board(props: {
           aria-label={expanded ? t('game.board.close') : t('game.board.open')}
           onClick={() => setExpanded(!expanded)}
           className={cn(
-            'bg-background hover:bg-accent rounded-pill flex h-11 cursor-pointer items-center gap-2 px-5 shadow-md',
+            'bg-background hover:bg-accent rounded-pill flex h-11 cursor-pointer items-center gap-2 px-5 text-base shadow-md',
             props.onPhoneTab && 'max-md:hidden',
           )}
         >
-          <span className="font-display text-base">{t('game.board.title')}</span>
+          {/* The heading font sits high on its line: nudged down to the line of the pills beside it. */}
+          <span className="font-display relative top-[3px] text-base">{t('game.board.title')}</span>
           {!expanded && unread > 0 && (
             <span className="rounded-pill bg-danger text-on-danger px-2 text-sm font-bold">
               {t('game.board.new', { count: unread })}

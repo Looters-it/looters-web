@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { MatchState } from '@/features/matches/api'
+import { cn } from '@/lib/utils'
 
 import { Countdown } from './Countdown'
 
@@ -19,29 +20,35 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
         .reduce((sum, territory) => sum + (territory.resources ?? 0), 0)
     : null
   const running = match.status === 'ONGOING'
+  // One size of type and one baseline for the words and the figures of every pill:
+  // side by side, they read as one line.
+  const pill =
+    'rounded-pill flex h-11 items-baseline gap-2 px-5 text-base leading-[2.75rem] whitespace-nowrap shadow-md'
+  const figure = 'font-mono font-bold tabular-nums'
+
   return (
     <>
       {/* An attack waiting for an answer comes before everything else. */}
       {alert}
       {running && (
-        <p className="bg-background rounded-pill flex h-11 items-center gap-3 px-5 whitespace-nowrap shadow-md">
-          <span>
-            {t('game.bar.turn')} <b className="font-mono">{match.currentTurn}</b>
-          </span>
+        <p className={cn(pill, 'bg-background')}>
+          <span>{t('game.bar.turn')}</span>
+          <b className={figure}>{match.currentTurn}</b>
           {match.turnEndsAt && (
-            <span className="text-xl">
-              <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
-            </span>
+            <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
           )}
         </p>
       )}
-      <p className="bg-background rounded-pill flex h-11 items-center px-5 whitespace-nowrap shadow-md">
-        {t('game.hud.players', { players: match.players, max: match.maxPlayers })}
+      <p className={cn(pill, 'bg-background')}>
+        <b className={figure}>
+          {match.players}/{match.maxPlayers}
+        </b>
+        <span>{t('game.hud.players')}</span>
       </p>
       {resources !== null && (
-        <p className="bg-card text-card-foreground rounded-pill flex h-11 items-center gap-2 px-5 whitespace-nowrap shadow-md">
+        <p className={cn(pill, 'bg-card text-card-foreground')}>
           <span>{t('game.bar.resources')}</span>
-          <b className="font-mono text-xl tabular-nums">{resources}</b>
+          <b className={figure}>{resources}</b>
         </p>
       )}
     </>
