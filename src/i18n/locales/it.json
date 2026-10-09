@@ -390,7 +390,8 @@
       "turnSeconds_one": "Turni di {{count}} secondo",
       "turnSeconds_other": "Turni di {{count}} secondi",
       "turnMinutes_one": "Turni di {{count}} minuto",
-      "turnMinutes_other": "Turni di {{count}} minuti"
+      "turnMinutes_other": "Turni di {{count}} minuti",
+      "online": "{{count}} di {{total}} collegati ora"
     },
     "owner": {
       "title": "Gestione della partita",

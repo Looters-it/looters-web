@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { MatchState } from '@/features/matches/api'
@@ -5,10 +6,11 @@ import type { MatchState } from '@/features/matches/api'
 import { Countdown } from './Countdown'
 
 /**
- * What a player keeps an eye on while playing, always on the map: the turn and
- * the time left to it, and beside them, on a light badge, the resources they have.
+ * What a player keeps an eye on while playing, always on the map: the alert of an
+ * attack to answer, the turn and the time left to it and, on a light badge, the
+ * resources they have.
  */
-export function MatchHud({ state }: { state: MatchState }) {
+export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNode }) {
   const { t } = useTranslation()
   const { match, me } = state
   const resources = me
@@ -17,10 +19,10 @@ export function MatchHud({ state }: { state: MatchState }) {
         .reduce((sum, territory) => sum + (territory.resources ?? 0), 0)
     : null
   const running = match.status === 'ONGOING'
-  if (!running && resources === null) return null
-
   return (
     <>
+      {/* An attack waiting for an answer comes before everything else. */}
+      {alert}
       {running && (
         <p className="bg-background rounded-pill flex h-11 items-center gap-3 px-5 whitespace-nowrap shadow-md">
           <span>

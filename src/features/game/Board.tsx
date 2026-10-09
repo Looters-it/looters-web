@@ -72,6 +72,8 @@ export function Board(props: {
   leading?: ReactNode
   /** Shown above the button while the board is closed: open, the board says it all itself. */
   above?: ReactNode
+  /** On a phone the board is a tab of its own: over the map only the row stays, without the button. */
+  onPhoneTab?: boolean
   className?: string
 }) {
   const { t } = useTranslation()
@@ -280,17 +282,20 @@ export function Board(props: {
   if (props.full) return panel
 
   return (
-    <div className={cn('flex flex-col items-start gap-2', props.className)}>
+    <div className={cn('flex flex-col items-end gap-2', props.className)}>
       {panel || props.above}
       {/* One row at the bottom: what the caller keeps there, then the way into the board. */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {props.leading}
         <button
           type="button"
           aria-expanded={expanded}
           aria-label={expanded ? t('game.board.close') : t('game.board.open')}
           onClick={() => setExpanded(!expanded)}
-          className="bg-background hover:bg-accent rounded-pill flex h-11 cursor-pointer items-center gap-2 px-5 shadow-md"
+          className={cn(
+            'bg-background hover:bg-accent rounded-pill flex h-11 cursor-pointer items-center gap-2 px-5 shadow-md',
+            props.onPhoneTab && 'max-md:hidden',
+          )}
         >
           <span className="font-display text-base">{t('game.board.title')}</span>
           {!expanded && unread > 0 && (

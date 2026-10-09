@@ -26,6 +26,12 @@ function Item(props: { to: string; children: string; onClick?: () => void }) {
   )
 }
 
+/** True on the page of a match (not on the one that creates it). */
+export function useInMatch() {
+  const match = useMatch('/match/:id')
+  return match !== null && match.params.id !== 'new'
+}
+
 /**
  * What the sidebar holds, on the side of a wide screen and in the drawer of a
  * narrow one: the name of the game, then the entries of who is signed in
@@ -36,7 +42,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation()
   const { user, sessionEnded, logout, dismissSessionEnded } = useSession()
   const { pathname } = useLocation()
-  const inMatch = useMatch('/match/:id') !== null
+  const inMatch = useInMatch()
   // After signing in, back to the page the guest was on (a match, for instance).
   const signIn =
     pathname === '/' || pathname === '/auth/login'
@@ -131,38 +137,39 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 /**
  * The frame of the game: no bar on top, a sidebar instead. On a wide screen
  * it stands on the left for the whole height; on a narrow one it is a drawer,
- * opened by a button that floats over the page next to the figures of the
- * match being played.
+ * opened by a button that floats over the page. Inside a match it is a drawer at
+ * every width.
  */
 export function Sidebar() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  // Inside a match the screen is for the match: the menu shrinks to its button at
+  // every width, and holds nothing about the match itself.
+  const reduced = useInMatch()
 
   return (
     <header
       className={cn(
-        // Narrow: a strip that lets the page through, holding the button and the figures.
+        // Narrow, or in a match: a strip that lets the page through, holding the button.
         'pointer-events-none fixed inset-x-0 top-0 z-30 flex items-start gap-2 p-2',
         // Wide: the sidebar itself, a card floating over the page with air on every side.
-        'card-scope-lg lg:bg-card lg:text-card-foreground lg:pointer-events-auto lg:inset-y-3 lg:right-auto lg:left-3 lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:rounded-xl lg:p-0 lg:py-5 lg:shadow-lg',
+        !reduced &&
+          'card-scope-lg lg:bg-card lg:text-card-foreground lg:pointer-events-auto lg:inset-y-3 lg:right-auto lg:left-3 lg:w-60 lg:flex-col lg:items-stretch lg:gap-6 lg:rounded-xl lg:p-0 lg:py-5 lg:shadow-lg',
       )}
     >
       <Button
         size="icon"
         aria-label={t('nav.menu')}
-        className="pointer-events-auto size-11 shadow-md lg:hidden"
+        className={cn('pointer-events-auto size-11 shadow-md', !reduced && 'lg:hidden')}
         onClick={() => setOpen(true)}
       >
         <Menu aria-hidden className="size-5" />
       </Button>
-      <div className="hidden min-h-0 flex-1 flex-col gap-6 lg:flex lg:px-2">
-        <SidebarBody />
-      </div>
-      {/* The figures of the match being played: filled in by MatchBar. */}
-      <div
-        id="navbar-match"
-        className="pointer-events-auto lg:order-last lg:px-5 lg:pt-4 lg:empty:hidden"
-      />
+      {!reduced && (
+        <div className="hidden min-h-0 flex-1 flex-col gap-6 lg:flex lg:px-2">
+          <SidebarBody />
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-card text-card-foreground top-3 left-3 flex h-[calc(100dvh-1.5rem)] w-72 max-w-[calc(100vw-1.5rem)] translate-x-0 translate-y-0 flex-col gap-6 rounded-xl border-0 px-2 py-5 sm:max-w-[calc(100vw-1.5rem)]">

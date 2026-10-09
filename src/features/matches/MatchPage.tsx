@@ -20,7 +20,6 @@ import { colorsFor, type MapView } from '@/features/game/map-views'
 import { empireTags } from '@/features/game/tags'
 import { UnitSearch } from '@/features/game/UnitSearch'
 import { Leaderboard } from '@/features/game/Leaderboard'
-import { MatchBar } from '@/features/game/MatchBar'
 import { MergePage } from '@/features/game/MergePage'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
@@ -65,7 +64,7 @@ const MAP_TONES = {
   scale: ['#1d4f6e', '#2c6388', '#3f78a3', '#5b8dbb', '#7aa2cf', '#99b2dd', '#bccdea', '#e3ebf7'],
 }
 
-function MatchInfo({ state }: { state: MatchState }) {
+function MatchInfo({ state, connected }: { state: MatchState; connected: number }) {
   const { t } = useTranslation()
   const format = useMatchFormat()
   const { match } = state
@@ -96,6 +95,9 @@ function MatchInfo({ state }: { state: MatchState }) {
               })}
         </li>
         <li>{t('match.info.players', { players: match.players, max: match.maxPlayers })}</li>
+        {match.status !== 'FINISHED' && (
+          <li>{t('match.info.online', { count: connected, total: state.online.total })}</li>
+        )}
         <li>
           {/* In the unit that says it in a whole number: 30 seconds, not a fraction of an hour. */}
           {match.turnHours * 60 < 1
@@ -480,12 +482,6 @@ export function MatchPage() {
 
   return (
     <div className="flex flex-col max-lg:-mt-14 md:h-dvh md:flex-row">
-      <MatchBar
-        state={state}
-        connected={connected}
-        alert={<BattleAlert state={state} open={alertOpen} onOpenChange={setAlertOpen} />}
-      />
-
       {hasMap && area.data ? (
         <div
           className={cn(
@@ -494,6 +490,7 @@ export function MatchPage() {
           )}
         >
           <LazyGameMap
+            attribution="bottom-left"
             area={area.data}
             colors={reviewing ? pastColors : ownership.colors}
             empireLabels={reviewing ? NOTHING : labels}
@@ -563,7 +560,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.history.bar')}
-              className="bg-background absolute top-16 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5 lg:top-3"
+              className="bg-background absolute top-16 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5"
             >
               <Button
                 variant="ghost"
@@ -594,7 +591,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.map.view')}
-              className="bg-background absolute top-16 left-3 z-10 flex overflow-hidden rounded-md border lg:top-3"
+              className="bg-background absolute top-16 left-3 z-10 flex overflow-hidden rounded-md border"
             >
               {MAP_VIEWS.map((option) => (
                 <button
@@ -625,21 +622,31 @@ export function MatchPage() {
               }
             }}
             className={cn(
-              'absolute top-[6.75rem] left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors lg:top-14',
+              'absolute top-[6.75rem] left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors',
               showTags ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
             )}
           >
             {t('game.map.tags')}
           </button>
-          {/* Bottom left, over the map: the news of the board as they come, and under
+          {/* Bottom right, over the map: the news of the board as they come, and under
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
-          <div className="absolute bottom-3 left-3 z-10 hidden flex-col items-start gap-2 md:flex">
+          <div className="absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2">
             <Board
               state={state}
               onGoTo={goTo}
-              leading={<MatchHud state={state} />}
-              above={<BoardToasts state={state} />}
+              onPhoneTab
+              leading={
+                <MatchHud
+                  state={state}
+                  alert={<BattleAlert state={state} open={alertOpen} onOpenChange={setAlertOpen} />}
+                />
+              }
+              above={
+                <div className="max-md:hidden">
+                  <BoardToasts state={state} />
+                </div>
+              }
             />
           </div>
         </div>
@@ -655,7 +662,7 @@ export function MatchPage() {
       >
         {view === 'menu' ? (
           <>
-            <MatchInfo state={state} />
+            <MatchInfo state={state} connected={connected} />
             {menu}
             {hasMap && units.data && (
               <UnitSearch
@@ -699,7 +706,7 @@ export function MatchPage() {
             </div>
             {view === 'match' && (
               <>
-                <MatchInfo state={state} />
+                <MatchInfo state={state} connected={connected} />
                 {matchView}
               </>
             )}

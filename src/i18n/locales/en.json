@@ -390,7 +390,8 @@
       "turnSeconds_one": "Turns of {{count}} second",
       "turnSeconds_other": "Turns of {{count}} seconds",
       "turnMinutes_one": "Turns of {{count}} minute",
-      "turnMinutes_other": "Turns of {{count}} minutes"
+      "turnMinutes_other": "Turns of {{count}} minutes",
+      "online": "{{count}} of {{total}} connected now"
     },
     "owner": {
       "title": "Managing the match",

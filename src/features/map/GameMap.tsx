@@ -1,5 +1,6 @@
 import i18next from 'i18next'
 import {
+  AttributionControl,
   Map as MapLibreMap,
   NavigationControl,
   Popup,
@@ -112,6 +113,8 @@ interface Props {
    * two fingers (or ctrl + wheel) move the map.
    */
   embedded?: boolean
+  /** The corner for the credits of the map: the one the page keeps nothing in. */
+  attribution?: 'bottom-left' | 'bottom-right'
   /**
    * Room to leave around the area when the map first opens, in pixels: for a
    * map partly covered by something else, so that the area is where it shows.
@@ -139,6 +142,7 @@ export function GameMap({
   renderInfo,
   focus = null,
   embedded = false,
+  attribution = 'bottom-right',
   fitPadding,
   className,
 }: Props) {
@@ -184,7 +188,8 @@ export function GameMap({
       minZoom: 4,
       maxZoom: 16,
       cooperativeGestures: embedded,
-      attributionControl: { compact: true },
+      // Placed by hand below, in the corner the page leaves free.
+      attributionControl: false,
       // The map is flat and north-up: rotating it would only disorient.
       dragRotate: false,
       pitchWithRotate: false,
@@ -193,6 +198,7 @@ export function GameMap({
     map.keyboard.disableRotation()
     // The canvas takes the focus for the arrow keys: it needs a name.
     map.getCanvas().setAttribute('aria-label', i18next.t('game.map.canvas'))
+    map.addControl(new AttributionControl({ compact: true }), attribution)
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     mapRef.current = map
     applied.current = {
@@ -236,7 +242,7 @@ export function GameMap({
       map.remove()
     }
     // A different area (or a new version of its data) is a different map.
-  }, [area, embedded, fitPadding])
+  }, [area, embedded, fitPadding, attribution])
 
   // Owner colours: only the municipalities that changed are touched.
   useEffect(() => {

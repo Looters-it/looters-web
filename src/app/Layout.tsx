@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router'
 
-import { Sidebar } from '@/components/layout/Sidebar'
+import { Sidebar, useInMatch } from '@/components/layout/Sidebar'
+import { cn } from '@/lib/utils'
 import { SessionProvider } from '@/features/auth/SessionProvider'
 
 /** Brings into view the part of the page an address points at (`/#partite`). */
@@ -25,6 +26,7 @@ function useScrollToHash() {
 function Frame() {
   const { t } = useTranslation()
   useScrollToHash()
+  const inMatch = useInMatch()
   return (
     <div className="min-h-full">
       {/* The first stop of the Tab key: past the sidebar, straight to the page. */}
@@ -39,7 +41,11 @@ function Frame() {
       <main
         id="contenuto"
         tabIndex={-1}
-        className="min-h-dvh outline-none max-lg:pt-14 lg:pl-[16.5rem]"
+        className={cn(
+          'min-h-dvh outline-none max-lg:pt-14',
+          // A match takes the whole width: there the sidebar is only its button.
+          !inMatch && 'lg:pl-[16.5rem]',
+        )}
       >
         <Outlet />
       </main>
