@@ -132,6 +132,25 @@
 [data-slot='label']:has(+ [data-slot='select-trigger'][data-size='sm'][data-placeholder]) {
   translate: 1rem calc(1.125rem - 1px);
 }
+/*
+ * A field the browser filled in keeps the look of the others. Browsers paint
+ * their own pale background on it and do not let it be overridden, which left
+ * the label's patch of surface showing as a dark tag on a light field; a
+ * transition that never gets to start holds the colours as they were.
+ */
+[data-slot='input']:-webkit-autofill,
+[data-slot='input']:-webkit-autofill:hover,
+[data-slot='input']:-webkit-autofill:focus,
+[data-slot='input']:autofill {
+  -webkit-text-fill-color: var(--color-foreground);
+  caret-color: var(--color-foreground);
+  transition:
+    background-color 0s 600000s,
+    color 0s 600000s,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
 /* The field's own placeholder shows only once the label has made room for it. */
 [data-slot='label'] + [data-slot='input']:not(:focus)::placeholder {
   color: transparent;
