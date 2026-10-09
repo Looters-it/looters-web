@@ -147,8 +147,7 @@
   transition:
     background-color 0s 600000s,
     color 0s 600000s,
-    border-color 150ms,
-    box-shadow 150ms;
+    border-color 150ms;
 }
 
 /* The field's own placeholder shows only once the label has made room for it. */
