@@ -386,7 +386,11 @@
       "owner": "Created by {{owner}}",
       "maxDays": "Lasts at most {{days}} days",
       "noEnd": "No time limit",
-      "lateStart": "The start time has passed but the match has not started: at least {{min}} players are needed. Whoever created it can set a new date."
+      "lateStart": "The start time has passed but the match has not started: at least {{min}} players are needed. Whoever created it can set a new date.",
+      "turnSeconds_one": "Turns of {{count}} second",
+      "turnSeconds_other": "Turns of {{count}} seconds",
+      "turnMinutes_one": "Turns of {{count}} minute",
+      "turnMinutes_other": "Turns of {{count}} minutes"
     },
     "owner": {
       "title": "Managing the match",
@@ -843,7 +847,8 @@
         "ALLIANCE_KEPT": "{{empireName}} confirmed its alliance with {{otherName}}.",
         "ALLIANCE_ENDED": "The alliance between {{empireName}} and {{otherName}} has ended.",
         "EMPIRE_WITHDRAWN": "{{empireName}} withdrew: {{territoryName}} is free again."
-      }
+      },
+      "latest": "Latest news of the board"
     },
     "alliance": {
       "title": "Alliances",

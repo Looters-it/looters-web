@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
-import { useId, useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -59,7 +59,8 @@ function useSeen(matchId: string) {
 /**
  * The public board of the match (PROMPT §2.11): the messages of the empires
  * and the automatic announcements, in order. Closed, it shows the latest
- * entry and how many are new; open, the list, the filters and the field to write.
+ * Closed, it is a button that says how many entries are new; open, the list, the
+ * filters and the field to write.
  */
 export function Board(props: {
   state: MatchState
@@ -67,6 +68,10 @@ export function Board(props: {
   onGoTo: (geoUnitId: number, name: string) => void
   /** Always open and filling its container: the board tab on a phone. */
   full?: boolean
+  /** Shown in the same row as the button that opens the board, before it. */
+  leading?: ReactNode
+  /** Shown above the button while the board is closed: open, the board says it all itself. */
+  above?: ReactNode
   className?: string
 }) {
   const { t } = useTranslation()
@@ -171,127 +176,123 @@ export function Board(props: {
     )
   }
 
-  return (
+  const panel = open && (
     <section
       aria-label={t('game.board.title')}
       className={cn(
-        'bg-background flex flex-col rounded-lg shadow-md',
+        'bg-background flex min-h-0 flex-col',
         props.full
-          ? 'h-full rounded-none shadow-none'
-          : 'max-h-[70%] w-[min(26rem,calc(100%-1.5rem))]',
-        props.className,
+          ? 'h-full'
+          : 'max-h-[60dvh] w-[min(26rem,calc(100vw-1.5rem))] rounded-lg shadow-md',
       )}
     >
-      {open && (
-        <>
-          <div className="grid grid-cols-2 gap-2 p-3">
-            <div className="flex flex-col gap-1">
-              <label htmlFor={kindId} className="text-base">
-                {t('game.board.kind')}
-              </label>
-              <Select
-                value={kind || 'all'}
-                onValueChange={(value) => setKind(value === 'all' ? '' : (value as BoardKind))}
-              >
-                <SelectTrigger id={kindId} size="sm" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('game.board.allKinds')}</SelectItem>
-                  {KINDS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {t(`game.board.kinds.${option}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor={empireId} className="text-base">
-                {t('game.board.empire')}
-              </label>
-              <Select
-                value={empire || 'all'}
-                onValueChange={(value) => setEmpire(value === 'all' ? '' : value)}
-              >
-                <SelectTrigger id={empireId} size="sm" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('game.board.allEmpires')}</SelectItem>
-                  {state.empires.map((candidate) => (
-                    <SelectItem key={candidate.id} value={candidate.id}>
-                      {candidate.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <>
+        <div className="grid grid-cols-2 gap-2 p-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={kindId} className="text-base">
+              {t('game.board.kind')}
+            </label>
+            <Select
+              value={kind || 'all'}
+              onValueChange={(value) => setKind(value === 'all' ? '' : (value as BoardKind))}
+            >
+              <SelectTrigger id={kindId} size="sm" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('game.board.allKinds')}</SelectItem>
+                {KINDS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {t(`game.board.kinds.${option}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor={empireId} className="text-base">
+              {t('game.board.empire')}
+            </label>
+            <Select
+              value={empire || 'all'}
+              onValueChange={(value) => setEmpire(value === 'all' ? '' : value)}
+            >
+              <SelectTrigger id={empireId} size="sm" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('game.board.allEmpires')}</SelectItem>
+                {state.empires.map((candidate) => (
+                  <SelectItem key={candidate.id} value={candidate.id}>
+                    {candidate.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Newest at the bottom, next to the field to write, as in a conversation. */}
-          <ul
-            className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto px-3"
-            aria-live="polite"
-          >
-            {board.data?.map(entryView)}
-            {board.data?.length === 0 && (
-              <li className="text-muted-foreground py-3">{t('game.board.empty')}</li>
-            )}
-          </ul>
-
-          {canWrite ? (
-            <form onSubmit={submit} className="flex flex-col gap-1 p-3">
-              <div className="flex gap-2">
-                <Input
-                  aria-label={t('game.board.write')}
-                  placeholder={t('game.board.write')}
-                  maxLength={maxChars}
-                  value={text}
-                  onChange={(event) => {
-                    send.reset()
-                    setText(event.target.value)
-                  }}
-                />
-                <Button type="submit" size="sm" disabled={send.isPending || text.trim() === ''}>
-                  {t('game.board.send')}
-                </Button>
-              </div>
-              {text.length > maxChars * 0.8 && (
-                <p className="text-muted-foreground text-base">
-                  {t('game.board.left', { count: maxChars - text.length })}
-                </p>
-              )}
-              {send.error && (
-                <p role="alert" className="text-danger">
-                  {errorText(send.error)}
-                </p>
-              )}
-            </form>
-          ) : (
-            <p className="text-muted-foreground p-3 text-base">{t('game.board.readOnly')}</p>
+        {/* Newest at the bottom, next to the field to write, as in a conversation. */}
+        <ul
+          className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto px-3"
+          aria-live="polite"
+        >
+          {board.data?.map(entryView)}
+          {board.data?.length === 0 && (
+            <li className="text-muted-foreground py-3">{t('game.board.empty')}</li>
           )}
-        </>
-      )}
+        </ul>
 
-      {!props.full && (
+        {canWrite ? (
+          <form onSubmit={submit} className="flex flex-col gap-1 p-3">
+            <div className="flex gap-2">
+              <Input
+                aria-label={t('game.board.write')}
+                placeholder={t('game.board.write')}
+                maxLength={maxChars}
+                value={text}
+                onChange={(event) => {
+                  send.reset()
+                  setText(event.target.value)
+                }}
+              />
+              <Button type="submit" size="sm" disabled={send.isPending || text.trim() === ''}>
+                {t('game.board.send')}
+              </Button>
+            </div>
+            {text.length > maxChars * 0.8 && (
+              <p className="text-muted-foreground text-base">
+                {t('game.board.left', { count: maxChars - text.length })}
+              </p>
+            )}
+            {send.error && (
+              <p role="alert" className="text-danger">
+                {errorText(send.error)}
+              </p>
+            )}
+          </form>
+        ) : (
+          <p className="text-muted-foreground p-3 text-base">{t('game.board.readOnly')}</p>
+        )}
+      </>
+    </section>
+  )
+  if (props.full) return panel
+
+  return (
+    <div className={cn('flex flex-col items-start gap-2', props.className)}>
+      {panel || props.above}
+      {/* One row at the bottom: what the caller keeps there, then the way into the board. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {props.leading}
         <button
           type="button"
           aria-expanded={expanded}
           aria-label={expanded ? t('game.board.close') : t('game.board.open')}
           onClick={() => setExpanded(!expanded)}
-          className={cn(
-            'hover:bg-accent flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left',
-            expanded && '',
-          )}
+          className="bg-background hover:bg-accent rounded-pill flex h-11 cursor-pointer items-center gap-2 px-5 shadow-md"
         >
           <span className="font-display text-base">{t('game.board.title')}</span>
-          {!expanded && (
-            <span className="text-muted-foreground min-w-0 flex-1 truncate text-base">
-              {latest ? entryText(latest) : t('game.board.empty')}
-            </span>
-          )}
-          {expanded && <span className="flex-1" />}
           {!expanded && unread > 0 && (
             <span className="rounded-pill bg-danger text-on-danger px-2 text-sm font-bold">
               {t('game.board.new', { count: unread })}
@@ -299,7 +300,7 @@ export function Board(props: {
           )}
           {expanded ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </button>
-      )}
-    </section>
+      </div>
+    </div>
   )
 }

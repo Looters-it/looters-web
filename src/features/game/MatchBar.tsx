@@ -40,14 +40,15 @@ export function MatchBar(props: {
             {connected}/{state.online.total}
           </dd>
         </div>
+        {/* From a tablet up the turn, its clock and the resources are on the map (MatchHud). */}
         {match.status === 'ONGOING' && (
           <>
-            <div>
+            <div className="md:!hidden">
               <dt>{t('game.bar.turn')}</dt>
               <dd>{match.currentTurn}</dd>
             </div>
             {match.turnEndsAt && (
-              <div>
+              <div className="md:!hidden">
                 <dt className="sr-only lg:not-sr-only">{t('game.bar.timeLeftShort')}</dt>
                 <dd>
                   <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
@@ -57,7 +58,7 @@ export function MatchBar(props: {
           </>
         )}
         {resources !== null && (
-          <div>
+          <div className="md:!hidden">
             <dt className="sr-only lg:not-sr-only">{t('game.bar.resources')}</dt>
             <dd>{resources}</dd>
           </div>

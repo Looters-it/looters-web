@@ -10,6 +10,8 @@ import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { BattlesPage } from '@/features/game/BattlesPage'
 import { Board } from '@/features/game/Board'
+import { BoardToasts } from '@/features/game/BoardToasts'
+import { MatchHud } from '@/features/game/MatchHud'
 import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
 import { historyQuery, turnQuery } from '@/features/game/history'
@@ -95,7 +97,13 @@ function MatchInfo({ state }: { state: MatchState }) {
         </li>
         <li>{t('match.info.players', { players: match.players, max: match.maxPlayers })}</li>
         <li>
-          {t('match.info.turnLength', { hours: match.turnHours })} ·{' '}
+          {/* In the unit that says it in a whole number: 30 seconds, not a fraction of an hour. */}
+          {match.turnHours * 60 < 1
+            ? t('match.info.turnSeconds', { count: Math.round(match.turnHours * 3600) })
+            : match.turnHours < 1
+              ? t('match.info.turnMinutes', { count: Math.round(match.turnHours * 60) })
+              : t('match.info.turnLength', { hours: match.turnHours })}{' '}
+          ·{' '}
           {match.maxDays ? t('match.info.maxDays', { days: match.maxDays }) : t('match.info.noEnd')}
         </li>
       </ul>
@@ -623,12 +631,17 @@ export function MatchPage() {
           >
             {t('game.map.tags')}
           </button>
-          {/* The board sits over the map, bottom left; on a phone it has its own tab. */}
-          <Board
-            state={state}
-            onGoTo={goTo}
-            className="absolute bottom-3 left-3 z-10 hidden md:flex"
-          />
+          {/* Bottom left, over the map: the news of the board as they come, and under
+              them the turn and its clock, the player's resources and the board itself.
+              On a phone the board has its own tab and the figures are in the bar on top. */}
+          <div className="absolute bottom-3 left-3 z-10 hidden flex-col items-start gap-2 md:flex">
+            <Board
+              state={state}
+              onGoTo={goTo}
+              leading={<MatchHud state={state} />}
+              above={<BoardToasts state={state} />}
+            />
+          </div>
         </div>
       ) : (
         <div className="bg-muted hidden flex-1 md:block" />
