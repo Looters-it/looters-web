@@ -35,6 +35,9 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
           )}
         </p>
       )}
+      <p className="bg-background rounded-pill flex h-11 items-center px-5 whitespace-nowrap shadow-md">
+        {t('game.hud.players', { players: match.players, max: match.maxPlayers })}
+      </p>
       {resources !== null && (
         <p className="bg-card text-card-foreground rounded-pill flex h-11 items-center gap-2 px-5 whitespace-nowrap shadow-md">
           <span>{t('game.bar.resources')}</span>

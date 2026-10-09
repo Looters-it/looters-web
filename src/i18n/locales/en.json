@@ -384,14 +384,13 @@
       "players": "{{players}} of {{max}} players",
       "turnLength": "{{hours}}-hour turns",
       "owner": "Created by {{owner}}",
-      "maxDays": "Lasts at most {{days}} days",
       "noEnd": "No time limit",
       "lateStart": "The start time has passed but the match has not started: at least {{min}} players are needed. Whoever created it can set a new date.",
       "turnSeconds_one": "Turns of {{count}} second",
       "turnSeconds_other": "Turns of {{count}} seconds",
       "turnMinutes_one": "Turns of {{count}} minute",
       "turnMinutes_other": "Turns of {{count}} minutes",
-      "online": "{{count}} of {{total}} connected now"
+      "endsOn": "Ends on {{date}}"
     },
     "owner": {
       "title": "Managing the match",
@@ -917,7 +916,19 @@
       "more_one": "and one more: type a few more letters",
       "more_other": "and {{count}} more: type a few more letters"
     },
-    "tag": "tag {{tag}}"
+    "tag": "tag {{tag}}",
+    "hud": {
+      "players": "{{players}}/{{max}} players",
+      "online": "{{count}}/{{total}} connected"
+    },
+    "fab": {
+      "empire": "Your empire: {{name}}"
+    },
+    "attackToast": {
+      "label": "Attacks on your municipalities",
+      "respond": "Answer",
+      "close": "Close the warning"
+    }
   },
   "crash": {
     "title": "Something broke",

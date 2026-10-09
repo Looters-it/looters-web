@@ -384,14 +384,13 @@
       "players": "{{players}} di {{max}} giocatori",
       "turnLength": "Turni di {{hours}} ore",
       "owner": "Creata da {{owner}}",
-      "maxDays": "Dura al massimo {{days}} giorni",
       "noEnd": "Senza scadenza",
       "lateStart": "L'inizio è passato ma la partita non è partita: servono almeno {{min}} giocatori. Chi l'ha creata può fissare una nuova data.",
       "turnSeconds_one": "Turni di {{count}} secondo",
       "turnSeconds_other": "Turni di {{count}} secondi",
       "turnMinutes_one": "Turni di {{count}} minuto",
       "turnMinutes_other": "Turni di {{count}} minuti",
-      "online": "{{count}} di {{total}} collegati ora"
+      "endsOn": "Termina il giorno {{date}}"
     },
     "owner": {
       "title": "Gestione della partita",
@@ -917,7 +916,19 @@
       "more_one": "e un altro: scrivi qualche lettera in più",
       "more_other": "e altri {{count}}: scrivi qualche lettera in più"
     },
-    "tag": "sigla {{tag}}"
+    "tag": "sigla {{tag}}",
+    "hud": {
+      "players": "{{players}}/{{max}} giocatori",
+      "online": "{{count}}/{{total}} collegati"
+    },
+    "fab": {
+      "empire": "Il tuo impero: {{name}}"
+    },
+    "attackToast": {
+      "label": "Attacchi ai tuoi comuni",
+      "respond": "Rispondi",
+      "close": "Chiudi l'avviso"
+    }
   },
   "crash": {
     "title": "Qualcosa si è rotto",

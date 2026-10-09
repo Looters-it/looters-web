@@ -8,10 +8,13 @@ export function useMatchFormat() {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
+  const date = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' })
   const relative = new Intl.RelativeTimeFormat(i18n.language, { numeric: 'auto' })
 
   return {
     dateTime: (iso: string) => dateTime.format(new Date(iso)),
+    /** The day alone, written out: "12 ottobre 2026". */
+    date: (iso: string) => date.format(new Date(iso)),
     /** How far a moment is from now, in the largest fitting unit. */
     fromNow: (iso: string, now = Date.now()) => {
       const seconds = Math.round((new Date(iso).getTime() - now) / 1000)
