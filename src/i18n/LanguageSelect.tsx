@@ -1,7 +1,5 @@
-import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -15,15 +13,13 @@ import { availableLanguages, languageName, setLanguage } from '.'
 /** Chooses the language of the interface. Nothing is shown while there is only one. */
 export function LanguageSelect() {
   const { t, i18n } = useTranslation()
-  const id = useId()
   const languages = availableLanguages()
   if (languages.length < 2) return null
 
   return (
-    <div className="flex flex-col gap-1 pt-3">
-      <Label htmlFor={id}>{t('nav.language')}</Label>
+    <div className="pt-3">
       <Select value={i18n.language} onValueChange={(code) => void setLanguage(code)}>
-        <SelectTrigger id={id} className="w-full">
+        <SelectTrigger aria-label={t('nav.language')} className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
