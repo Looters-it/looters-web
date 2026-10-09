@@ -132,6 +132,12 @@
       "email": "Scrivi un indirizzo email valido.",
       "password": "Servono almeno {{min}} caratteri.",
       "tooLong": "Troppo lungo."
+    },
+    "availability": {
+      "checking": "Controllo se è libero…",
+      "available": "{{name}} è disponibile.",
+      "taken": "{{name}} è già in uso: scegline un altro.",
+      "failed": "Non riesco a controllare adesso: lo saprai inviando."
     }
   },
   "admin": {

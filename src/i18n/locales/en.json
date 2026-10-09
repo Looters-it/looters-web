@@ -132,6 +132,12 @@
       "email": "Enter a valid email address.",
       "password": "At least {{min}} characters are needed.",
       "tooLong": "Too long."
+    },
+    "availability": {
+      "checking": "Checking whether it is free…",
+      "available": "{{name}} is available.",
+      "taken": "{{name}} is already taken: choose another.",
+      "failed": "Cannot check right now: you will know on sending."
     }
   },
   "admin": {

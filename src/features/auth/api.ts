@@ -30,4 +30,12 @@ export async function fetchCurrentUser(signal?: AbortSignal): Promise<User | nul
 export const login = (credentials: Credentials) => apiPost<User>('/auth/login', credentials)
 export const register = (registration: Registration) =>
   apiPost<User>('/auth/register', registration)
+/** Whether nobody has this username yet: asked while the registration form is being filled. */
+export const usernameAvailable = (username: string, signal?: AbortSignal) =>
+  apiGet<{ available: boolean }>(
+    `/auth/username-available?username=${encodeURIComponent(username)}`,
+    {
+      signal,
+    },
+  )
 export const logout = () => apiPost<void>('/auth/logout')

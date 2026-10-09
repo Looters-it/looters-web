@@ -1,4 +1,5 @@
-import { useId, useState, type FormEvent, type ReactNode } from 'react'
+import { LoaderCircle } from 'lucide-react'
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
@@ -6,10 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ApiError } from '@/lib/api'
+import { cn } from '@/lib/utils'
 
+import { usernameAvailable } from './api'
 import { useSession } from './session-context'
 
 const PASSWORD_MIN = 8
+const USERNAME = /^[A-Za-z0-9_]{3,20}$/
+/** How long after the last key the username is looked up. */
+const CHECK_DELAY_MS = 1500
 
 /** What makes a field wrong, as the key of the sentence that says so. */
 type Problem = 'required' | 'username' | 'email' | 'password' | 'tooLong'
@@ -21,11 +27,7 @@ const loginSchema = z.object({
   password: z.string().min(1, 'required').max(200, 'tooLong'),
 })
 const registerSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(1, 'required')
-    .regex(/^[A-Za-z0-9_]{3,20}$/, 'username'),
+  username: z.string().trim().min(1, 'required').regex(USERNAME, 'username'),
   email: z.string().trim().min(1, 'required').max(254, 'tooLong').pipe(z.email('email')),
   password: z.string().min(1, 'required').min(PASSWORD_MIN, 'password').max(200, 'tooLong'),
   /**
@@ -80,6 +82,97 @@ function Field(props: {
             {hint}
           </p>
         )
+      )}
+    </div>
+  )
+}
+
+type Availability = 'idle' | 'checking' | 'available' | 'taken' | 'failed'
+
+/**
+ * The username of a registration, looked up while it is typed: once the typing
+ * has stopped for a moment and the name could be one, the server is asked whether
+ * it is free. A wheel turns in the field meanwhile; the answer is written under it
+ * and colours its border, green for free and red for taken.
+ */
+function UsernameField(props: { problem?: Problem }) {
+  const { t } = useTranslation()
+  const id = useId()
+  const [value, setValue] = useState('')
+  const [state, setState] = useState<Availability>('idle')
+  const name = value.trim()
+
+  useEffect(() => {
+    if (!USERNAME.test(name)) return
+    const asking = new AbortController()
+    const timer = setTimeout(() => {
+      setState('checking')
+      usernameAvailable(name, asking.signal)
+        .then(({ available }) => setState(available ? 'available' : 'taken'))
+        .catch(() => {
+          if (!asking.signal.aborted) setState('failed')
+        })
+    }, CHECK_DELAY_MS)
+    return () => {
+      clearTimeout(timer)
+      asking.abort()
+    }
+  }, [name])
+
+  // What the form found wrong on sending comes before what the lookup says.
+  const { problem } = props
+  const answered = !problem && state !== 'idle'
+  const below = problem ? 'problem' : answered ? 'state' : 'hint'
+  return (
+    <div className="relative flex flex-col gap-1">
+      <Label htmlFor={id}>{t('auth.username')}</Label>
+      <Input
+        id={id}
+        name="username"
+        autoComplete="username"
+        maxLength={20}
+        value={value}
+        onChange={(event) => {
+          setValue(event.target.value)
+          setState('idle')
+        }}
+        aria-invalid={problem || state === 'taken' ? true : undefined}
+        aria-describedby={`${id}-${below}`}
+        className={cn(
+          state === 'checking' && 'pr-12',
+          !problem && state === 'available' && 'border-ok focus-visible:border-ok',
+        )}
+      />
+      {state === 'checking' && (
+        // In the middle of the field's height, whatever stands above it.
+        <LoaderCircle
+          aria-hidden="true"
+          className="text-muted-foreground absolute top-[19px] right-4 size-5 animate-spin"
+        />
+      )}
+      {problem && (
+        <p id={`${id}-problem`} className="text-danger text-base">
+          {t(`auth.invalid.${problem}`, { min: PASSWORD_MIN })}
+        </p>
+      )}
+      {/* Always there, so that the answer is announced when it comes. */}
+      <p
+        id={`${id}-state`}
+        role="status"
+        className={cn(
+          'text-base',
+          !answered && 'sr-only',
+          state === 'available' && 'text-ok',
+          state === 'taken' && 'text-danger',
+          (state === 'checking' || state === 'failed') && 'text-muted-foreground',
+        )}
+      >
+        {answered && t(`auth.availability.${state}`, { name })}
+      </p>
+      {below === 'hint' && (
+        <p id={`${id}-hint`} className="text-muted-foreground text-sm">
+          {t('auth.usernameHint')}
+        </p>
       )}
     </div>
   )
@@ -185,14 +278,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
     >
       {(problems) => (
         <>
-          <Field
-            label={t('auth.username')}
-            hint={t('auth.usernameHint')}
-            name="username"
-            autoComplete="username"
-            maxLength={20}
-            problem={problems.username}
-          />
+          <UsernameField problem={problems.username} />
           <Field
             label={t('auth.email')}
             name="email"
