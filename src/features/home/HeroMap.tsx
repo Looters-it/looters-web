@@ -161,7 +161,7 @@ export function HeroMap({
         <ol
           aria-label={t('home.demo.log')}
           aria-live="off"
-          className="pointer-events-none absolute bottom-3 left-3 z-10 flex max-w-[min(26rem,calc(100%-1.5rem))] flex-col-reverse gap-1.5"
+          className="pointer-events-none absolute bottom-3 left-3 z-20 flex max-w-[min(26rem,calc(100%-1.5rem))] flex-col-reverse gap-1.5"
         >
           {log.map((line, index) => (
             <li

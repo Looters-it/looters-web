@@ -37,6 +37,11 @@ export function HomePage() {
           aria-hidden="true"
           className="from-surface pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t to-transparent lg:inset-y-0 lg:right-0 lg:left-auto lg:h-auto lg:w-[58%] lg:bg-gradient-to-l lg:from-45%"
         />
+        {/* And on the left too, beside the menu, so that the map has no hard edge. */}
+        <div
+          aria-hidden="true"
+          className="from-surface pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-56 bg-gradient-to-r to-transparent lg:block"
+        />
         <section className="relative z-20 flex flex-col items-start space-y-6 px-4 py-8 sm:px-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[42%] lg:max-w-2xl lg:justify-center lg:py-10 lg:pr-12 lg:pl-0">
           {/* The heading font leaves air under its letters: taken back here, in proportion to
               its size, so that what the eye sees between the three is the same. */}
