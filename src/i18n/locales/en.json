@@ -69,9 +69,7 @@
     },
     "demo": {
       "label": "Demonstration of the game on the map",
-      "badge": "Demonstration: made-up empires",
       "log": "Chronicle of the demonstration",
-      "note": "This is a demonstration: no real match.",
       "annexed": "{{empire}} annexed {{name}}.",
       "conquered": "{{empire}} took {{name}} from {{other}}.",
       "defended": "{{other}} defended {{name}} against {{empire}}."

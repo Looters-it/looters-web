@@ -3,10 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { mapApi } from '@/features/map/api'
-import type { EmpireLabel, MapMarker, MapUnit } from '@/features/map/GameMap'
+import type { EmpireLabel, MapMarker } from '@/features/map/GameMap'
 import { LazyGameMap } from '@/features/map/LazyGameMap'
-import { UnitCard } from '@/features/map/UnitCard'
-import { EmpireShield } from '@/features/matches/Emblem'
 
 import { Demo, boundsOf, demoStage, type DemoEvent } from './demo'
 
@@ -22,8 +20,8 @@ interface LogLine {
 
 /**
  * The map on the homepage: a made-up match that plays itself on the real
- * municipalities, to show at a glance what the game is. It can be moved and
- * tapped like the map of a match; it stands still for who asked for less motion.
+ * municipalities, to show at a glance what the game is. It is only to be looked
+ * at: it takes no click; it stands still for who asked for less motion.
  */
 export function HeroMap({
   className,
@@ -34,7 +32,6 @@ export function HeroMap({
   fitPadding?: { top: number; right: number; bottom: number; left: number }
 }) {
   const { t } = useTranslation()
-  const [selected, setSelected] = useState<MapUnit | null>(null)
   const [log, setLog] = useState<LogLine[]>([])
   // Bumped at every move: what the map shows is read again from the demonstration.
   const [move, setMove] = useState(0)
@@ -146,38 +143,19 @@ export function HeroMap({
 
   return (
     <section className={frame} aria-label={t('home.demo.label')}>
-      <LazyGameMap
-        area={staged}
-        embedded
-        fitPadding={fitPadding}
-        colors={view.colors}
-        empireLabels={view.labels}
-        markers={view.markers}
-        highlightedIds={flash}
-        selected={selected}
-        onSelect={setSelected}
-        renderInfo={(unit) => {
-          const empire = demo.game.empires[demo.game.owner.get(unit.id) ?? -1]
-          return (
-            <UnitCard name={unit.name}>
-              {empire ? (
-                <p className="flex items-center gap-2">
-                  <EmpireShield color={empire.color} emblem={empire.emblem} className="size-6" />
-                  {t('match.unit.owned', { name: empire.name })}
-                </p>
-              ) : (
-                <p className="text-muted-foreground">{t('home.map.free')}</p>
-              )}
-              <p className="text-muted-foreground text-base">{t('home.demo.note')}</p>
-            </UnitCard>
-          )
-        }}
-        className="h-full w-full"
-      />
-      {/* Said on the map itself: nobody should take this for a match being played. */}
-      <p className="bg-background rounded-pill absolute top-16 left-3 z-10 border px-3 py-1 text-sm lg:top-3">
-        {t('home.demo.badge')}
-      </p>
+      {/* A picture to look at, not a map to use: it takes no click, drag or focus. */}
+      <div inert className="h-full w-full">
+        <LazyGameMap
+          area={staged}
+          embedded
+          fitPadding={fitPadding}
+          colors={view.colors}
+          empireLabels={view.labels}
+          markers={view.markers}
+          highlightedIds={flash}
+          className="h-full w-full"
+        />
+      </div>
       {/* The chronicle of the demonstration: decoration, not news to be announced. */}
       {log.length > 0 && (
         <ol

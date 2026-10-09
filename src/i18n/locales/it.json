@@ -69,9 +69,7 @@
     },
     "demo": {
       "label": "Dimostrazione del gioco sulla mappa",
-      "badge": "Dimostrazione: imperi inventati",
       "log": "Cronaca della dimostrazione",
-      "note": "È una dimostrazione: nessuna partita vera.",
       "annexed": "{{empire}} ha annesso {{name}}.",
       "conquered": "{{empire}} ha conquistato {{name}} a {{other}}.",
       "defended": "{{other}} ha difeso {{name}} da {{empire}}."
