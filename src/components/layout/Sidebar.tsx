@@ -46,17 +46,13 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <Link to="/" onClick={onNavigate} className="flex items-center gap-3 px-3">
+      <Link to="/" onClick={onNavigate} className="flex items-center justify-center gap-3 px-3">
         <Crest className="size-9 flex-none" />
         <b className="font-display text-2xl font-normal">{t('app.name')}</b>
       </Link>
 
       {/* Above the entries: who opens the menu sees first that the game is alive. */}
-      {!inMatch && (
-        <div className="px-3">
-          <OnlineCounter />
-        </div>
-      )}
+      {!inMatch && <OnlineCounter />}
       <nav className="flex flex-col gap-0" aria-label={t('nav.main')}>
         {user ? (
           <>

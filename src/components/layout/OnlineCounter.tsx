@@ -10,10 +10,14 @@ export function OnlineCounter() {
   if (online === null) return null
 
   return (
-    <p className="flex items-center gap-2 whitespace-nowrap" aria-live="polite">
+    // Set like an entry of the menu it sits above: same font, same size, centred.
+    <p
+      className="font-display flex items-center justify-center gap-2 px-3 py-1 text-base tracking-[0.02em] whitespace-nowrap"
+      aria-live="polite"
+    >
       <span className="bg-hunter-green-300 size-2 rounded-full" aria-hidden="true" />
-      <RollingNumber value={online} className="text-lg font-bold" />
-      <span className="text-base">{t('nav.online', { count: online })}</span>
+      <RollingNumber value={online} className="font-display" />
+      <span>{t('nav.online', { count: online })}</span>
     </p>
   )
 }
