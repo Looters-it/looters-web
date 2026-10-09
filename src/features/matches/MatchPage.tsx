@@ -640,9 +640,20 @@ export function MatchPage() {
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
           <AttackToasts state={state} onRespond={() => setAlertOpen(true)} />
+          {/* Top left, beside the button of the menu: finding a municipality by its name. */}
+          {units.data && !reviewing && (
+            <UnitSearch
+              units={units.data}
+              className="absolute top-2 right-16 left-16 z-20 md:right-auto md:w-64"
+              onSelect={(unit) => {
+                selectFromList(unit)
+                onMapSelect(unit)
+              }}
+            />
+          )}
           {/* Top right, beside the zoom: who is here now, then the round buttons that
               open the empire, the leaderboard and the history. */}
-          <div className="absolute top-3 right-16 z-10 flex flex-col items-end gap-2">
+          <div className="absolute top-3 right-16 z-10 flex flex-col items-end gap-2 max-md:hidden">
             {match.status !== 'FINISHED' && (
               <p className="bg-background rounded-pill flex h-11 items-center px-4 text-base whitespace-nowrap shadow-md">
                 {t('game.hud.online', { count: connected, total: state.online.total })}
@@ -672,7 +683,13 @@ export function MatchPage() {
               </MapFab>
             )}
           </div>
-          <div className="absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2">
+          <div
+            className={cn(
+              'absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2',
+              // On a phone the card of the chosen municipality takes this place while it is open.
+              selected && 'max-md:hidden',
+            )}
+          >
             <Board
               state={state}
               onGoTo={goTo}
@@ -705,15 +722,6 @@ export function MatchPage() {
           <>
             <MatchInfo state={state} />
             {menu}
-            {hasMap && units.data && (
-              <UnitSearch
-                units={units.data}
-                onSelect={(unit) => {
-                  selectFromList(unit)
-                  onMapSelect(unit)
-                }}
-              />
-            )}
             <MatchTimes match={match} />
           </>
         ) : (

@@ -7,7 +7,8 @@ import type { MatchState } from '@/features/matches/api'
 
 /**
  * A warning over the map for every attack on a municipality of the player: who
- * attacks what. It does not go away by itself: it stays until the player closes
+ * attacks what, between the search and what stands top right (on a phone, under the
+ * controls of the map). It does not go away by itself: it stays until the player closes
  * it with its X, or the battle is over.
  */
 export function AttackToasts(props: {
@@ -26,7 +27,7 @@ export function AttackToasts(props: {
   return (
     <ul
       aria-label={t('game.attackToast.label')}
-      className="absolute top-3 left-1/2 z-20 flex w-[min(30rem,calc(100%-9.5rem))] -translate-x-1/2 flex-col gap-2"
+      className="absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-3 md:right-[13.5rem] md:left-[21rem] md:mx-auto md:max-w-[30rem]"
     >
       {attacks.map((battle) => {
         const attacker = state.empires.find((empire) => empire.id === battle.attackerEmpireId)
