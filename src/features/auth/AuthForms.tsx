@@ -99,8 +99,11 @@ function UsernameField(props: { problem?: Problem }) {
   const { t } = useTranslation()
   const id = useId()
   const [value, setValue] = useState('')
-  const [state, setState] = useState<Availability>('idle')
+  const [answer, setState] = useState<Availability>('idle')
   const name = value.trim()
+  // The wheel turns from the first key of a name that could be one: the pause before
+  // the server is asked is part of the wait, as far as the player can tell.
+  const state: Availability = answer === 'idle' && USERNAME.test(name) ? 'checking' : answer
 
   useEffect(() => {
     if (!USERNAME.test(name)) return
