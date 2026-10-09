@@ -102,8 +102,18 @@ export function ChangePasswordPage() {
 
   return (
     <ProfileFrame title={t('profile.password.title')} back>
-      {() => (
+      {(user) => (
         <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+          {/* Not shown, and not sent: it tells the browser whose password this is, so that
+              the one it has saved for this player is the one it updates. */}
+          <input
+            type="text"
+            name="username"
+            autoComplete="username"
+            value={user.username}
+            readOnly
+            hidden
+          />
           {field('currentPassword', 'current-password')}
           {field('newPassword', 'new-password', t('auth.passwordHint', { min: PASSWORD_MIN }))}
           {field('repeat', 'new-password')}

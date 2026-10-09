@@ -27,8 +27,9 @@ const loginSchema = z.object({
   password: z.string().min(1, 'required').max(200, 'tooLong'),
 })
 const registerSchema = z.object({
-  username: z.string().trim().min(1, 'required').regex(USERNAME, 'username'),
+  // In the order of the form: the first field that is wrong is the one that takes the focus.
   email: z.string().trim().min(1, 'required').max(254, 'tooLong').pipe(z.email('email')),
+  username: z.string().trim().min(1, 'required').regex(USERNAME, 'username'),
   password: z.string().min(1, 'required').min(PASSWORD_MIN, 'password').max(200, 'tooLong'),
   /**
    * The honeypot: a field no person sees or fills. A programme that fills
@@ -282,7 +283,6 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
     >
       {(problems) => (
         <>
-          <UsernameField problem={problems.username} />
           <Field
             label={t('auth.email')}
             name="email"
@@ -290,6 +290,10 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
             autoComplete="email"
             problem={problems.email}
           />
+          {/* Right above the password: browsers that guess, rather than read the
+              `autocomplete` hints, take the field before the password as the name to
+              save and to offer again at the login. The email there would not let in. */}
+          <UsernameField problem={problems.username} />
           <Field
             label={t('auth.password')}
             hint={t('auth.passwordHint', { min: PASSWORD_MIN })}
