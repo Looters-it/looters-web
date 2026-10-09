@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 
 import { openRealtimeSocket, type RealtimeSocket } from '@/features/realtime/socket'
 
 import * as authApi from './api'
 import type { Credentials, Registration, User } from './api'
+import { CURTAIN_MS, SessionCurtain, type Curtain } from './SessionCurtain'
 import { SessionContext, type SessionState } from './session-context'
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
  * Owns the signed-in user and the realtime socket together: the socket is
@@ -15,6 +19,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState<number | null>(null)
   const [sessionEnded, setSessionEnded] = useState(false)
   const socketRef = useRef<RealtimeSocket | null>(null)
+  const navigate = useNavigate()
+  const [curtain, setCurtain] = useState<Curtain | null>(null)
+
+  // The curtain covers the page, the session changes behind it, then it lifts on
+  // whatever page comes next. It is a moment long by design: see SessionCurtain.
+  const behindCurtain = useCallback(
+    async (kind: Curtain['kind'], name: string, change: () => void | Promise<void>) => {
+      setCurtain({ kind, name, lifting: false })
+      await pause(CURTAIN_MS.cover)
+      try {
+        await change()
+      } finally {
+        void pause(CURTAIN_MS.stay)
+          .then(() => setCurtain((current) => current && { ...current, lifting: true }))
+          .then(() => pause(CURTAIN_MS.lift))
+          .then(() => setCurtain(null))
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     const controller = new AbortController()
@@ -59,21 +83,37 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       user,
       online,
       sessionEnded,
-      login: async (credentials: Credentials) => signedIn(await authApi.login(credentials)),
-      register: async (registration: Registration) =>
-        signedIn(await authApi.register(registration)),
-      logout: async () => {
-        // Leave first, so the server closing the socket is not read as a revocation.
-        setUser(null)
-        await authApi.logout()
-        socketRef.current?.reconnect()
+      login: async (credentials: Credentials) => {
+        const next = await authApi.login(credentials)
+        await behindCurtain('in', next.username, () => signedIn(next))
       },
+      register: async (registration: Registration) => {
+        const next = await authApi.register(registration)
+        await behindCurtain('in', next.username, () => signedIn(next))
+      },
+      logout: () =>
+        behindCurtain('out', user?.username ?? '', async () => {
+          // To the homepage first: a page for who is signed in would otherwise send its
+          // new guest to sign in again.
+          await navigate('/')
+          // Leave before asking, so the server closing the socket is not read as a revocation.
+          setUser(null)
+          await authApi.logout()
+          socketRef.current?.reconnect()
+          // A page that had already sent its guest to sign in gives way: out means home.
+          if (window.location.pathname !== '/') await navigate('/', { replace: true })
+        }),
       dismissSessionEnded: () => setSessionEnded(false),
       followMatch: (matchId, handler) =>
         socketRef.current?.followMatch(matchId, handler) ?? (() => undefined),
     }),
-    [user, online, sessionEnded, signedIn],
+    [user, online, sessionEnded, signedIn, behindCurtain, navigate],
   )
 
-  return <SessionContext value={value}>{children}</SessionContext>
+  return (
+    <SessionContext value={value}>
+      {children}
+      {curtain && <SessionCurtain curtain={curtain} />}
+    </SessionContext>
+  )
 }

@@ -231,6 +231,7 @@ function AuthForm<Values>(props: {
       )}
       {/* As wide and as tall as the fields above it: one column of the same shape. */}
       <Button type="submit" className="min-h-11 w-full text-[17px]" disabled={pending}>
+        {pending && <LoaderCircle aria-hidden="true" className="size-5 animate-spin" />}
         {props.submitLabel}
       </Button>
     </form>

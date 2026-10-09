@@ -143,6 +143,10 @@
       "available": "{{name}} è disponibile.",
       "taken": "{{name}} è già in uso: scegline un altro.",
       "failed": "Non riesco a controllare adesso: lo saprai inviando."
+    },
+    "curtain": {
+      "in": "Bentornato, {{name}}",
+      "out": "A presto, {{name}}"
     }
   },
   "admin": {

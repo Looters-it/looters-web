@@ -143,6 +143,10 @@
       "available": "{{name}} is available.",
       "taken": "{{name}} is already taken: choose another.",
       "failed": "Cannot check right now: you will know on sending."
+    },
+    "curtain": {
+      "in": "Welcome back, {{name}}",
+      "out": "See you soon, {{name}}"
     }
   },
   "admin": {

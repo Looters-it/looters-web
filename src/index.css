@@ -88,6 +88,19 @@
   filter: invert(1);
 }
 
+/* The bar of the curtain shown while a session begins or ends (SessionCurtain). */
+@keyframes curtain-fill {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+.curtain-fill {
+  animation: curtain-fill 1s ease-in-out both;
+}
+
 /* Every animation and transition yields to the user's preference. */
 /*
  * Floating labels. A label right before a field sits inside it, where a
