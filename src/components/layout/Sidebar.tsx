@@ -9,7 +9,6 @@ import { useSession } from '@/features/auth/session-context'
 import { LanguageSelect } from '@/i18n/LanguageSelect'
 import { cn } from '@/lib/utils'
 
-import { Crest } from './Crest'
 import { OnlineCounter } from './OnlineCounter'
 
 /**
@@ -47,7 +46,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <Link to="/" onClick={onNavigate} className="flex items-center justify-center gap-3 px-3">
-        <Crest className="size-9 flex-none" />
         <b className="font-display text-2xl font-normal">{t('app.name')}</b>
       </Link>
 

@@ -166,7 +166,7 @@ export function HeroMap({
           {log.map((line, index) => (
             <li
               key={line.id}
-              className="bg-background/95 animate-in fade-in slide-in-from-bottom-2 rounded-md border px-3 py-1.5 text-base shadow-sm duration-300"
+              className="bg-background/95 animate-in fade-in slide-in-from-bottom-2 rounded-md px-3 py-1.5 text-base shadow-sm duration-300"
               style={{ opacity: 1 - index * 0.22 }}
             >
               <span

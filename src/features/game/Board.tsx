@@ -175,9 +175,9 @@ export function Board(props: {
     <section
       aria-label={t('game.board.title')}
       className={cn(
-        'bg-background flex flex-col rounded-lg border',
+        'bg-background flex flex-col rounded-lg shadow-md',
         props.full
-          ? 'h-full rounded-none border-0'
+          ? 'h-full rounded-none shadow-none'
           : 'max-h-[70%] w-[min(26rem,calc(100%-1.5rem))]',
         props.className,
       )}
