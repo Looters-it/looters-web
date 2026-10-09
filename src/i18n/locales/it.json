@@ -108,14 +108,12 @@
       "tab": "Accedi",
       "submit": "Accedi",
       "title": "Accedi",
-      "intro": "Entra con il tuo nome utente e la tua password.",
       "other": "Non hai un account?"
     },
     "register": {
       "tab": "Registrati",
       "submit": "Crea l'account",
       "title": "Registrati",
-      "intro": "Bastano un nome utente, un'email e una password.",
       "other": "Hai già un account?"
     },
     "signedInAs": "Hai effettuato l'accesso come",

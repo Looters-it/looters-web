@@ -108,14 +108,12 @@
       "tab": "Sign in",
       "submit": "Sign in",
       "title": "Sign in",
-      "intro": "Enter with your username and password.",
       "other": "No account yet?"
     },
     "register": {
       "tab": "Register",
       "submit": "Create account",
       "title": "Register",
-      "intro": "A username, an email and a password are enough.",
       "other": "Already have an account?"
     },
     "signedInAs": "You are signed in as",

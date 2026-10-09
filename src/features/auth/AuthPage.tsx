@@ -35,12 +35,9 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col justify-center gap-6 px-4 py-10 lg:min-h-dvh"
       aria-labelledby="auth-title"
     >
-      <div className="flex flex-col gap-2">
-        <h1 id="auth-title" className="text-3xl leading-tight sm:text-4xl">
-          {t(`auth.${mode}.title`)}
-        </h1>
-        <p className="text-muted-foreground text-lg">{t(`auth.${mode}.intro`)}</p>
-      </div>
+      <h1 id="auth-title" className="text-center text-3xl leading-tight sm:text-4xl">
+        {t(`auth.${mode}.title`)}
+      </h1>
       {mode === 'login' ? <LoginForm /> : <RegisterForm />}
       {/* The way to the other page: a button like the form's own, its colours swapped. */}
       <div className="flex flex-col gap-3">
