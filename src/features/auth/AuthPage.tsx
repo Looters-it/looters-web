@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
+import { Button } from '@/components/ui/button'
+
 import { LoginForm, RegisterForm } from './AuthForms'
 import { useSession } from './session-context'
 
@@ -40,15 +42,15 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
         <p className="text-muted-foreground text-lg">{t(`auth.${mode}.intro`)}</p>
       </div>
       {mode === 'login' ? <LoginForm /> : <RegisterForm />}
-      <p>
-        {t(`auth.${mode}.other`)}{' '}
-        <Link
-          to={mode === 'login' ? `/auth/register${query}` : `/auth/login${query}`}
-          className="font-bold underline underline-offset-4"
-        >
-          {t(`auth.${mode === 'login' ? 'register' : 'login'}.tab`)}
-        </Link>
-      </p>
+      {/* The way to the other page: a button like the form's own, its colours swapped. */}
+      <div className="flex flex-col gap-3">
+        <p className="text-center">{t(`auth.${mode}.other`)}</p>
+        <Button asChild variant="inverted" className="min-h-11 w-full text-[17px]">
+          <Link to={mode === 'login' ? `/auth/register${query}` : `/auth/login${query}`}>
+            {t(`auth.${mode === 'login' ? 'register' : 'login'}.tab`)}
+          </Link>
+        </Button>
+      </div>
     </section>
   )
 }

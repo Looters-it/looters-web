@@ -133,6 +133,22 @@
   translate: 1rem calc(1.125rem - 1px);
 }
 /*
+ * On a light card the border of a field is already dark, and darker still says
+ * little: there the field in focus gets a thicker border, drawn inwards so that
+ * nothing around it moves.
+ */
+.bg-card [data-slot='input']:focus-visible,
+.bg-card [data-slot='select-trigger']:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-foreground);
+}
+@media (min-width: 64rem) {
+  .card-scope-lg [data-slot='input']:focus-visible,
+  .card-scope-lg [data-slot='select-trigger']:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--color-foreground);
+  }
+}
+
+/*
  * A field the browser filled in keeps the look of the others. Browsers paint
  * their own pale background on it and do not let it be overridden, which left
  * the label's patch of surface showing as a dark tag on a light field; a

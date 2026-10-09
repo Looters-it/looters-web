@@ -17,6 +17,9 @@ const buttonVariants = cva(
           'border-secondary bg-secondary text-white hover:border-secondary-hover hover:bg-secondary-hover',
         secondary:
           'border-secondary bg-secondary text-white hover:border-secondary-hover hover:bg-secondary-hover',
+        // The same two colours the other way round: for the second action beside a main one.
+        inverted:
+          'border-white bg-white text-secondary hover:border-secondary-hover hover:text-secondary-hover',
         destructive:
           'border-destructive bg-destructive text-on-danger hover:border-danger-hover hover:bg-danger-hover',
         outline: 'border-foreground bg-transparent text-foreground hover:bg-accent',
