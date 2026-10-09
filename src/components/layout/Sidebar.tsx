@@ -6,6 +6,7 @@ import { Link, useLocation, useMatch } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { useSession } from '@/features/auth/session-context'
+import { LanguageSelect } from '@/i18n/LanguageSelect'
 import { cn } from '@/lib/utils'
 
 import { Crest } from './Crest'
@@ -78,6 +79,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-3 px-3">
+        {/* The language is chosen here, by guests and players alike. */}
+        <LanguageSelect />
         {!inMatch && <OnlineCounter />}
         {user ? (
           <>

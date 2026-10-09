@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
-import { LanguageSelect } from '@/i18n/LanguageSelect'
 
 import { useSession } from './session-context'
 
-/** The player's own page: who they are here, the language, and the way out. */
+/** The player's own page: who they are here, and the way out. */
 export function ProfilePage() {
   const { t } = useTranslation()
   const { user, logout } = useSession()
@@ -34,7 +33,6 @@ export function ProfilePage() {
           <dt>{t('profile.role')}</dt>
           <dd>{t(`profile.roles.${user.role}`)}</dd>
         </dl>
-        <LanguageSelect />
         <div className="flex flex-wrap gap-2 pt-4">
           {user.role === 'ADMIN' && (
             <Button asChild variant="outline">

@@ -2,8 +2,6 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
-import { LanguageSelect } from '@/i18n/LanguageSelect'
-
 import { LoginForm, RegisterForm } from './AuthForms'
 import { useSession } from './session-context'
 
@@ -51,8 +49,6 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           {t(`auth.${mode === 'login' ? 'register' : 'login'}.tab`)}
         </Link>
       </p>
-      {/* A guest has no profile: the language is chosen here. */}
-      <LanguageSelect />
     </section>
   )
 }
