@@ -931,6 +931,12 @@
       "label": "Attacchi ai tuoi comuni",
       "respond": "Rispondi",
       "close": "Chiudi l'avviso"
+    },
+    "turn": {
+      "begins": "Turno {{turn}}",
+      "ending_one": "Il turno finisce tra {{count}} secondo.",
+      "ending_other": "Il turno finisce tra {{count}} secondi.",
+      "endingShort": "Fine del turno"
     }
   },
   "crash": {

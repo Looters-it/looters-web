@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { AttackToasts } from '@/features/game/AttackToasts'
+import { TurnAnnouncer } from '@/features/game/TurnAnnouncer'
 import { Board } from '@/features/game/Board'
 import { BoardToasts } from '@/features/game/BoardToasts'
 import { MatchHud } from '@/features/game/MatchHud'
@@ -678,6 +679,8 @@ export function MatchPage() {
           {/* Bottom right, over the map: the news of the board as they come, and under
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
+          {/* In large over the map: the last seconds of the turn, and the turn that begins. */}
+          {!reviewing && <TurnAnnouncer match={match} />}
           <AttackToasts state={state} onRespond={() => setAlertOpen(true)} />
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}
           {units.data && !reviewing && (

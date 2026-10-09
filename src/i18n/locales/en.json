@@ -931,6 +931,12 @@
       "label": "Attacks on your municipalities",
       "respond": "Answer",
       "close": "Close the warning"
+    },
+    "turn": {
+      "begins": "Turn {{turn}}",
+      "ending_one": "The turn ends in {{count}} second.",
+      "ending_other": "The turn ends in {{count}} seconds.",
+      "endingShort": "End of the turn"
     }
   },
   "crash": {
