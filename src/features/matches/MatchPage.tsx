@@ -456,8 +456,7 @@ export function MatchPage() {
   }
 
   const menu = mine && (
-    <nav className="flex flex-col gap-1" aria-label={t('game.menu.title')}>
-      <p className="font-display px-1 text-base">{t('game.menu.empire')}</p>
+    <nav className="flex flex-col" aria-label={t('game.menu.empire')}>
       {EMPIRE_PAGES.map((page) => (
         <MenuButton
           key={page}
@@ -849,15 +848,13 @@ export function MatchPage() {
   )
 }
 
-function MenuButton(props: { onClick: () => void; indented?: boolean; children: string }) {
+/** An entry of the match menu: set like the entries of the main menu of the game. */
+function MenuButton(props: { onClick: () => void; children: string }) {
   return (
     <button
       type="button"
       onClick={props.onClick}
-      className={cn(
-        'hover:bg-accent cursor-pointer rounded-md border px-3 py-2.5 text-left font-bold transition-colors',
-        props.indented && 'ml-4',
-      )}
+      className="font-display focus-visible:outline-ring cursor-pointer rounded-md px-3 py-1 text-center text-base tracking-[0.02em] focus-visible:outline-2"
     >
       {props.children}
     </button>
