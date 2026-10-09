@@ -20,7 +20,7 @@ function Item(props: { to: string; children: string; onClick?: () => void }) {
     <Link
       to={props.to}
       onClick={props.onClick}
-      className="font-display focus-visible:outline-ring rounded-md px-3 py-2 text-lg tracking-[0.02em] focus-visible:outline-2"
+      className="font-display focus-visible:outline-ring rounded-md px-3 py-1 text-base tracking-[0.02em] focus-visible:outline-2"
     >
       {props.children}
     </Link>
@@ -58,7 +58,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <OnlineCounter />
           </div>
         )}
-        <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
+        <nav className="flex flex-col gap-0" aria-label={t('nav.main')}>
           {user ? (
             <>
               <Item to="/matches" onClick={onNavigate}>
