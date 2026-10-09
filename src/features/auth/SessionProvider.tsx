@@ -5,7 +5,7 @@ import { openRealtimeSocket, type RealtimeSocket } from '@/features/realtime/soc
 
 import * as authApi from './api'
 import type { Credentials, Registration, User } from './api'
-import { CURTAIN_MS, SessionCurtain, type Curtain } from './SessionCurtain'
+import { CURTAIN_MS, CURTAIN_STAY_MS, SessionCurtain, type Curtain } from './SessionCurtain'
 import { SessionContext, type SessionState } from './session-context'
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -31,7 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       try {
         await change()
       } finally {
-        void pause(CURTAIN_MS.stay)
+        void pause(CURTAIN_STAY_MS[kind])
           .then(() => setCurtain((current) => current && { ...current, lifting: true }))
           .then(() => pause(CURTAIN_MS.lift))
           .then(() => setCurtain(null))
@@ -89,7 +89,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       register: async (registration: Registration) => {
         const next = await authApi.register(registration)
-        await behindCurtain('in', next.username, () => signedIn(next))
+        await behindCurtain('new', next.username, () => signedIn(next))
       },
       logout: () =>
         behindCurtain('out', user?.username ?? '', async () => {

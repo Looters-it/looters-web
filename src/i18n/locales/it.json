@@ -146,7 +146,8 @@
     },
     "curtain": {
       "in": "Bentornato, {{name}}",
-      "out": "A presto, {{name}}"
+      "out": "A presto, {{name}}",
+      "new": "Benvenuto, {{name}}"
     }
   },
   "admin": {

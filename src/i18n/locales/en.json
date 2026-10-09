@@ -146,7 +146,8 @@
     },
     "curtain": {
       "in": "Welcome back, {{name}}",
-      "out": "See you soon, {{name}}"
+      "out": "See you soon, {{name}}",
+      "new": "Welcome, {{name}}"
     }
   },
   "admin": {
