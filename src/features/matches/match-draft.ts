@@ -16,7 +16,6 @@ export interface MatchDraft {
   maxDays: string
   maxPlayers: string
   turnHours: string
-  inviteCode: string
   config: Record<string, string | boolean>
 }
 
@@ -40,7 +39,6 @@ export function emptyDraft(rules: MatchRules): MatchDraft {
     maxDays: '',
     maxPlayers: '100',
     turnHours: '24',
-    inviteCode: '',
     config: Object.fromEntries(
       Object.entries(rules).map(([key, value]) => [
         key,
@@ -63,7 +61,6 @@ export function draftFromMatch(match: MatchSettings): MatchDraft {
     maxDays: match.maxDays === null ? '' : String(match.maxDays),
     maxPlayers: String(match.maxPlayers),
     turnHours: String(match.turnHours),
-    inviteCode: match.inviteCode ?? '',
     config: Object.fromEntries(
       Object.entries(match.config).map(([key, value]) => [
         key,
@@ -87,7 +84,6 @@ export function settingsFromDraft(draft: MatchDraft): MatchSettings {
     const opponents = Math.max(1, Number(draft.opponents) || 1)
     Object.assign(config, { botsEnabled: true, botsAtStart: opponents, botsMax: opponents })
   }
-  const code = draft.inviteCode.trim()
   return {
     name: draft.name.trim(),
     areaIds: draft.areaId ? [draft.areaId] : [],
@@ -98,8 +94,6 @@ export function settingsFromDraft(draft: MatchDraft): MatchSettings {
     maxDays: draft.maxDays.trim() === '' ? null : Number(draft.maxDays),
     maxPlayers: Number(draft.maxPlayers),
     turnHours: Number(draft.turnHours),
-    // A private match without a code gets one made up by the server.
-    inviteCode: !single && draft.visibility === 'PRIVATE' && code !== '' ? code : null,
     config,
   }
 }

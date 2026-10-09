@@ -59,7 +59,6 @@
       "players": "{{players}} of {{max}} players",
       "turn": "turn {{turn}}",
       "starts": "starts {{when}}",
-      "invite": "invite only",
       "previous": "Previous",
       "next": "Next",
       "page": "Page {{page}} of {{pages}}",
@@ -304,7 +303,7 @@
       },
       "rushTurn": "Every turn lasts 30 seconds.",
       "visibility": "Who can see it",
-      "privateHint": "It is not in the lists: players enter with the invite code, which you find on the page of the match.",
+      "privateHint": "It is not in the lists: only who you invite comes in, from the page of the match.",
       "start": "Start",
       "startNow": "Now",
       "startPlanned": "Plan",
@@ -323,8 +322,6 @@
       "maxDays": "Maximum length in days",
       "optional": "optional",
       "noEnd": "No time limit",
-      "inviteCode": "Invite code",
-      "inviteCodeHint": "Empty: public match",
       "rules": "Game rules",
       "rulesLocked": "The rules can no longer be changed: registrations are open.",
       "bots": "Add bot empires",
@@ -393,9 +390,9 @@
       "delete": "Delete the match",
       "deleteTitle": "Delete the match?",
       "deleteText": "It can be deleted until it has started and while no other player is in it. This cannot be undone.",
-      "inviteCode": "Invite code to give to the players: {{code}}",
       "public": "The match is public: anyone can take part.",
-      "single": "You play this match alone: only you can see it."
+      "single": "You play this match alone: only you can see it.",
+      "private": "The match is private: only who you invite comes in."
     },
     "join": {
       "title": "Join",
@@ -408,8 +405,7 @@
       "placeTaken": "{{name}} already belongs to an empire: choose another.",
       "stepEmpire": "Your empire",
       "submit": "Found empire",
-      "submitNoPlace": "Choose a municipality to continue",
-      "inviteCode": "Invite code"
+      "submitNoPlace": "Choose a municipality to continue"
     },
     "empire": {
       "name": "Empire name",
@@ -475,7 +471,6 @@
       "MATCH_LOCKED": "This setting can no longer be changed.",
       "TOO_FEW_SEATS": "There are already more players than that.",
       "REGISTRATION_CLOSED": "Registrations for this match are closed.",
-      "INVITE_CODE_REQUIRED": "The invite code is missing or incorrect.",
       "ALREADY_JOINED": "You already have an empire in this match.",
       "MATCH_FULL": "The match is full.",
       "TERRITORY_TAKEN": "Another empire got to that municipality first. Choose another.",
@@ -517,7 +512,7 @@
       "MESSAGE_TOO_LONG": "The message is too long.",
       "RATE_LIMITED": "You have to wait a few seconds before writing again.",
       "TARGET_IS_ALLY": "You cannot attack an ally.",
-      "ALREADY_INVITED": "You have already sent them a proposal.",
+      "ALREADY_INVITED": "This player is already invited.",
       "PROPOSAL_EXPIRED": "The proposal is no longer valid.",
       "ALLIANCE_AT_WAR": "You are at war: the battle has to end first.",
       "NOT_AN_ALLY": "That empire is not your ally.",
@@ -531,7 +526,9 @@
       "UNSUPPORTED_IMAGE": "The file is not a PNG, JPEG or WebP image.",
       "IMAGE_TOO_LARGE": "The image is over 200 KB.",
       "HAS_PLAYERS": "Other players are already in: the match can no longer be deleted.",
-      "SINGLEPLAYER": "This match is played alone."
+      "SINGLEPLAYER": "This match is played alone.",
+      "NOT_PRIVATE": "Only a private match has invitations.",
+      "OWN_MATCH": "The match is already yours."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -544,6 +541,16 @@
     "visibility": {
       "PUBLIC": "Public",
       "PRIVATE": "Private"
+    },
+    "invite": {
+      "title": "Invitations",
+      "intro": "The match is private: only who you invite can see it and enter.",
+      "send": "Invite",
+      "none": "You have not invited anyone yet.",
+      "joined": "has joined",
+      "waiting": "has not answered yet",
+      "revoke": "Take back",
+      "revokeOf": "Take back the invitation to {{name}}"
     }
   },
   "game": {
@@ -912,6 +919,38 @@
     "roles": {
       "USER": "Player",
       "ADMIN": "Admin"
+    },
+    "back": "Back to the profile",
+    "invitations": {
+      "title": "Match invitations",
+      "linkCount_one": "Match invitations ({{count}} new)",
+      "linkCount_other": "Match invitations ({{count}} new)",
+      "none": "You have no invitations waiting.",
+      "error": "The invitations are not available right now.",
+      "from": "Invited by {{name}}",
+      "open": "Open the match",
+      "decline": "Decline"
+    },
+    "password": {
+      "title": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "repeat": "Repeat the new password",
+      "submit": "Change password",
+      "done": "Password changed. Your other open sessions have been closed.",
+      "invalid": {
+        "required": "This field is required.",
+        "password": "At least {{min}} characters.",
+        "tooLong": "Too long.",
+        "same": "The new password is the same as the current one.",
+        "mismatch": "The two passwords do not match."
+      },
+      "errors": {
+        "WRONG_PASSWORD": "The current password is wrong.",
+        "RATE_LIMITED": "Too many attempts: try again shortly.",
+        "VALIDATION": "The new password is not valid.",
+        "UNKNOWN": "The password could not be changed. Try again."
+      }
     }
   }
 }

@@ -1,10 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useId, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useSession } from '@/features/auth/session-context'
 import type { MapUnit } from '@/features/map/GameMap'
 
@@ -25,14 +23,12 @@ export function JoinPanel(props: {
   const { user } = useSession()
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
-  const codeId = useId()
   const { state, start } = props
   const { match } = state
 
   const options = useQuery({ queryKey: ['matches', 'options'], queryFn: matchApi.options })
   const taken = new Set(state.empires.map((empire) => empire.color))
   const [identity, setIdentity] = useState<EmpireIdentity | null>(null)
-  const [inviteCode, setInviteCode] = useState('')
 
   // The first free colour is proposed; it moves on if someone else takes it meanwhile.
   const firstFree = options.data?.colors.find((color) => !taken.has(color))
@@ -49,7 +45,6 @@ export function JoinPanel(props: {
       matchApi.join(match.id, {
         geoUnitId: start?.id ?? 0,
         empire: { ...current, name: current.name.trim() },
-        ...(match.hasInviteCode ? { inviteCode: inviteCode.trim() } : {}),
       }),
     onSuccess: (next) => {
       queryClient.setQueryData(['matches', 'state', match.id], next)
@@ -96,17 +91,6 @@ export function JoinPanel(props: {
           emblems={options.data.emblems}
           takenColors={taken}
         />
-        {match.hasInviteCode && (
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={codeId}>{t('match.join.inviteCode')}</Label>
-            <Input
-              id={codeId}
-              required
-              value={inviteCode}
-              onChange={(event) => setInviteCode(event.target.value)}
-            />
-          </div>
-        )}
       </section>
 
       {join.error && (

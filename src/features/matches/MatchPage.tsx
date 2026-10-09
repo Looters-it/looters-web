@@ -34,6 +34,7 @@ import { EmpireShield } from './Emblem'
 import { useMatchFormat, useNow } from './format'
 import { JoinPanel } from './JoinPanel'
 import { MyEmpire } from './MyEmpire'
+import { InvitePanel } from './InvitePanel'
 import { OwnerPanel } from './OwnerPanel'
 
 /** What the panel shows. Inside an entry the menu gives way to a single "Menu" button. */
@@ -461,6 +462,9 @@ export function MatchPage() {
           )}
           <JoinPanel state={state} start={start} />
         </>
+      )}
+      {match.isOwner && match.mode === 'MULTIPLAYER' && match.visibility === 'PRIVATE' && (
+        <InvitePanel match={match} />
       )}
       {match.isOwner && <OwnerPanel key={match.status} match={match} />}
     </div>

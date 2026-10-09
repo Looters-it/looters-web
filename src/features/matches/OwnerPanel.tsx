@@ -12,7 +12,7 @@ import { draftFromMatch, settingsFromDraft } from './match-draft'
 import { MatchFields } from './MatchForm'
 
 /** What the owner may still change before the start (as the api enforces). */
-const PLANNED_EDITABLE = ['name', 'startAt', 'maxDays', 'maxPlayers', 'inviteCode'] as const
+const PLANNED_EDITABLE = ['name', 'startAt', 'maxDays', 'maxPlayers'] as const
 
 const asSettings = (match: MatchSummary): MatchSettings => ({
   name: match.name,
@@ -24,7 +24,6 @@ const asSettings = (match: MatchSummary): MatchSettings => ({
   maxDays: match.maxDays,
   maxPlayers: match.maxPlayers,
   turnHours: match.turnHours,
-  inviteCode: match.inviteCode ?? null,
   config: match.config,
 })
 
@@ -49,8 +48,6 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
       const changes: Partial<MatchSettings> = Object.fromEntries(
         PLANNED_EDITABLE.map((key) => [key, settings[key]]),
       )
-      // A public match has no code, and the date of a match stays a date.
-      if (match.visibility === 'PUBLIC') delete changes.inviteCode
       return matchApi.update(match.id, changes)
     },
     onSuccess: refresh,
@@ -78,8 +75,8 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
       <p className="text-muted-foreground">
         {match.mode === 'SINGLEPLAYER'
           ? t('match.owner.single')
-          : match.inviteCode
-            ? t('match.owner.inviteCode', { code: match.inviteCode })
+          : match.visibility === 'PRIVATE'
+            ? t('match.owner.private')
             : t('match.owner.public')}
       </p>
       <form onSubmit={submit} className="flex flex-col gap-4">
@@ -91,7 +88,6 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
           }}
           maxPlayersLimit={options.data?.maxPlayersLimit ?? 100}
           locked
-          omit={match.visibility === 'PUBLIC' ? ['inviteCode'] : []}
         />
         {save.error && (
           <p role="alert" className="text-danger">

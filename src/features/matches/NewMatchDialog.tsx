@@ -240,12 +240,7 @@ function NewMatchSteps({ options, onCreated }: { options: MatchOptions; onCreate
               draft={draft}
               onChange={setDraft}
               maxPlayersLimit={options.maxPlayersLimit}
-              omit={[
-                'startAt',
-                'turnHours',
-                'inviteCode',
-                ...(single ? (['maxPlayers', 'bots'] as const) : []),
-              ]}
+              omit={['startAt', 'turnHours', ...(single ? (['maxPlayers', 'bots'] as const) : [])]}
               extra={
                 <>
                   {single && (

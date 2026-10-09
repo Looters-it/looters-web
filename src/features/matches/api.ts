@@ -33,13 +33,10 @@ export interface MatchSummary {
   /** Every winner: more than one when the match ended with empires exactly level. */
   winnerEmpireIds: string[]
   players: number
-  hasInviteCode: boolean
   owner: string
   areas: { id: string; name: string }[]
   config: MatchRules
   isOwner: boolean
-  /** Present only for the owner. */
-  inviteCode?: string | null
 }
 
 export interface MatchList {
@@ -295,7 +292,6 @@ export interface MatchSettings {
   maxDays: number | null
   maxPlayers: number
   turnHours: number
-  inviteCode: string | null
   config: MatchRules
 }
 
@@ -308,7 +304,32 @@ export interface EmpireIdentity {
 
 export type SizeFilter = '' | 'free' | 's' | 'm' | 'l'
 
+/** A player the owner of a private match has asked in. */
+export interface MatchGuest {
+  id: string
+  username: string
+  createdAt: string
+  /** True once they have founded their empire. */
+  joined: boolean
+}
+
+/** An invitation the viewer got and has not answered yet. */
+export interface Invitation {
+  id: string
+  createdAt: string
+  match: MatchSummary
+}
+
 export const matchApi = {
+  /** The players invited to a private match: for its owner. */
+  guests: (id: string) => apiGet<MatchGuest[]>(`/matches/${id}/invitations`),
+  inviteGuest: (id: string, username: string) =>
+    apiPost<MatchGuest[]>(`/matches/${id}/invitations`, { username }),
+  uninviteGuest: (id: string, invitationId: string) =>
+    apiDelete<MatchGuest[]>(`/matches/${id}/invitations/${invitationId}`),
+  /** The viewer's own invitations, and the way to turn one down. */
+  invitations: () => apiGet<Invitation[]>('/invitations'),
+  declineInvitation: (id: string) => apiDelete(`/invitations/${id}`),
   options: () => apiGet<MatchOptions>('/matches/options'),
   geoTree: () => apiGet<GeoTreeNode[]>('/geo/tree'),
   list: (filters: { name: string; size: SizeFilter; page: number; finished?: boolean }) => {
@@ -326,7 +347,7 @@ export const matchApi = {
   state: (id: string) => apiGet<MatchState>(`/matches/${id}/state`),
   map: (id: string) => apiGet<AreaMap>(`/matches/${id}/map`),
   units: (id: string) => apiGet<UnitPoint[]>(`/matches/${id}/units`),
-  join: (id: string, body: { geoUnitId: number; empire: EmpireIdentity; inviteCode?: string }) =>
+  join: (id: string, body: { geoUnitId: number; empire: EmpireIdentity }) =>
     apiPost<MatchState>(`/matches/${id}/join`, body),
   /** Puts an image (PNG, JPEG or WebP) in place of the emblem of the player's empire. */
   setLogo: (id: string, file: Blob) => apiPut<MatchState>(`/matches/${id}/empire/logo`, file),

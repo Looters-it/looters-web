@@ -59,7 +59,6 @@
       "players": "{{players}} di {{max}} giocatori",
       "turn": "turno {{turn}}",
       "starts": "inizia {{when}}",
-      "invite": "su invito",
       "previous": "Precedente",
       "next": "Successiva",
       "page": "Pagina {{page}} di {{pages}}",
@@ -304,7 +303,7 @@
       },
       "rushTurn": "Ogni turno dura 30 secondi.",
       "visibility": "Chi può vederla",
-      "privateHint": "Non compare negli elenchi: si entra con il codice d'invito, che trovi nella pagina della partita.",
+      "privateHint": "Non compare negli elenchi: entra solo chi inviti tu, dalla pagina della partita.",
       "start": "Inizio",
       "startNow": "Subito",
       "startPlanned": "Pianifica",
@@ -323,8 +322,6 @@
       "maxDays": "Durata massima in giorni",
       "optional": "facoltativa",
       "noEnd": "Senza scadenza",
-      "inviteCode": "Codice d'invito",
-      "inviteCodeHint": "Vuoto: partita pubblica",
       "rules": "Regole di gioco",
       "rulesLocked": "Le regole non si possono più cambiare: le iscrizioni sono aperte.",
       "bots": "Aggiungi imperi bot",
@@ -393,9 +390,9 @@
       "delete": "Elimina la partita",
       "deleteTitle": "Eliminare la partita?",
       "deleteText": "Si può eliminare finché non è iniziata e non ci sono altri giocatori. Non si può annullare.",
-      "inviteCode": "Codice d'invito da comunicare ai giocatori: {{code}}",
       "public": "La partita è pubblica: chiunque può partecipare.",
-      "single": "Questa partita la giochi da solo: la vedi solo tu."
+      "single": "Questa partita la giochi da solo: la vedi solo tu.",
+      "private": "La partita è privata: entra solo chi inviti."
     },
     "join": {
       "title": "Partecipa",
@@ -408,8 +405,7 @@
       "placeTaken": "{{name}} appartiene già a un impero: scegline un altro.",
       "stepEmpire": "Il tuo impero",
       "submit": "Fonda l'impero",
-      "submitNoPlace": "Scegli un comune per continuare",
-      "inviteCode": "Codice d'invito"
+      "submitNoPlace": "Scegli un comune per continuare"
     },
     "empire": {
       "name": "Nome dell'impero",
@@ -475,7 +471,6 @@
       "MATCH_LOCKED": "Questa impostazione non si può più cambiare.",
       "TOO_FEW_SEATS": "Ci sono già più giocatori di così.",
       "REGISTRATION_CLOSED": "Le iscrizioni a questa partita sono chiuse.",
-      "INVITE_CODE_REQUIRED": "Il codice d'invito manca o non è corretto.",
       "ALREADY_JOINED": "Hai già un impero in questa partita.",
       "MATCH_FULL": "La partita è al completo.",
       "TERRITORY_TAKEN": "Un altro impero è arrivato prima in quel comune. Scegline un altro.",
@@ -517,7 +512,7 @@
       "MESSAGE_TOO_LONG": "Il messaggio è troppo lungo.",
       "RATE_LIMITED": "Devi aspettare qualche secondo prima di scrivere ancora.",
       "TARGET_IS_ALLY": "Non puoi attaccare un alleato.",
-      "ALREADY_INVITED": "Gli hai già inviato una proposta.",
+      "ALREADY_INVITED": "Questo giocatore è già invitato.",
       "PROPOSAL_EXPIRED": "La proposta non è più valida.",
       "ALLIANCE_AT_WAR": "Siete in guerra: prima deve finire lo scontro.",
       "NOT_AN_ALLY": "Quell'impero non è tuo alleato.",
@@ -531,7 +526,9 @@
       "UNSUPPORTED_IMAGE": "Il file non è un'immagine PNG, JPEG o WebP.",
       "IMAGE_TOO_LARGE": "L'immagine supera i 200 KB.",
       "HAS_PLAYERS": "Ci sono già altri giocatori: la partita non si può più eliminare.",
-      "SINGLEPLAYER": "Questa partita si gioca da soli."
+      "SINGLEPLAYER": "Questa partita si gioca da soli.",
+      "NOT_PRIVATE": "Solo una partita privata ha inviti.",
+      "OWN_MATCH": "La partita è già tua."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -544,6 +541,16 @@
     "visibility": {
       "PUBLIC": "Pubblica",
       "PRIVATE": "Privata"
+    },
+    "invite": {
+      "title": "Inviti",
+      "intro": "La partita è privata: la vede e può entrarci solo chi inviti tu.",
+      "send": "Invita",
+      "none": "Non hai ancora invitato nessuno.",
+      "joined": "è entrato",
+      "waiting": "non ha ancora risposto",
+      "revoke": "Ritira",
+      "revokeOf": "Ritira l'invito a {{name}}"
     }
   },
   "game": {
@@ -912,6 +919,38 @@
     "roles": {
       "USER": "Giocatore",
       "ADMIN": "Admin"
+    },
+    "back": "Torna al profilo",
+    "invitations": {
+      "title": "Inviti alle partite",
+      "linkCount_one": "Inviti alle partite ({{count}} nuovo)",
+      "linkCount_other": "Inviti alle partite ({{count}} nuovi)",
+      "none": "Non hai inviti in attesa.",
+      "error": "Gli inviti non sono disponibili in questo momento.",
+      "from": "Invito di {{name}}",
+      "open": "Apri la partita",
+      "decline": "Rifiuta"
+    },
+    "password": {
+      "title": "Cambia password",
+      "currentPassword": "Password attuale",
+      "newPassword": "Nuova password",
+      "repeat": "Ripeti la nuova password",
+      "submit": "Cambia password",
+      "done": "Password cambiata. Le altre sessioni aperte sono state chiuse.",
+      "invalid": {
+        "required": "Questo campo è obbligatorio.",
+        "password": "Almeno {{min}} caratteri.",
+        "tooLong": "Troppo lunga.",
+        "same": "La nuova password è uguale a quella attuale.",
+        "mismatch": "Le due password non coincidono."
+      },
+      "errors": {
+        "WRONG_PASSWORD": "La password attuale non è corretta.",
+        "RATE_LIMITED": "Troppi tentativi: riprova tra poco.",
+        "VALIDATION": "La nuova password non è valida.",
+        "UNKNOWN": "Non è stato possibile cambiare la password. Riprova."
+      }
     }
   }
 }

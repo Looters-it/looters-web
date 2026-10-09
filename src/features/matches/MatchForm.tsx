@@ -15,7 +15,7 @@ import {
 import { matchApi, type GeoTreeNode } from './api'
 import type { MatchDraft } from './match-draft'
 
-export type MatchField = 'startAt' | 'maxPlayers' | 'turnHours' | 'maxDays' | 'inviteCode' | 'bots'
+export type MatchField = 'startAt' | 'maxPlayers' | 'turnHours' | 'maxDays' | 'bots'
 
 /** Rules shown under "advanced", grouped as in the game. */
 const RULE_GROUPS: [group: string, keys: string[]][] = [
@@ -204,21 +204,6 @@ export function MatchFields(props: {
               placeholder={t('match.form.noEnd')}
               value={draft.maxDays}
               onChange={(event) => set({ maxDays: event.target.value })}
-            />
-          )}
-        </Field>
-      )}
-
-      {!omit.has('inviteCode') && (
-        <Field label={t('match.form.inviteCode')} hint={t('match.form.optional')}>
-          {(id) => (
-            <Input
-              id={id}
-              minLength={4}
-              maxLength={32}
-              placeholder={t('match.form.inviteCodeHint')}
-              value={draft.inviteCode}
-              onChange={(event) => set({ inviteCode: event.target.value })}
             />
           )}
         </Field>

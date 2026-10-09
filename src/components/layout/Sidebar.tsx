@@ -1,4 +1,4 @@
-import { CircleUserRound, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useMatch } from 'react-router'
@@ -60,9 +60,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Item to="/match/new" onClick={onNavigate}>
               {t('nav.newMatch')}
             </Item>
-            <Item to="/profilo" onClick={onNavigate}>
-              {t('nav.profile')}
-            </Item>
             {user.role === 'ADMIN' && (
               <Item to="/admin" onClick={onNavigate}>
                 {t('nav.admin')}
@@ -86,11 +83,13 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <LanguageSelect />
         {user ? (
           <>
-            <p className="flex items-center gap-2 text-base" title={t('auth.signedInAs')}>
-              <CircleUserRound aria-hidden className="size-5 flex-none opacity-80" />
-              <span className="sr-only">{t('auth.signedInAs')}</span>
-              <b className="truncate">{user.username}</b>
-            </p>
+            {/* The player's name is the way to their profile. */}
+            <Button asChild variant="outline">
+              <Link to="/profile" onClick={onNavigate} title={t('nav.profile')}>
+                <span className="sr-only">{t('nav.profile')}: </span>
+                <span className="truncate">{user.username}</span>
+              </Link>
+            </Button>
             <Button
               variant="secondary"
               onClick={() => {

@@ -2,7 +2,9 @@ import type { RouteObject } from 'react-router'
 
 import { AdminPage } from '@/features/admin/AdminPage'
 import { AuthPage } from '@/features/auth/AuthPage'
-import { ProfilePage } from '@/features/auth/ProfilePage'
+import { ChangePasswordPage } from '@/features/profile/ChangePasswordPage'
+import { InvitationsPage } from '@/features/profile/InvitationsPage'
+import { ProfilePage } from '@/features/profile/ProfilePage'
 import { MatchPage } from '@/features/matches/MatchPage'
 import { NewMatchPage } from '@/features/matches/NewMatchPage'
 import { HomePage } from '@/features/home/HomePage'
@@ -26,7 +28,10 @@ export const routes: RouteObject[] = [
           { path: '/', element: <HomePage /> },
           { path: '/auth/login', element: <AuthPage mode="login" /> },
           { path: '/auth/register', element: <AuthPage mode="register" /> },
-          { path: '/profilo', element: <ProfilePage /> },
+          { path: '/profile', element: <ProfilePage /> },
+          { path: '/profile/invitations', element: <InvitationsPage /> },
+          { path: '/profile/change-password', element: <ChangePasswordPage /> },
+          { path: '/profilo', element: <Redirect to="/profile" /> },
           { path: '/admin', element: <AdminPage /> },
           { path: '/matches', element: <MatchList /> },
           { path: '/come-funziona', element: <HowItWorks /> },
