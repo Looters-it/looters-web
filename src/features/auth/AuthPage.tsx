@@ -30,7 +30,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <section
-      className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-10 sm:py-16"
+      className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col justify-center gap-6 px-4 py-10 lg:min-h-dvh"
       aria-labelledby="auth-title"
     >
       <div className="flex flex-col gap-2">
