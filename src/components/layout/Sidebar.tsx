@@ -57,6 +57,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Item to="/matches" onClick={onNavigate}>
               {t('nav.myMatches')}
             </Item>
+            <Item to="/match/new" onClick={onNavigate}>
+              {t('nav.newMatch')}
+            </Item>
             <Item to="/profilo" onClick={onNavigate}>
               {t('nav.profile')}
             </Item>
