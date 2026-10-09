@@ -40,7 +40,7 @@ export function MatchBar(props: {
             {connected}/{state.online.total}
           </dd>
         </div>
-        {match.status === 'RUNNING' && (
+        {match.status === 'ONGOING' && (
           <>
             <div>
               <dt>{t('game.bar.turn')}</dt>

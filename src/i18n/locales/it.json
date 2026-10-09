@@ -39,7 +39,7 @@
     "create": "Crea una partita",
     "createGuest": "Accedi per giocare",
     "matches": {
-      "title": "Partite in corso",
+      "title": "Partite",
       "name": "Nome partita",
       "namePlaceholder": "Cerca per nome",
       "size": "Partecipanti",
@@ -63,9 +63,14 @@
       "next": "Successiva",
       "page": "Pagina {{page}} di {{pages}}",
       "mine": "Le tue partite",
-      "draft": "bozza",
       "yours": "la tua",
-      "pages": "Pagine delle partite"
+      "pages": "Pagine delle partite",
+      "finished": "Partite terminate",
+      "by": "Creata da {{name}}",
+      "ended": "terminata {{when}}",
+      "view": "Vedi",
+      "new": "Nuova partita",
+      "emptyFinished": "Non ci sono ancora partite terminate."
     },
     "demo": {
       "label": "Dimostrazione del gioco sulla mappa",
@@ -268,19 +273,42 @@
     "units_one": "{{count}} comune",
     "units_other": "{{count}} comuni",
     "status": {
-      "DRAFT": "Bozza",
-      "OPEN": "Iscrizioni aperte",
-      "RUNNING": "In corso",
-      "FINISHED": "Conclusa"
+      "PLANNED": "Pianificata",
+      "ONGOING": "In corso",
+      "FINISHED": "Terminata"
     },
     "notFound": "Questa partita non esiste.",
     "loading": "Caricamento della partita…",
     "new": {
       "title": "Nuova partita",
-      "intro": "Scegli dove e quando si gioca. Potrai aprire le iscrizioni subito o salvare una bozza e tornarci dopo.",
-      "saveDraft": "Salva come bozza",
-      "createAndOpen": "Crea e apri le iscrizioni",
-      "guest": "Accedi per creare una partita."
+      "intro": "Scegli come si gioca, a che ritmo, e poi dove e quando.",
+      "guest": "Accedi per creare una partita.",
+      "step": "Passo {{step}} di {{steps}}",
+      "back": "Indietro",
+      "create": "Crea la partita",
+      "modeTitle": "Come vuoi giocare?",
+      "singleText": "Da solo contro i bot. La partita è solo tua.",
+      "multiText": "Contro persone online. Puoi aggiungere anche i bot.",
+      "paceTitle": "A che ritmo?",
+      "rushText": "Turni da 30 secondi: una partita tutta d'un fiato.",
+      "normalText": "Turni della durata che decidi tu, da 30 secondi a più giorni.",
+      "detailsTitle": "Gli ultimi dettagli",
+      "opponents": "Avversari bot",
+      "turn": "Durata del turno",
+      "turnUnit": "Unità della durata del turno",
+      "units": {
+        "s": "secondi",
+        "m": "minuti",
+        "h": "ore"
+      },
+      "rushTurn": "Ogni turno dura 30 secondi.",
+      "visibility": "Chi può vederla",
+      "privateHint": "Non compare negli elenchi: si entra con il codice d'invito, che trovi nella pagina della partita.",
+      "start": "Inizio",
+      "startNow": "Subito",
+      "startPlanned": "Pianifica",
+      "startNowHint": "La partita parte appena hai scelto la tua capitale.",
+      "startPlannedHint": "Chi partecipa può scegliere la capitale già prima dell'inizio."
     },
     "form": {
       "name": "Nome",
@@ -359,15 +387,14 @@
     },
     "owner": {
       "title": "Gestione della partita",
-      "draftIntro": "Questa bozza la vedi solo tu. Quando apri le iscrizioni, mappa e regole non si potranno più cambiare.",
       "save": "Salva le modifiche",
       "saved": "Modifiche salvate.",
-      "open": "Apri le iscrizioni",
-      "delete": "Elimina la bozza",
-      "deleteTitle": "Eliminare la bozza?",
-      "deleteText": "La partita non è ancora visibile a nessuno. Non si può annullare.",
+      "delete": "Elimina la partita",
+      "deleteTitle": "Eliminare la partita?",
+      "deleteText": "Si può eliminare finché non è iniziata e non ci sono altri giocatori. Non si può annullare.",
       "inviteCode": "Codice d'invito da comunicare ai giocatori: {{code}}",
-      "public": "La partita è pubblica: chiunque può partecipare."
+      "public": "La partita è pubblica: chiunque può partecipare.",
+      "single": "Questa partita la giochi da solo: la vedi solo tu."
     },
     "join": {
       "title": "Partecipa",
@@ -446,7 +473,6 @@
       "NO_UNITS": "L'area scelta non contiene comuni.",
       "MATCH_LOCKED": "Questa impostazione non si può più cambiare.",
       "TOO_FEW_SEATS": "Ci sono già più giocatori di così.",
-      "NOT_A_DRAFT": "La partita non è più una bozza.",
       "REGISTRATION_CLOSED": "Le iscrizioni a questa partita sono chiuse.",
       "INVITE_CODE_REQUIRED": "Il codice d'invito manca o non è corretto.",
       "ALREADY_JOINED": "Hai già un impero in questa partita.",
@@ -502,7 +528,21 @@
       "ALLIANCE_NOT_ENDING": "Nessuno ha annunciato la fine di questa alleanza.",
       "NOT_YOUR_ANNOUNCEMENT": "Solo chi ha annunciato la fine può annullarla.",
       "UNSUPPORTED_IMAGE": "Il file non è un'immagine PNG, JPEG o WebP.",
-      "IMAGE_TOO_LARGE": "L'immagine supera i 200 KB."
+      "IMAGE_TOO_LARGE": "L'immagine supera i 200 KB.",
+      "HAS_PLAYERS": "Ci sono già altri giocatori: la partita non si può più eliminare.",
+      "SINGLEPLAYER": "Questa partita si gioca da soli."
+    },
+    "mode": {
+      "SINGLEPLAYER": "Singleplayer",
+      "MULTIPLAYER": "Multiplayer"
+    },
+    "pace": {
+      "RUSH": "Rush",
+      "NORMAL": "Normale"
+    },
+    "visibility": {
+      "PUBLIC": "Pubblica",
+      "PRIVATE": "Privata"
     }
   },
   "game": {

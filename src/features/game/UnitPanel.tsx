@@ -312,7 +312,7 @@ export function UnitPanel(props: {
           {isMine && territoryState?.isArea && state.me?.status === 'ACTIVE' && (
             <RenameArea key={territoryState.id} state={state} territory={territoryState} />
           )}
-          {isMine && state.match.status === 'RUNNING' && state.me?.status === 'ACTIVE' && (
+          {isMine && state.match.status === 'ONGOING' && state.me?.status === 'ACTIVE' && (
             <CapitalAction
               key={`capital:${unit.id}:${state.match.currentTurn}`}
               state={state}

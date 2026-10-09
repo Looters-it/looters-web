@@ -166,7 +166,7 @@ export function MyEmpire({ state, empire }: { state: MatchState; empire: Empire 
               )}
             </div>
           )}
-          {match.status === 'OPEN' ? (
+          {match.status === 'PLANNED' ? (
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"

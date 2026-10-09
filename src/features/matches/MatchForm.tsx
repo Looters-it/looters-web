@@ -15,6 +15,8 @@ import {
 import { matchApi, type GeoTreeNode } from './api'
 import type { MatchDraft } from './match-draft'
 
+export type MatchField = 'startAt' | 'maxPlayers' | 'turnHours' | 'maxDays' | 'inviteCode' | 'bots'
+
 /** Rules shown under "advanced", grouped as in the game. */
 const RULE_GROUPS: [group: string, keys: string[]][] = [
   ['start', ['minPlayersToStart', 'lateJoin']],
@@ -84,11 +86,16 @@ export function MatchFields(props: {
   draft: MatchDraft
   onChange: (draft: MatchDraft) => void
   maxPlayersLimit: number
-  /** True once registrations are open: map, turn length and rules are locked. */
+  /** True once the match exists: map, turn length and rules are locked. */
   locked?: boolean
+  /** Fields asked elsewhere, or that this match does not have. */
+  omit?: readonly MatchField[]
+  /** More fields of the caller's own, placed before the rules. */
+  extra?: ReactNode
 }) {
   const { t } = useTranslation()
   const { draft, onChange, locked = false } = props
+  const omit = new Set(props.omit)
   const set = (changes: Partial<MatchDraft>) => onChange({ ...draft, ...changes })
   const [advanced, setAdvanced] = useState(false)
 
@@ -137,76 +144,88 @@ export function MatchFields(props: {
         )}
       </Field>
 
-      <Field label={t('match.form.startAt')}>
-        {(id) => (
-          <Input
-            id={id}
-            type="datetime-local"
-            required
-            value={draft.startAt}
-            onChange={(event) => set({ startAt: event.target.value })}
-          />
-        )}
-      </Field>
+      {!omit.has('startAt') && (
+        <Field label={t('match.form.startAt')}>
+          {(id) => (
+            <Input
+              id={id}
+              type="datetime-local"
+              required
+              value={draft.startAt}
+              onChange={(event) => set({ startAt: event.target.value })}
+            />
+          )}
+        </Field>
+      )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field label={t('match.form.maxPlayers')}>
+      {!(omit.has('maxPlayers') && omit.has('turnHours')) && (
+        <div className="grid grid-cols-2 gap-4">
+          {!omit.has('maxPlayers') && (
+            <Field label={t('match.form.maxPlayers')}>
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  required
+                  min={2}
+                  max={props.maxPlayersLimit}
+                  value={draft.maxPlayers}
+                  onChange={(event) => set({ maxPlayers: event.target.value })}
+                />
+              )}
+            </Field>
+          )}
+          {!omit.has('turnHours') && (
+            <Field label={t('match.form.turnHours')} hint={t('match.form.hours')}>
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  required
+                  min={30 / 3600}
+                  step="any"
+                  disabled={locked}
+                  value={draft.turnHours}
+                  onChange={(event) => set({ turnHours: event.target.value })}
+                />
+              )}
+            </Field>
+          )}
+        </div>
+      )}
+
+      {!omit.has('maxDays') && (
+        <Field label={t('match.form.maxDays')} hint={t('match.form.optional')}>
           {(id) => (
             <Input
               id={id}
               type="number"
-              required
-              min={2}
-              max={props.maxPlayersLimit}
-              value={draft.maxPlayers}
-              onChange={(event) => set({ maxPlayers: event.target.value })}
+              min={1}
+              placeholder={t('match.form.noEnd')}
+              value={draft.maxDays}
+              onChange={(event) => set({ maxDays: event.target.value })}
             />
           )}
         </Field>
-        <Field label={t('match.form.turnHours')} hint={t('match.form.hours')}>
+      )}
+
+      {!omit.has('inviteCode') && (
+        <Field label={t('match.form.inviteCode')} hint={t('match.form.optional')}>
           {(id) => (
             <Input
               id={id}
-              type="number"
-              required
-              min={0.01}
-              step="any"
-              disabled={locked}
-              value={draft.turnHours}
-              onChange={(event) => set({ turnHours: event.target.value })}
+              minLength={4}
+              maxLength={32}
+              placeholder={t('match.form.inviteCodeHint')}
+              value={draft.inviteCode}
+              onChange={(event) => set({ inviteCode: event.target.value })}
             />
           )}
         </Field>
-      </div>
-
-      <Field label={t('match.form.maxDays')} hint={t('match.form.optional')}>
-        {(id) => (
-          <Input
-            id={id}
-            type="number"
-            min={1}
-            placeholder={t('match.form.noEnd')}
-            value={draft.maxDays}
-            onChange={(event) => set({ maxDays: event.target.value })}
-          />
-        )}
-      </Field>
-
-      <Field label={t('match.form.inviteCode')} hint={t('match.form.optional')}>
-        {(id) => (
-          <Input
-            id={id}
-            minLength={4}
-            maxLength={32}
-            placeholder={t('match.form.inviteCodeHint')}
-            value={draft.inviteCode}
-            onChange={(event) => set({ inviteCode: event.target.value })}
-          />
-        )}
-      </Field>
+      )}
 
       {/* One player is enough: the other empires can be played by the server. */}
-      {'botsEnabled' in draft.config && (
+      {!omit.has('bots') && 'botsEnabled' in draft.config && (
         <div className="flex flex-col gap-1">
           <label className="flex items-center gap-2 font-bold">
             <input
@@ -223,6 +242,8 @@ export function MatchFields(props: {
           <p className="text-muted-foreground text-base">{t('match.form.botsHint')}</p>
         </div>
       )}
+
+      {props.extra}
 
       <div className="rounded-md border">
         <button

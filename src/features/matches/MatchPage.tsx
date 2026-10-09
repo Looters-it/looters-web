@@ -67,7 +67,7 @@ function MatchInfo({ state }: { state: MatchState }) {
   const format = useMatchFormat()
   const { match } = state
   const now = useNow()
-  const overdue = match.status === 'OPEN' && new Date(match.startAt).getTime() < now
+  const overdue = match.status === 'PLANNED' && new Date(match.startAt).getTime() < now
   const winners = state.empires.filter((empire) => match.winnerEmpireIds.includes(empire.id))
   const iWon = winners.some((empire) => empire.id === state.me?.empireId)
 
@@ -85,7 +85,7 @@ function MatchInfo({ state }: { state: MatchState }) {
       </p>
       <ul className="text-base">
         <li>
-          {match.status === 'RUNNING'
+          {match.status === 'ONGOING'
             ? t('match.info.turn', { turn: match.currentTurn })
             : t('match.info.starts', {
                 date: format.dateTime(match.startAt),
@@ -151,7 +151,7 @@ export function MatchPage() {
     null,
   )
 
-  const hasMap = state !== undefined && state.match.status !== 'DRAFT'
+  const hasMap = state !== undefined
   const area = useQuery({
     queryKey: ['matches', 'map', id],
     queryFn: () => matchApi.map(id),
@@ -367,7 +367,7 @@ export function MatchPage() {
 
   const { match } = state
   const mine = state.empires.find((empire) => empire.id === mineId) ?? null
-  const joining = !mine && match.status !== 'DRAFT'
+  const joining = !mine
   const selectedTerritory = selected ? ownership.byUnit.get(selected.id) : undefined
   // While registering, a free municipality picked on the map is the chosen start.
   const start = joining && selected && !selectedTerritory ? selected : null
@@ -430,10 +430,10 @@ export function MatchPage() {
       {hasMap && (
         <MenuButton onClick={() => open('leaderboard')}>{t('game.menu.leaderboard')}</MenuButton>
       )}
-      {match.status === 'RUNNING' && (
+      {match.status === 'ONGOING' && (
         <MenuButton onClick={() => open('battles')}>{t('game.menu.battles')}</MenuButton>
       )}
-      {(match.status === 'RUNNING' || match.status === 'FINISHED') && (
+      {(match.status === 'ONGOING' || match.status === 'FINISHED') && (
         <MenuButton onClick={() => open('history')}>{t('game.menu.history')}</MenuButton>
       )}
       {mine && (

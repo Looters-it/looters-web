@@ -11,12 +11,15 @@ import { useMatchErrorText } from './errors'
 import { draftFromMatch, settingsFromDraft } from './match-draft'
 import { MatchFields } from './MatchForm'
 
-/** What the owner may still change once registrations are open (as the api enforces). */
-const OPEN_EDITABLE = ['name', 'startAt', 'maxDays', 'maxPlayers', 'inviteCode'] as const
+/** What the owner may still change before the start (as the api enforces). */
+const PLANNED_EDITABLE = ['name', 'startAt', 'maxDays', 'maxPlayers', 'inviteCode'] as const
 
 const asSettings = (match: MatchSummary): MatchSettings => ({
   name: match.name,
   areaIds: match.areas.map((area) => area.id),
+  mode: match.mode,
+  pace: match.pace,
+  visibility: match.visibility,
   startAt: match.startAt,
   maxDays: match.maxDays,
   maxPlayers: match.maxPlayers,
@@ -25,7 +28,10 @@ const asSettings = (match: MatchSummary): MatchSettings => ({
   config: match.config,
 })
 
-/** The owner's controls: edit the settings, open registrations, delete a draft. */
+/**
+ * The owner's controls, while the match is planned: change what can still
+ * change, read the invite code, delete the match if nobody else is in it.
+ */
 export function OwnerPanel({ match }: { match: MatchSummary }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -33,7 +39,6 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState(() => draftFromMatch(asSettings(match)))
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const isDraft = match.status === 'DRAFT'
 
   const options = useQuery({ queryKey: ['matches', 'options'], queryFn: matchApi.options })
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['matches'] })
@@ -41,18 +46,12 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
   const save = useMutation({
     mutationFn: () => {
       const settings = settingsFromDraft(draft)
-      // An open match accepts only the fields that can still change.
-      const changes = isDraft
-        ? settings
-        : Object.fromEntries(OPEN_EDITABLE.map((key) => [key, settings[key]]))
+      const changes: Partial<MatchSettings> = Object.fromEntries(
+        PLANNED_EDITABLE.map((key) => [key, settings[key]]),
+      )
+      // A public match has no code, and the date of a match stays a date.
+      if (match.visibility === 'PUBLIC') delete changes.inviteCode
       return matchApi.update(match.id, changes)
-    },
-    onSuccess: refresh,
-  })
-  const open = useMutation({
-    mutationFn: async () => {
-      await matchApi.update(match.id, settingsFromDraft(draft))
-      return matchApi.open(match.id)
     },
     onSuccess: refresh,
   })
@@ -60,13 +59,11 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
     mutationFn: () => matchApi.remove(match.id),
     onSuccess: async () => {
       await refresh()
-      await navigate('/')
+      await navigate('/matches')
     },
   })
-  const error = save.error ?? open.error
-  const pending = save.isPending || open.isPending
 
-  if (match.status !== 'DRAFT' && match.status !== 'OPEN') return null
+  if (match.status !== 'PLANNED') return null
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -79,8 +76,8 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
         {t('match.owner.title')}
       </h2>
       <p className="text-muted-foreground">
-        {isDraft
-          ? t('match.owner.draftIntro')
+        {match.mode === 'SINGLEPLAYER'
+          ? t('match.owner.single')
           : match.inviteCode
             ? t('match.owner.inviteCode', { code: match.inviteCode })
             : t('match.owner.public')}
@@ -90,38 +87,32 @@ export function OwnerPanel({ match }: { match: MatchSummary }) {
           draft={draft}
           onChange={(next) => {
             save.reset()
-            setDraft(next)
+            setDraft({ ...next, startNow: false })
           }}
           maxPlayersLimit={options.data?.maxPlayersLimit ?? 100}
-          locked={!isDraft}
+          locked
+          omit={match.visibility === 'PUBLIC' ? ['inviteCode'] : []}
         />
-        {error && (
+        {save.error && (
           <p role="alert" className="text-danger">
-            {errorText(error)}
+            {errorText(save.error)}
           </p>
         )}
         {save.isSuccess && <p role="status">{t('match.owner.saved')}</p>}
         <div className="flex flex-wrap gap-3">
-          {isDraft && (
-            <Button type="button" disabled={pending} onClick={() => open.mutate()}>
-              {t('match.owner.open')}
-            </Button>
-          )}
-          <Button type="submit" variant="outline" disabled={pending}>
+          <Button type="submit" variant="outline" disabled={save.isPending}>
             {t('match.owner.save')}
           </Button>
-          {isDraft && (
-            <Button
-              type="button"
-              variant="quiet"
-              onClick={() => {
-                remove.reset()
-                setConfirmDelete(true)
-              }}
-            >
-              {t('match.owner.delete')}
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="quiet"
+            onClick={() => {
+              remove.reset()
+              setConfirmDelete(true)
+            }}
+          >
+            {t('match.owner.delete')}
+          </Button>
         </div>
       </form>
       <ConfirmDialog

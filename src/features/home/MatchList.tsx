@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import { useSession } from '@/features/auth/session-context'
 import { matchApi, type MatchSummary, type SizeFilter } from '@/features/matches/api'
 import { useMatchFormat } from '@/features/matches/format'
@@ -62,9 +63,23 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
         </div>
         <p className="text-muted-foreground truncate text-base">
           {match.areas.map((area) => area.name).join(', ')}
-          {match.hasInviteCode && ` · ${t('home.matches.invite')}`}
-          {match.status === 'DRAFT' && ` · ${t('home.matches.draft')}`}
         </p>
+        {/* Whoever created the match owns it for as long as it lasts. */}
+        <p className="text-muted-foreground truncate text-sm">
+          {t('home.matches.by', { name: match.owner })}
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5 text-sm">
+          {[
+            t(`match.mode.${match.mode}`),
+            ...(match.pace === 'RUSH' ? [t('match.pace.RUSH')] : []),
+            ...(match.visibility === 'PRIVATE' ? [t('match.visibility.PRIVATE')] : []),
+            ...(match.status === 'PLANNED' ? [t('match.status.PLANNED')] : []),
+          ].map((tag) => (
+            <li key={tag} className="rounded-pill bg-background/60 px-2.5 py-0.5">
+              {tag}
+            </li>
+          ))}
+        </ul>
       </div>
       <div className="flex flex-col gap-1">
         <div aria-hidden="true" className="bg-background/70 rounded-pill h-1.5 overflow-hidden">
@@ -75,14 +90,22 @@ function MatchCard({ match, mine }: { match: MatchSummary; mine: boolean }) {
             {t('home.matches.players', { players: match.players, max: match.maxPlayers })}
           </span>
           <span>
-            {match.status === 'RUNNING'
+            {match.status === 'ONGOING'
               ? t('home.matches.turn', { turn: match.currentTurn })
-              : t('home.matches.starts', { when: format.fromNow(match.startAt) })}
+              : match.status === 'FINISHED'
+                ? t('home.matches.ended', {
+                    when: format.fromNow(match.finishedAt ?? match.startAt),
+                  })
+                : t('home.matches.starts', { when: format.fromNow(match.startAt) })}
           </span>
         </p>
       </div>
       <div className="relative z-10 mt-auto self-start">
-        {mine ? (
+        {match.status === 'FINISHED' ? (
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/match/${match.id}`}>{t('home.matches.view')}</Link>
+          </Button>
+        ) : mine ? (
           <Button asChild variant="outline" size="sm">
             <Link to={`/match/${match.id}`}>{t('home.matches.enter')}</Link>
           </Button>
@@ -116,10 +139,12 @@ export function MatchList() {
   const [name, setName] = useState('')
   const [size, setSize] = useState<SizeFilter>('')
   const [page, setPage] = useState(1)
+  // The finished matches are a list of their own, behind a badge that switches to it.
+  const [finished, setFinished] = useState(false)
 
   const list = useQuery({
-    queryKey: ['matches', 'list', name.trim(), size, page],
-    queryFn: () => matchApi.list({ name, size, page }),
+    queryKey: ['matches', 'list', name.trim(), size, page, finished],
+    queryFn: () => matchApi.list({ name, size, page, finished }),
     placeholderData: keepPreviousData,
     refetchInterval: 30_000,
   })
@@ -171,9 +196,16 @@ export function MatchList() {
         aria-labelledby="active-matches"
       >
         <div className="flex flex-col items-start gap-4">
-          <h1 id="active-matches" className="text-3xl sm:text-4xl">
-            {t('home.matches.title')}
-          </h1>
+          <div className="flex w-full flex-wrap items-center justify-between gap-4">
+            <h1 id="active-matches" className="text-3xl sm:text-4xl">
+              {t('home.matches.title')}
+            </h1>
+            {user && (
+              <Button asChild>
+                <Link to="/match/new">{t('home.matches.new')}</Link>
+              </Button>
+            )}
+          </div>
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
               <Label htmlFor={nameId}>{t('home.matches.name')}</Label>
@@ -209,6 +241,20 @@ export function MatchList() {
                 </SelectContent>
               </Select>
             </div>
+            <button
+              type="button"
+              aria-pressed={finished}
+              onClick={() => {
+                setFinished(!finished)
+                setPage(1)
+              }}
+              className={cn(
+                'rounded-pill border-input focus-visible:border-foreground h-11 cursor-pointer border-2 px-5 text-base transition-colors outline-none',
+                finished && 'border-primary bg-primary text-primary-foreground font-bold',
+              )}
+            >
+              {t('home.matches.finished')}
+            </button>
           </div>
         </div>
 
@@ -220,7 +266,11 @@ export function MatchList() {
         {list.data?.matches.length === 0 && (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-6">
             <p className="text-muted-foreground">
-              {filtered ? t('home.matches.none') : t('home.matches.empty')}
+              {filtered
+                ? t('home.matches.none')
+                : finished
+                  ? t('home.matches.emptyFinished')
+                  : t('home.matches.empty')}
             </p>
             {filtered && (
               <Button

@@ -58,7 +58,7 @@ export function JoinPanel(props: {
   })
 
   const closed =
-    match.status === 'FINISHED' || (match.status === 'RUNNING' && match.config.lateJoin !== true)
+    match.status === 'FINISHED' || (match.status === 'ONGOING' && match.config.lateJoin !== true)
   if (closed) return <p className="text-muted-foreground">{t('match.join.closed')}</p>
   if (match.players >= match.maxPlayers) {
     return <p className="text-muted-foreground">{t('match.join.full')}</p>

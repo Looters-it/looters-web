@@ -39,7 +39,7 @@
     "create": "Create a match",
     "createGuest": "Sign in to play",
     "matches": {
-      "title": "Matches in progress",
+      "title": "Matches",
       "name": "Match name",
       "namePlaceholder": "Search by name",
       "size": "Players",
@@ -63,9 +63,14 @@
       "next": "Next",
       "page": "Page {{page}} of {{pages}}",
       "mine": "Your matches",
-      "draft": "draft",
       "yours": "yours",
-      "pages": "Pages of matches"
+      "pages": "Pages of matches",
+      "finished": "Finished matches",
+      "by": "Created by {{name}}",
+      "ended": "finished {{when}}",
+      "view": "View",
+      "new": "New match",
+      "emptyFinished": "There are no finished matches yet."
     },
     "demo": {
       "label": "Demonstration of the game on the map",
@@ -268,19 +273,42 @@
     "units_one": "{{count}} municipality",
     "units_other": "{{count}} municipalities",
     "status": {
-      "DRAFT": "Draft",
-      "OPEN": "Registrations open",
-      "RUNNING": "In progress",
+      "PLANNED": "Planned",
+      "ONGOING": "Ongoing",
       "FINISHED": "Finished"
     },
     "notFound": "This match does not exist.",
     "loading": "Loading the match…",
     "new": {
       "title": "New match",
-      "intro": "Choose where and when to play. You can open registrations straight away or save a draft and come back to it later.",
-      "saveDraft": "Save as draft",
-      "createAndOpen": "Create and open registrations",
-      "guest": "Sign in to create a match."
+      "intro": "Choose how to play, at what pace, and then where and when.",
+      "guest": "Sign in to create a match.",
+      "step": "Step {{step}} of {{steps}}",
+      "back": "Back",
+      "create": "Create the match",
+      "modeTitle": "How do you want to play?",
+      "singleText": "Alone against bots. The match is yours only.",
+      "multiText": "Against people online. You can add bots too.",
+      "paceTitle": "At what pace?",
+      "rushText": "Turns of 30 seconds: a match in one breath.",
+      "normalText": "Turns as long as you decide, from 30 seconds to several days.",
+      "detailsTitle": "The last details",
+      "opponents": "Bot opponents",
+      "turn": "Length of a turn",
+      "turnUnit": "Unit of the length of a turn",
+      "units": {
+        "s": "seconds",
+        "m": "minutes",
+        "h": "hours"
+      },
+      "rushTurn": "Every turn lasts 30 seconds.",
+      "visibility": "Who can see it",
+      "privateHint": "It is not in the lists: players enter with the invite code, which you find on the page of the match.",
+      "start": "Start",
+      "startNow": "Now",
+      "startPlanned": "Plan",
+      "startNowHint": "The match starts as soon as you have chosen your capital.",
+      "startPlannedHint": "Players can choose their capital before the match starts."
     },
     "form": {
       "name": "Name",
@@ -358,16 +386,15 @@
       "lateStart": "The start time has passed but the match has not started: at least {{min}} players are needed. Whoever created it can set a new date."
     },
     "owner": {
-      "title": "Match management",
-      "draftIntro": "Only you can see this draft. Once you open registrations, the map and rules can no longer be changed.",
-      "save": "Save changes",
+      "title": "Managing the match",
+      "save": "Save the changes",
       "saved": "Changes saved.",
-      "open": "Open registrations",
-      "delete": "Delete draft",
-      "deleteTitle": "Delete the draft?",
-      "deleteText": "The match is not visible to anyone yet. This cannot be undone.",
+      "delete": "Delete the match",
+      "deleteTitle": "Delete the match?",
+      "deleteText": "It can be deleted until it has started and while no other player is in it. This cannot be undone.",
       "inviteCode": "Invite code to give to the players: {{code}}",
-      "public": "The match is public: anyone can join."
+      "public": "The match is public: anyone can take part.",
+      "single": "You play this match alone: only you can see it."
     },
     "join": {
       "title": "Join",
@@ -446,7 +473,6 @@
       "NO_UNITS": "The chosen area contains no municipalities.",
       "MATCH_LOCKED": "This setting can no longer be changed.",
       "TOO_FEW_SEATS": "There are already more players than that.",
-      "NOT_A_DRAFT": "The match is no longer a draft.",
       "REGISTRATION_CLOSED": "Registrations for this match are closed.",
       "INVITE_CODE_REQUIRED": "The invite code is missing or incorrect.",
       "ALREADY_JOINED": "You already have an empire in this match.",
@@ -502,7 +528,21 @@
       "ALLIANCE_NOT_ENDING": "No one has announced the end of this alliance.",
       "NOT_YOUR_ANNOUNCEMENT": "Only whoever announced the end can cancel it.",
       "UNSUPPORTED_IMAGE": "The file is not a PNG, JPEG or WebP image.",
-      "IMAGE_TOO_LARGE": "The image is over 200 KB."
+      "IMAGE_TOO_LARGE": "The image is over 200 KB.",
+      "HAS_PLAYERS": "Other players are already in: the match can no longer be deleted.",
+      "SINGLEPLAYER": "This match is played alone."
+    },
+    "mode": {
+      "SINGLEPLAYER": "Singleplayer",
+      "MULTIPLAYER": "Multiplayer"
+    },
+    "pace": {
+      "RUSH": "Rush",
+      "NORMAL": "Normal"
+    },
+    "visibility": {
+      "PUBLIC": "Public",
+      "PRIVATE": "Private"
     }
   },
   "game": {

@@ -3,7 +3,13 @@ import type { Geometry } from 'geojson'
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from '@/lib/api'
 import type { AreaMap, UnitPoint } from '@/features/map/api'
 
-export type MatchStatus = 'DRAFT' | 'OPEN' | 'RUNNING' | 'FINISHED'
+/** Planned: open to players, not started yet. Ongoing: being played. */
+export type MatchStatus = 'PLANNED' | 'ONGOING' | 'FINISHED'
+/** Alone against bots, or with people online. */
+export type MatchMode = 'SINGLEPLAYER' | 'MULTIPLAYER'
+/** Rush: turns of thirty seconds. Normal: as long as whoever created the match decided. */
+export type MatchPace = 'RUSH' | 'NORMAL'
+export type MatchVisibility = 'PUBLIC' | 'PRIVATE'
 
 /** Every rule of a match: numbers, plus the switch for late registrations. */
 export type MatchRules = Record<string, number | boolean>
@@ -12,6 +18,9 @@ export interface MatchSummary {
   id: string
   name: string
   status: MatchStatus
+  mode: MatchMode
+  pace: MatchPace
+  visibility: MatchVisibility
   startAt: string
   maxDays: number | null
   maxPlayers: number
@@ -278,7 +287,11 @@ export interface GeoTreeNode {
 export interface MatchSettings {
   name: string
   areaIds: string[]
-  startAt: string
+  mode?: MatchMode
+  pace?: MatchPace
+  visibility?: MatchVisibility
+  /** Null: the match starts as soon as its first player has chosen a capital. */
+  startAt: string | null
   maxDays: number | null
   maxPlayers: number
   turnHours: number
@@ -298,8 +311,9 @@ export type SizeFilter = '' | 'free' | 's' | 'm' | 'l'
 export const matchApi = {
   options: () => apiGet<MatchOptions>('/matches/options'),
   geoTree: () => apiGet<GeoTreeNode[]>('/geo/tree'),
-  list: (filters: { name: string; size: SizeFilter; page: number }) => {
+  list: (filters: { name: string; size: SizeFilter; page: number; finished?: boolean }) => {
     const query = new URLSearchParams({ page: String(filters.page) })
+    if (filters.finished) query.set('status', 'finished')
     if (filters.name.trim()) query.set('name', filters.name.trim())
     if (filters.size) query.set('size', filters.size)
     return apiGet<MatchList>(`/matches?${query.toString()}`)
@@ -308,7 +322,6 @@ export const matchApi = {
   create: (settings: MatchSettings) => apiPost<MatchSummary>('/matches', settings),
   update: (id: string, changes: Partial<MatchSettings>) =>
     apiPatch<MatchSummary>(`/matches/${id}`, changes),
-  open: (id: string) => apiPost<MatchSummary>(`/matches/${id}/open`),
   remove: (id: string) => apiDelete(`/matches/${id}`),
   state: (id: string) => apiGet<MatchState>(`/matches/${id}/state`),
   map: (id: string) => apiGet<AreaMap>(`/matches/${id}/map`),
