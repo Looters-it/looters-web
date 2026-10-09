@@ -6,7 +6,13 @@ import { useParams } from 'react-router'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { ChevronLeft, ChevronRight, ScrollText, Trophy } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
@@ -96,7 +102,7 @@ function MatchInfo({ state }: { state: MatchState }) {
         </p>
       )}
       {match.status === 'FINISHED' && (
-        <p role="status" className="border-foreground rounded-md border p-3 text-lg">
+        <p role="status" className="text-lg font-bold">
           {t('game.end.finished')}{' '}
           {winners.length === 0
             ? t('game.end.noWinner')
@@ -109,9 +115,10 @@ function MatchInfo({ state }: { state: MatchState }) {
                 : t('game.end.winner', { name: winners[0]?.name ?? '' })}
         </p>
       )}
+      {/* Said in full by a dialog when it happens: here it stays as a reminder. */}
       {match.status !== 'FINISHED' && state.me?.status === 'FALLEN' && (
-        <p role="status" className="border-danger text-danger rounded-md border p-3">
-          {t('game.end.spectator')}
+        <p role="status" className="text-muted-foreground">
+          {t('game.end.spectatorShort')}
         </p>
       )}
     </section>
@@ -176,6 +183,16 @@ export function MatchPage() {
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
   const [sheet, setSheet] = useState<Sheet | null>(null)
+  // The attack on a capital that already opened its dialog by itself: once is enough.
+  const [urgentShown, setUrgentShown] = useState<string | null>(null)
+  // Whether the player has already been told, on this device, that their empire fell.
+  const [fallenSeen, setFallenSeen] = useState(() => {
+    try {
+      return localStorage.getItem(`fallen-seen:${id}`) === 'yes'
+    } catch {
+      return false
+    }
+  })
   // Territories being chosen for a merge, and the structure a territory is being chosen for.
   const [merging, setMerging] = useState<string[]>([])
   const [building, setBuilding] = useState<{ type: string; territoryId: string | null } | null>(
@@ -403,7 +420,24 @@ export function MatchPage() {
   // While registering, a free municipality picked on the map is the chosen start.
   const start = joining && selected && !selectedTerritory ? selected : null
 
-  // Registering and managing a draft happen in "La partita"; a player lands on the menu.
+  // An attack on the capital cannot wait to be noticed: losing it is losing the empire.
+  // Its dialog opens by itself, once, with that attack in front of the others.
+  const urgent = mine
+    ? state.battles.find(
+        (battle) =>
+          battle.role === 'defender' &&
+          battle.status === 'OPEN' &&
+          !battle.response &&
+          battle.targetTerritoryId === mine.capitalTerritoryId,
+      )
+    : undefined
+  if (urgent && urgent.id !== urgentShown) {
+    setUrgentShown(urgent.id)
+    setAlertOpen(true)
+  }
+  const fallen = match.status !== 'FINISHED' && state.me?.status === 'FALLEN'
+
+  // Registering happens in "La partita"; a player lands on the menu.
   const view: View = chosenView ?? (mine ? 'menu' : 'match')
   const open = (next: View) => {
     setView(next)
@@ -455,7 +489,8 @@ export function MatchPage() {
     if (!unit && view === 'unit') setView('menu')
   }
 
-  const menu = mine && (
+  // A fallen empire has nothing left to manage.
+  const menu = mine && !fallen && (
     <nav className="flex flex-col" aria-label={t('game.menu.empire')}>
       {EMPIRE_PAGES.map((page) => (
         <MenuButton
@@ -568,7 +603,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.history.bar')}
-              className="bg-background absolute top-16 left-3 z-10 flex items-center gap-2 rounded-md border p-1.5"
+              className="bg-background rounded-pill absolute top-16 left-3 z-10 flex h-11 items-center gap-2 px-1.5 shadow-md"
             >
               <Button
                 variant="ghost"
@@ -599,7 +634,7 @@ export function MatchPage() {
             <div
               role="group"
               aria-label={t('game.map.view')}
-              className="bg-background absolute top-16 left-3 z-10 flex overflow-hidden rounded-md border"
+              className="bg-background rounded-pill absolute top-16 left-3 z-10 flex h-11 items-center gap-1 p-1 shadow-md"
             >
               {MAP_VIEWS.map((option) => (
                 <button
@@ -608,8 +643,10 @@ export function MatchPage() {
                   aria-pressed={mapView === option}
                   onClick={() => setMapView(option)}
                   className={cn(
-                    'cursor-pointer px-3 py-1.5 text-base font-bold transition-colors',
-                    mapView === option ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                    'rounded-pill h-9 cursor-pointer px-4 text-base transition-colors',
+                    mapView === option
+                      ? 'bg-primary text-primary-foreground font-bold'
+                      : 'hover:bg-accent',
                   )}
                 >
                   {t(`game.map.${option}`)}
@@ -630,8 +667,10 @@ export function MatchPage() {
               }
             }}
             className={cn(
-              'absolute top-[6.75rem] left-3 z-10 cursor-pointer rounded-md border px-3 py-1.5 text-base font-bold transition-colors',
-              showTags ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
+              'rounded-pill absolute top-[7.5rem] left-3 z-10 h-11 cursor-pointer px-5 text-base shadow-md transition-colors',
+              showTags
+                ? 'bg-primary text-primary-foreground font-bold'
+                : 'bg-background hover:bg-accent',
             )}
           >
             {t('game.map.tags')}
@@ -697,7 +736,14 @@ export function MatchPage() {
               leading={
                 <MatchHud
                   state={state}
-                  alert={<BattleAlert state={state} open={alertOpen} onOpenChange={setAlertOpen} />}
+                  alert={
+                    <BattleAlert
+                      state={state}
+                      open={alertOpen}
+                      onOpenChange={setAlertOpen}
+                      firstId={urgent?.id}
+                    />
+                  }
                 />
               }
               above={
@@ -819,6 +865,38 @@ export function MatchPage() {
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* The fall of the empire is told at once, in full, and only once. */}
+      <Dialog
+        open={fallen && !fallenSeen}
+        onOpenChange={(next) => {
+          if (next) return
+          setFallenSeen(true)
+          try {
+            localStorage.setItem(`fallen-seen:${id}`, 'yes')
+          } catch {
+            // Told again at the next visit, that is all.
+          }
+        }}
+      >
+        <DialogContent className="flex flex-col items-center gap-5 text-center sm:max-w-lg">
+          {mine && (
+            <EmpireShield
+              color={mine.color}
+              emblem={mine.emblem}
+              logo={mine.logoUrl}
+              className="size-20 opacity-60 grayscale"
+            />
+          )}
+          <DialogTitle className="text-3xl">{t('game.end.fallenTitle')}</DialogTitle>
+          <DialogDescription className="text-foreground text-lg">
+            {t('game.end.fallenText', { name: mine?.name ?? '' })}
+          </DialogDescription>
+          <DialogClose asChild>
+            <Button size="lg">{t('game.end.fallenContinue')}</Button>
+          </DialogClose>
         </DialogContent>
       </Dialog>
 

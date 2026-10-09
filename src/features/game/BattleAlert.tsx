@@ -26,6 +26,8 @@ export function BattleAlert(props: {
   state: MatchState
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** The attack to show first when the dialog opens by itself: the one on the capital. */
+  firstId?: string
 }) {
   const { t } = useTranslation()
   const errorText = useMatchErrorText()
@@ -37,7 +39,9 @@ export function BattleAlert(props: {
   // even when it is no longer among the pending ones.
   const [shownId, setShownId] = useState<string | null>(null)
   const battle: Battle | undefined =
-    state.battles.find((candidate) => candidate.id === shownId) ?? pending[0]
+    state.battles.find((candidate) => candidate.id === shownId) ??
+    pending.find((candidate) => candidate.id === props.firstId) ??
+    pending[0]
 
   const respond = useMutation({
     mutationFn: (action: 'DEFEND' | 'SURRENDER') =>

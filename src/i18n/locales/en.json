@@ -709,7 +709,6 @@
       "next": "Next attack"
     },
     "end": {
-      "spectator": "Your empire has fallen. You stay in the match as a spectator.",
       "finished": "Match finished.",
       "winner": "{{name}} won.",
       "youWon": "You won!",
@@ -718,7 +717,11 @@
       "winnerTag": "winner",
       "resources": "{{count}} resources",
       "tie": "Tie: {{names}} won.",
-      "youTied": "Tie: you won together with {{names}}."
+      "youTied": "Tie: you won together with {{names}}.",
+      "spectatorShort": "Your empire has fallen: you follow the match as a spectator.",
+      "fallenTitle": "Your empire has fallen",
+      "fallenText": "{{name}} has lost its capital. You can no longer play in this match, but you can follow it as a spectator until the end.",
+      "fallenContinue": "Go on as a spectator"
     },
     "map": {
       "legendCapital": "Capital",

@@ -709,7 +709,6 @@
       "next": "Prossimo attacco"
     },
     "end": {
-      "spectator": "Il tuo impero è caduto. Resti nella partita come spettatore.",
       "finished": "Partita conclusa.",
       "winner": "Ha vinto {{name}}.",
       "youWon": "Hai vinto!",
@@ -718,7 +717,11 @@
       "winnerTag": "vincitore",
       "resources": "{{count}} risorse",
       "tie": "Parità: hanno vinto {{names}}.",
-      "youTied": "Parità: hai vinto insieme a {{names}}."
+      "youTied": "Parità: hai vinto insieme a {{names}}.",
+      "spectatorShort": "Il tuo impero è caduto: segui la partita da spettatore.",
+      "fallenTitle": "Il tuo impero è caduto",
+      "fallenText": "{{name}} ha perso la capitale. Non puoi più giocare in questa partita, ma puoi seguirla da spettatore fino alla fine.",
+      "fallenContinue": "Continua da spettatore"
     },
     "map": {
       "legendCapital": "Capitale",
