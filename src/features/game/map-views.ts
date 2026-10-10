@@ -3,22 +3,30 @@ import type { MatchState } from '@/features/matches/api'
 /** How the map is coloured (PROMPT §2.8). */
 export type MapView = 'political' | 'alliances' | 'resources'
 
-/** How faint the colour of a territory with nothing on it is, beside the richest one. */
-const FAINTEST = 0.4
+/** How much lighter the colour of a territory with nothing on it is than its empire's. */
+const LIGHTEST = 0.6
 
-/** A colour let through by as much as the share says: whole at 1, at its faintest at 0. */
-function faded(color: string, share: number): string {
+/**
+ * A shade of the colour of an empire: the colour itself at a share of 1, lighter and
+ * lighter towards 0. Always solid: a shade is read at a glance, a see-through is not.
+ */
+function shaded(color: string, share: number): string {
   const hex = /^#([0-9a-f]{6})$/i.exec(color)?.[1]
   if (!hex) return color
-  const part = (from: number) => String(parseInt(hex.slice(from, from + 2), 16))
-  const alpha = FAINTEST + (1 - FAINTEST) * Math.max(0, Math.min(1, share))
-  return `rgba(${part(0)}, ${part(2)}, ${part(4)}, ${alpha.toFixed(2)})`
+  const lighter = LIGHTEST * (1 - Math.max(0, Math.min(1, share)))
+  const part = (from: number) => {
+    const value = parseInt(hex.slice(from, from + 2), 16)
+    return Math.round(value + (255 - value) * lighter)
+      .toString(16)
+      .padStart(2, '0')
+  }
+  return `#${part(0)}${part(2)}${part(4)}`
 }
 
 /**
  * The colour of each owned municipality in a view.
  *
- * - political: the colour of its empire, fainter the fewer resources the territory holds
+ * - political: the colour of its empire, in a lighter shade the fewer resources the territory holds
  *   beside the richest of that empire, where the viewer may know them (their own
  *   territories and their allies'): what is thinly held shows at a glance;
  * - alliances: alliances are pacts between two empires, not groups, so there
@@ -68,7 +76,7 @@ export function colorsFor(
     }
     if (color && view !== 'resources' && territory.resources !== null) {
       const richest = mostOf.get(territory.ownerEmpireId ?? '') ?? 0
-      color = faded(color, richest > 0 ? territory.resources / richest : 1)
+      color = shaded(color, richest > 0 ? territory.resources / richest : 1)
     }
     if (color) for (const unitId of territory.geoUnitIds) colors.set(unitId, color)
   }
