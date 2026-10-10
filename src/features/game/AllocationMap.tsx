@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { CircleDot, Crosshair, FlipHorizontal2, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { TerritoryShape } from '@/features/matches/api'
@@ -12,6 +13,20 @@ export interface AllocationPlace {
   /** In a battle: it can neither give nor receive, so its bubble does not move. */
   locked: boolean
 }
+
+/**
+ * How the focus spreads the resources: around the point it is on, around that point
+ * and the one opposite to it across the empire, or in a ring around the middle of the
+ * empire as wide as the focus is far from it.
+ */
+type FocusMode = 'area' | 'mirror' | 'radial'
+const FOCUS_MODES: readonly [FocusMode, LucideIcon][] = [
+  ['area', Crosshair],
+  ['mirror', FlipHorizontal2],
+  ['radial', CircleDot],
+]
+/** How far the focus reaches, as a part of the size of the empire. */
+const FOCUS_REACH = 0.4
 
 const WIDTH = 480
 const HEIGHT = 380
@@ -34,6 +49,8 @@ export function AllocationMap(props: {
   total: number
   /** While a bubble is dragged, or moved with the keys. */
   onChange: (id: string, wanted: number) => void
+  /** While the focus is dragged: how much each territory that can move should weigh. */
+  onSpread: (weights: Record<string, number>) => void
   /** When the gesture ends: the moment to save. */
   onCommit: () => void
 }) {
@@ -124,6 +141,61 @@ export function AllocationMap(props: {
     )
     props.onChange(place.id, Math.round(size * size * scale * total))
   }
+  // The focus: a point dragged over the empire, the resources gathering where it says.
+  const [mode, setMode] = useState<FocusMode>('area')
+  const [focus, setFocus] = useState<{ x: number; y: number } | null>(null)
+  const [aiming, setAiming] = useState(false)
+  const movable = places.filter((place) => !place.locked && drawn?.has(place.id))
+  const centres = movable.map((place) => drawn?.get(place.id)?.centre ?? { x: 0, y: 0 })
+  // The middle of the empire as it lies on the map, not of where its territories crowd.
+  const xs = centres.map((centre) => centre.x)
+  const ys = centres.map((centre) => centre.y)
+  const middle =
+    centres.length > 0
+      ? { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }
+      : { x: WIDTH / 2, y: HEIGHT / 2 }
+  const size = Math.max(
+    40,
+    ...centres.map((centre) => Math.hypot(centre.x - middle.x, centre.y - middle.y)),
+  )
+  const near = (distance: number) => Math.exp(-((distance / (size * FOCUS_REACH)) ** 2))
+  const opposite = (point: { x: number; y: number }) => ({
+    x: 2 * middle.x - point.x,
+    y: 2 * middle.y - point.y,
+  })
+  const spread = (point: { x: number; y: number }, how: FocusMode) => {
+    const ring = Math.hypot(point.x - middle.x, point.y - middle.y)
+    const other = opposite(point)
+    props.onSpread(
+      Object.fromEntries(
+        movable.map((place, index) => {
+          const centre = centres[index] ?? middle
+          const here = Math.hypot(centre.x - point.x, centre.y - point.y)
+          const weight =
+            how === 'area'
+              ? near(here)
+              : how === 'mirror'
+                ? Math.max(near(here), near(Math.hypot(centre.x - other.x, centre.y - other.y)))
+                : near(Math.hypot(centre.x - middle.x, centre.y - middle.y) - ring)
+          // Too far to count: nothing, instead of a unit left behind.
+          return [place.id, weight < 0.02 ? 0 : weight]
+        }),
+      ),
+    )
+  }
+  const aim = (event: PointerEvent<SVGGElement>) => {
+    const box = svg.current?.getBoundingClientRect()
+    if (!box) return
+    const point = {
+      x: Math.max(0, Math.min(WIDTH, ((event.clientX - box.left) / box.width) * WIDTH)),
+      y: Math.max(0, Math.min(HEIGHT, ((event.clientY - box.top) / box.height) * HEIGHT)),
+    }
+    setFocus(point)
+    spread(point, mode)
+  }
+  const editable = movable.length >= 2
+  const at = focus ?? middle
+
   const onKey = (event: KeyboardEvent<SVGCircleElement>, place: AllocationPlace) => {
     const step = Math.max(1, Math.round(total / 100)) * (event.shiftKey ? 5 : 1)
     const move =
@@ -150,92 +222,196 @@ export function AllocationMap(props: {
   const heldCentre = heldPlace ? drawn.get(heldPlace.id)?.centre : undefined
 
   return (
-    <svg
-      ref={svg}
-      viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
-      role="group"
-      aria-label={t('game.resources.radar')}
-      // Never taller than what is left of the screen: the whole empire stays in sight.
-      className="max-h-[calc(100dvh-28rem)] min-h-64 w-full touch-none select-none"
-    >
-      {places.map((place) => (
-        <path
-          key={place.id}
-          d={drawn.get(place.id)?.path}
-          fillRule="evenodd"
-          className={cn(
-            'stroke-foreground/60',
-            held === place.id ? 'fill-secondary/45' : 'fill-secondary/20',
-          )}
-          strokeWidth={1}
-          strokeLinejoin="round"
-        />
-      ))}
-      {bysize.map((place) => {
-        const centre = drawn.get(place.id)?.centre ?? { x: 0, y: 0 }
-        const radius = radiusOf(place.id)
-        return (
-          <g key={place.id}>
-            <circle
-              cx={centre.x}
-              cy={centre.y}
-              r={radius}
-              role="slider"
-              tabIndex={place.locked ? -1 : 0}
-              aria-label={t('game.resources.sliderOf', { name: place.name })}
-              aria-valuemin={0}
-              aria-valuemax={total}
-              aria-valuenow={amounts[place.id] ?? 0}
-              aria-valuetext={`${String(amounts[place.id] ?? 0)} (${String(percent(place.id))}%)`}
-              aria-disabled={place.locked}
-              className={cn(
-                'stroke-background focus-visible:stroke-foreground outline-none',
-                place.locked ? 'fill-muted-foreground/80' : 'fill-secondary/75 cursor-grab',
-                held === place.id && 'cursor-grabbing',
-              )}
-              strokeWidth={1.5}
-              onPointerDown={(event) => {
-                if (place.locked) return
-                event.currentTarget.setPointerCapture(event.pointerId)
-                setHeld(place.id)
-                drag(event, place, true)
-              }}
-              onPointerMove={(event) => held === place.id && drag(event, place, false)}
-              onPointerUp={() => {
-                if (held !== place.id) return
-                setHeld(null)
-                props.onCommit()
-              }}
-              onPointerCancel={() => setHeld(null)}
-              onKeyDown={(event) => !place.locked && onKey(event, place)}
-            />
-            {/* What it holds, inside the bubble once there is room for the figure. */}
-            {radius >= 10 && (
-              <text
-                x={centre.x}
-                y={centre.y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="pointer-events-none fill-white font-mono text-[9px] font-bold"
+    <div className="flex flex-col gap-2">
+      {editable && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div
+            role="group"
+            aria-label={t('game.resources.focus.label')}
+            className="bg-background rounded-pill flex border p-0.5"
+          >
+            {FOCUS_MODES.map(([option, Icon]) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={mode === option}
+                title={t(`game.resources.focus.${option}`)}
+                aria-label={t(`game.resources.focus.${option}`)}
+                className={cn(
+                  'rounded-pill flex size-9 cursor-pointer items-center justify-center transition-colors [&_svg]:size-5',
+                  mode === option ? 'bg-secondary text-white' : 'hover:bg-accent',
+                )}
+                onClick={() => {
+                  setMode(option)
+                  // The focus already placed spreads again, the new way, and is saved.
+                  if (focus) {
+                    spread(focus, option)
+                    props.onCommit()
+                  }
+                }}
               >
-                {amounts[place.id] ?? 0}
-              </text>
-            )}
-          </g>
-        )
-      })}
-      {/* The one being moved says its name and its share, above the bubble. */}
-      {heldPlace && heldCentre && (
-        <text
-          x={Math.max(70, Math.min(WIDTH - 70, heldCentre.x))}
-          y={Math.max(14, heldCentre.y - radiusOf(heldPlace.id) - 8)}
-          textAnchor="middle"
-          className="fill-foreground stroke-background pointer-events-none text-[11px] font-bold [paint-order:stroke]"
-          strokeWidth={3}
-        >
-          {heldPlace.name} · {amounts[heldPlace.id] ?? 0} ({percent(heldPlace.id)}%)
-        </text>
+                <Icon aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+          <p className="text-muted-foreground text-base">{t(`game.resources.focus.${mode}Hint`)}</p>
+        </div>
       )}
-    </svg>
+      <svg
+        ref={svg}
+        viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
+        role="group"
+        aria-label={t('game.resources.radar')}
+        // Never taller than what is left of the screen: the whole empire stays in sight.
+        className="max-h-[calc(100dvh-29rem)] min-h-64 w-full touch-none select-none"
+      >
+        {places.map((place) => (
+          <path
+            key={place.id}
+            d={drawn.get(place.id)?.path}
+            fillRule="evenodd"
+            className={cn(
+              'stroke-foreground/60',
+              held === place.id ? 'fill-secondary/45' : 'fill-secondary/20',
+            )}
+            strokeWidth={1}
+            strokeLinejoin="round"
+          />
+        ))}
+        {bysize.map((place) => {
+          const centre = drawn.get(place.id)?.centre ?? { x: 0, y: 0 }
+          const radius = radiusOf(place.id)
+          return (
+            <g key={place.id}>
+              <circle
+                cx={centre.x}
+                cy={centre.y}
+                r={radius}
+                role="slider"
+                tabIndex={place.locked ? -1 : 0}
+                aria-label={t('game.resources.sliderOf', { name: place.name })}
+                aria-valuemin={0}
+                aria-valuemax={total}
+                aria-valuenow={amounts[place.id] ?? 0}
+                aria-valuetext={`${String(amounts[place.id] ?? 0)} (${String(percent(place.id))}%)`}
+                aria-disabled={place.locked}
+                className={cn(
+                  'stroke-background focus-visible:stroke-foreground outline-none',
+                  place.locked ? 'fill-muted-foreground/80' : 'fill-secondary/75 cursor-grab',
+                  held === place.id && 'cursor-grabbing',
+                )}
+                strokeWidth={1.5}
+                onPointerDown={(event) => {
+                  if (place.locked) return
+                  event.currentTarget.setPointerCapture(event.pointerId)
+                  setHeld(place.id)
+                  drag(event, place, true)
+                }}
+                onPointerMove={(event) => held === place.id && drag(event, place, false)}
+                onPointerUp={() => {
+                  if (held !== place.id) return
+                  setHeld(null)
+                  props.onCommit()
+                }}
+                onPointerCancel={() => setHeld(null)}
+                onKeyDown={(event) => !place.locked && onKey(event, place)}
+              />
+              {/* What it holds, inside the bubble once there is room for the figure. */}
+              {radius >= 10 && (
+                <text
+                  x={centre.x}
+                  y={centre.y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="pointer-events-none fill-white font-mono text-[9px] font-bold"
+                >
+                  {amounts[place.id] ?? 0}
+                </text>
+              )}
+            </g>
+          )
+        })}
+        {/* The focus, above everything: a sight to drag where the resources should gather. */}
+        {editable && (
+          <g
+            role="slider"
+            tabIndex={-1}
+            aria-label={t('game.resources.focus.handle')}
+            aria-valuenow={Math.round(Math.hypot(at.x - middle.x, at.y - middle.y))}
+            className={cn('text-foreground', aiming ? 'cursor-grabbing' : 'cursor-grab')}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId)
+              setAiming(true)
+              aim(event)
+            }}
+            onPointerMove={(event) => aiming && aim(event)}
+            onPointerUp={() => {
+              if (!aiming) return
+              setAiming(false)
+              props.onCommit()
+            }}
+            onPointerCancel={() => setAiming(false)}
+          >
+            {mode === 'radial' && (
+              <circle
+                cx={middle.x}
+                cy={middle.y}
+                r={Math.hypot(at.x - middle.x, at.y - middle.y)}
+                className="pointer-events-none fill-none stroke-current opacity-70"
+                strokeWidth={1.5}
+                strokeDasharray="5 4"
+              />
+            )}
+            {mode === 'mirror' && (
+              <>
+                <line
+                  x1={at.x}
+                  y1={at.y}
+                  x2={opposite(at).x}
+                  y2={opposite(at).y}
+                  className="pointer-events-none stroke-current opacity-50"
+                  strokeWidth={1}
+                  strokeDasharray="5 4"
+                />
+                <circle
+                  cx={opposite(at).x}
+                  cy={opposite(at).y}
+                  r={7}
+                  className="fill-background pointer-events-none stroke-current opacity-80"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+            <circle cx={at.x} cy={at.y} r={16} className="fill-transparent" />
+            <circle
+              cx={at.x}
+              cy={at.y}
+              r={aiming ? 11 : 9}
+              className="fill-background stroke-current"
+              strokeWidth={2.5}
+            />
+            <path
+              d={`M${String(at.x - 14)} ${String(at.y)}h8m12 0h8M${String(at.x)} ${String(at.y - 14)}v8m0 12v8`}
+              className="pointer-events-none stroke-current"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <circle cx={at.x} cy={at.y} r={2.5} className="fill-secondary pointer-events-none" />
+          </g>
+        )}
+        {/* The one being moved says its name and its share, above the bubble. */}
+        {heldPlace && heldCentre && (
+          <text
+            x={Math.max(70, Math.min(WIDTH - 70, heldCentre.x))}
+            y={Math.max(14, heldCentre.y - radiusOf(heldPlace.id) - 8)}
+            textAnchor="middle"
+            className="fill-foreground stroke-background pointer-events-none text-[11px] font-bold [paint-order:stroke]"
+            strokeWidth={3}
+          >
+            {heldPlace.name} · {amounts[heldPlace.id] ?? 0} ({percent(heldPlace.id)}%)
+          </text>
+        )}
+      </svg>
+    </div>
   )
 }

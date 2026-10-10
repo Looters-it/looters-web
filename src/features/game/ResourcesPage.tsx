@@ -1,19 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  Equal,
-  Maximize,
-  MoveHorizontal,
-  MoveVertical,
-  type LucideIcon,
-} from 'lucide-react'
 import { useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -25,16 +13,7 @@ import {
 import { matchApi, type MatchState, type Territory } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 
-import {
-  ALLOCATION_PRESETS,
-  presetIds,
-  rebalance,
-  sameAmounts,
-  splitEqually,
-  totalOf,
-  type AllocationPreset,
-  type Amounts,
-} from './allocation'
+import { distribute, rebalance, sameAmounts, totalOf, type Amounts } from './allocation'
 import { AllocationMap } from './AllocationMap'
 import { usePhase } from './phase'
 
@@ -44,17 +23,6 @@ import { usePhase } from './phase'
  * balance is saved as the finger lifts. Only in the preliminary part of a turn
  * (PROMPT §2.4, §11).
  */
-const PRESET_ICONS: Record<AllocationPreset, LucideIcon> = {
-  equal: Equal,
-  frontier: Maximize,
-  north: ArrowUp,
-  south: ArrowDown,
-  east: ArrowRight,
-  west: ArrowLeft,
-  eastWest: MoveHorizontal,
-  northSouth: MoveVertical,
-}
-
 function Editor(props: {
   state: MatchState
   territories: Territory[]
@@ -116,23 +84,6 @@ function Editor(props: {
   const commit = (amounts = latest.current) => {
     if (!sameAmounts(amounts, saved)) apply.mutate(amounts)
   }
-  // Everything that can move goes, in equal parts, to the territories the preset
-  // chooses; municipalities in a battle keep what they have.
-  const applyPreset = (preset: AllocationPreset) => {
-    const freeIds = new Set(free.map((territory) => territory.id))
-    const placed = (shapes.data?.territories ?? []).filter((shape) => freeIds.has(shape.id))
-    const chosen = presetIds(preset, placed)
-    if (chosen.length === 0) return
-    const movable = free.reduce((sum, territory) => sum + (draft[territory.id] ?? 0), 0)
-    const next = {
-      ...draft,
-      ...Object.fromEntries(free.map((territory) => [territory.id, 0])),
-      ...splitEqually(chosen, movable, props.capitalId),
-    }
-    apply.reset()
-    change(next)
-    commit(next)
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -150,32 +101,6 @@ function Editor(props: {
       <p className={editable ? 'text-muted-foreground' : 'text-danger'}>
         {t(editable ? 'game.resources.radarHint' : 'game.resources.onlyPreliminary')}
       </p>
-      {territories.length >= 2 && (
-        // The weights: one press puts everything on a side of the empire, on two
-        // opposite sides, on its edge or everywhere, in equal parts.
-        <div
-          role="group"
-          aria-label={t('game.resources.presets')}
-          className="flex flex-wrap items-center gap-2"
-        >
-          {ALLOCATION_PRESETS.map((preset) => {
-            const Icon = PRESET_ICONS[preset]
-            return (
-              <Button
-                key={preset}
-                variant="outline"
-                size="sm"
-                className="tracking-normal normal-case"
-                disabled={!editable || free.length < 2 || apply.isPending || !shapes.data}
-                onClick={() => applyPreset(preset)}
-              >
-                <Icon aria-hidden="true" />
-                {t(`game.resources.preset.${preset}`)}
-              </Button>
-            )
-          })}
-        </div>
-      )}
       {territories.length < 2 ? (
         <p className="text-muted-foreground">{t('game.resources.single')}</p>
       ) : (
@@ -194,6 +119,16 @@ function Editor(props: {
             // let the rounding of each step pile up on the same territories.
             origin.current ??= latest.current
             change(rebalance(origin.current, id, wanted, lockedIds))
+          }}
+          onSpread={(weights) => {
+            apply.reset()
+            // Everything that can move is divided as the focus says; municipalities in
+            // a battle keep what they have.
+            const movable = free.reduce((sum, territory) => sum + (draft[territory.id] ?? 0), 0)
+            const wanted = Object.fromEntries(
+              free.map((territory) => [territory.id, weights[territory.id] ?? 0]),
+            )
+            change({ ...draft, ...distribute(movable, wanted) })
           }}
           onCommit={() => {
             origin.current = null
