@@ -225,6 +225,17 @@ export function MatchPage() {
   })
 
   const hasAreas = state?.territories.some((territory) => territory.isArea) ?? false
+  // The fronts are read again whenever a battle opens or closes.
+  const openBattles = (state?.battles ?? [])
+    .filter((battle) => battle.status === 'OPEN')
+    .map((battle) => battle.id)
+    .sort()
+    .join()
+  const fronts = useQuery({
+    queryKey: ['matches', 'fronts', id, openBattles],
+    queryFn: () => matchApi.fronts(id),
+    enabled: openBattles !== '',
+  })
   const areas = useQuery({
     // Read again when the areas change: a merge, a rename, a conquest.
     queryKey: [
@@ -616,6 +627,7 @@ export function MatchPage() {
             onMarker={onMarker}
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
+            fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
             selected={selected}
             highlightedIds={reviewing ? NOTHING : highlighted}
             attackedIds={reviewing ? NOTHING : attacked}

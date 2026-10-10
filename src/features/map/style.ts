@@ -13,11 +13,15 @@ export const MARKERS_SOURCE = 'markers'
 export const ATTACK_LAYER = 'attack-swords'
 export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
+/** The fronts of the open battles: the border between who attacks and who is attacked. */
+export const FRONTS_SOURCE = 'fronts'
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
 const UNIT_FONT = 'Sorts Mill Goudy'
 const EMPIRE_FONT = 'Alfa Slab One'
+/** The red of a front: a plain, strong red, unlike the colour of any empire's fill. */
+const FRONT_RED = '#e11d2e'
 /** The figures of the resources: yellow like coins, edged in white to stand out on any empire. */
 const RESOURCE_INK = '#f5b800'
 const RESOURCE_EDGE = '#ffffff'
@@ -73,6 +77,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       [MARKERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [OWNERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [FRONTS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
       { id: 'ground', type: 'background', paint: { 'background-color': colors.ground } },
@@ -152,6 +157,28 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         source: AREAS_SOURCE,
         layout: { 'line-join': 'round' },
         paint: { 'line-color': colors.ink, 'line-width': 2.5 },
+      },
+      {
+        // Where two territories are fighting: their shared border, thick and red, with an
+        // edge of the map's own halo under it so that it stands out on any colour.
+        id: 'front-edges',
+        type: 'line',
+        source: FRONTS_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': colors.halo,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 5, 10, 9, 13, 12],
+        },
+      },
+      {
+        id: 'front-lines',
+        type: 'line',
+        source: FRONTS_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': FRONT_RED,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 3, 10, 6, 13, 8],
+        },
       },
       {
         id: 'area-labels',

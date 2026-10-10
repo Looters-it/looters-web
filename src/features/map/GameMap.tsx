@@ -24,6 +24,7 @@ import { diffFlags, diffState } from './feature-state'
 import {
   ATTACK_LAYER,
   AREAS_SOURCE,
+  FRONTS_SOURCE,
   ATTACKED_LAYER,
   buildStyle,
   EMPIRES_SOURCE,
@@ -101,6 +102,8 @@ interface Props {
   ownerTags?: readonly OwnerTag[]
   /** Outlines of merged areas, each drawn as one polygon with its name. */
   areas?: FeatureCollection | null
+  /** The fronts of the open battles: lines drawn thick and red along the border fought over. */
+  fronts?: FeatureCollection | null
   selected?: MapUnit | null
   highlightedIds?: readonly number[]
   /** Municipalities under attack, marked for everyone with a pulsing red border. */
@@ -139,6 +142,7 @@ export function GameMap({
   markers = NO_MARKERS,
   ownerTags = NO_TAGS,
   areas = null,
+  fronts = null,
   selected = null,
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
@@ -393,6 +397,14 @@ export function GameMap({
       .getSource<GeoJSONSource>(AREAS_SOURCE)
       ?.setData(areas ?? { type: 'FeatureCollection', features: [] })
   }, [areas, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map
+      .getSource<GeoJSONSource>(FRONTS_SOURCE)
+      ?.setData(fronts ?? { type: 'FeatureCollection', features: [] })
+  }, [fronts, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
   const anchored = anchor && anchor.id === selected?.id ? anchor.at : null

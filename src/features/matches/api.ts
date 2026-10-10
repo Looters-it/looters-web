@@ -400,6 +400,8 @@ export const matchApi = {
   build: (id: string, body: { type: string; territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/structures`, body),
   areas: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/areas`),
+  /** The border fought over in each open battle, as lines for the map. */
+  fronts: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/fronts`),
   previewMerge: (id: string, territoryIds: string[]) =>
     apiPost<MergePreview>(`/matches/${id}/merge/preview`, { territoryIds }),
   merge: (id: string, body: { territoryIds: string[]; name: string; turn: number }) =>
