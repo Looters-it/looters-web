@@ -679,9 +679,13 @@ export function MatchPage() {
           {/* Bottom right, over the map: the news of the board as they come, and under
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
-          {/* In large over the map: the last seconds of the turn, and the turn that begins. */}
-          {!reviewing && <TurnAnnouncer match={match} />}
-          <AttackToasts state={state} onRespond={() => setAlertOpen(true)} />
+          {/* The announcements, at the top of the map between the search and what stands
+              top right (on a phone, under the controls of the map): the turn that ends
+              or begins, then the attacks on the player. */}
+          <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-3 md:right-[13.5rem] md:left-[21rem] md:mx-auto md:max-w-[30rem]">
+            {!reviewing && <TurnAnnouncer match={match} />}
+            <AttackToasts state={state} onRespond={() => setAlertOpen(true)} />
+          </div>
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}
           {units.data && !reviewing && (
             <UnitSearch
