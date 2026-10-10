@@ -329,6 +329,17 @@ export function MatchPage() {
         ...(territory.alert
           ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
           : []),
+        // What the territory holds, where the viewer is allowed to know: seen at a glance.
+        ...(territory.resources !== null
+          ? [
+              {
+                id: `resources:${territory.id}`,
+                kind: 'resources' as const,
+                text: String(territory.resources),
+                ...at,
+              },
+            ]
+          : []),
         // Just acquired: it cannot be attacked until the turn ends.
         ...(territory.protected
           ? [{ id: `protected:${territory.id}`, kind: 'protected' as const, ...at }]

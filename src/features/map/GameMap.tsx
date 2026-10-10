@@ -44,7 +44,7 @@ export interface MapUnit {
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
 export interface MapMarker {
   id: string
-  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected'
+  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected' | 'resources'
   lon: number
   lat: number
   /** Colour of the empire, for a capital. */
@@ -52,7 +52,7 @@ export interface MapMarker {
   /** For a capital: what is drawn on it, the emblem or the uploaded logo of the empire. */
   emblem?: string
   logo?: string | null
-  /** Short text drawn on the sign: the turns a block still lasts. */
+  /** Short text drawn on the sign: the turns a block still lasts, the resources of a territory. */
   text?: string
 }
 

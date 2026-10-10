@@ -16,6 +16,9 @@ export const ATTACKED_LAYER = 'units-attacked'
 
 const UNIT_FONT = 'Sorts Mill Goudy'
 const EMPIRE_FONT = 'Alfa Slab One'
+/** The colours of a light card: the figures of the resources are written as on one. */
+const RESOURCE_INK = '#072a3e'
+const RESOURCE_PATCH = '#99b2dd'
 
 /** Below this zoom empires are named; from it on, municipalities are. */
 export const EMPIRE_LABEL_MAX_ZOOM = 9
@@ -228,6 +231,27 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.8, 14, 1.1],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
+        },
+      },
+      {
+        // The resources of a territory, where the viewer may know them: a figure on a
+        // pale patch above the municipality, like the badge of the total beside the clock.
+        id: 'resource-figures',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'resources'],
+        layout: {
+          'text-field': ['get', 'text'],
+          'text-font': [EMPIRE_FONT],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 14, 13, 17],
+          'text-offset': [0, -1.5],
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: {
+          'text-color': RESOURCE_INK,
+          'text-halo-color': RESOURCE_PATCH,
+          'text-halo-width': 3,
         },
       },
       {
