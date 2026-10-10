@@ -40,6 +40,7 @@ import { MatchHud } from '@/features/game/MatchHud'
 import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
 import { historyQuery, turnQuery } from '@/features/game/history'
+import { usePhase } from '@/features/game/phase'
 import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
 import { empireTags } from '@/features/game/tags'
@@ -81,6 +82,9 @@ const EMPIRE_SHEETS = [
   ['build', Hammer],
   ['alliance', Handshake],
 ] as const
+
+/** What is done only in the preliminary part of a turn. */
+const PRELIMINARY_SHEETS: readonly string[] = ['resources', 'merge', 'build']
 
 const NOTHING: never[] = []
 const MAP_VIEWS: MapView[] = ['political', 'alliances', 'resources']
@@ -199,14 +203,23 @@ function MatchTimes({ match, online }: { match: MatchState['match']; online: str
 }
 
 /** A round button that floats over the map and opens one of the dialogs. */
-function MapFab(props: { label: string; onClick: () => void; children: ReactNode }) {
+function MapFab(props: {
+  label: string
+  onClick: () => void
+  children: ReactNode
+  /** Not for this part of the turn: still there, and it says why when opened. */
+  dimmed?: boolean
+}) {
   return (
     <button
       type="button"
       aria-label={props.label}
       title={props.label}
       onClick={props.onClick}
-      className="bg-background hover:bg-accent flex size-10 cursor-pointer items-center justify-center rounded-full shadow-md transition-colors md:size-12 [&_svg]:size-5 md:[&_svg]:size-6"
+      className={cn(
+        'bg-background hover:bg-accent flex size-10 cursor-pointer items-center justify-center rounded-full shadow-md transition-colors md:size-12 [&_svg]:size-5 md:[&_svg]:size-6',
+        props.dimmed && '[&_svg]:opacity-40',
+      )}
     >
       {props.children}
     </button>
@@ -388,8 +401,10 @@ export function MatchPage() {
     )
     .join()
   const canAct = state?.match.status === 'ONGOING' && state.me?.status === 'ACTIVE'
+  const phase = usePhase(state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null })
   const targets = useQuery({
-    queryKey: ['matches', 'targets', id, state?.match.currentTurn, border],
+    // Nothing can be attacked in the preliminary part of a turn: asked again when it ends.
+    queryKey: ['matches', 'targets', id, state?.match.currentTurn, phase, border],
     queryFn: () => matchApi.targets(id),
     enabled: canAct,
     placeholderData: keepPreviousData,
@@ -838,7 +853,12 @@ export function MatchPage() {
             {mine &&
               !fallen &&
               EMPIRE_SHEETS.map(([page, Icon]) => (
-                <MapFab key={page} label={t(`game.menu.${page}`)} onClick={() => openSheet(page)}>
+                <MapFab
+                  key={page}
+                  label={t(`game.menu.${page}`)}
+                  onClick={() => openSheet(page)}
+                  dimmed={PRELIMINARY_SHEETS.includes(page) && phase !== 'PRELIMINARY'}
+                >
                   <Icon aria-hidden="true" />
                 </MapFab>
               ))}
@@ -1006,6 +1026,14 @@ export function MatchPage() {
               {match.isOwner && <OwnerPanel key={match.status} match={match} />}
             </div>
           )}
+          {sheet !== null &&
+            PRELIMINARY_SHEETS.includes(sheet) &&
+            sheet !== 'resources' &&
+            phase === 'ACTION' && (
+              <p role="status" className="text-danger">
+                {t('game.phase.onlyPreliminary')}
+              </p>
+            )}
           {sheet === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
           {sheet === 'resources' && <ResourcesPage state={state} />}
           {sheet === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}

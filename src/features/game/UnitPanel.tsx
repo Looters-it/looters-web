@@ -20,11 +20,13 @@ import {
   type UnitCardData,
 } from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
+import { usePhase } from './phase'
 import { StatusBadge, unitStatus } from './StatusBadge'
 import { useMatchErrorText } from '@/features/matches/errors'
 
 /** The action on a free municipality: annex it, paying from an adjacent own territory. */
 function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData }) {
+  const phase = usePhase(state.match)
   const { t } = useTranslation()
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
@@ -97,7 +99,10 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
               {errorText(act.error)}
             </p>
           )}
-          <Button disabled={act.isPending} onClick={() => act.mutate()}>
+          {phase === 'PRELIMINARY' && (
+            <p className="text-muted-foreground">{t('game.phase.waitAction')}</p>
+          )}
+          <Button disabled={act.isPending || phase === 'PRELIMINARY'} onClick={() => act.mutate()}>
             {t('game.unit.annex')}
           </Button>
         </>
@@ -108,6 +113,7 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
 
 /** Moving the capital here: once every few turns, and never during a battle on it. */
 function CapitalAction(props: { state: MatchState; card: UnitCardData; isCapital: boolean }) {
+  const phase = usePhase(props.state.match)
   const { t } = useTranslation()
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
@@ -150,7 +156,8 @@ function CapitalAction(props: { state: MatchState; card: UnitCardData; isCapital
           <Button
             variant="outline"
             className="self-start"
-            disabled={move.isPending}
+            disabled={move.isPending || phase !== 'PRELIMINARY'}
+            title={phase !== 'PRELIMINARY' ? t('game.phase.onlyPreliminary') : undefined}
             onClick={() => move.mutate()}
           >
             {t('game.unit.moveCapital')}
@@ -226,6 +233,7 @@ export function UnitPanel(props: {
 }) {
   const { t, i18n } = useTranslation()
   const { state, unit } = props
+  const phase = usePhase(state.match)
   const card = useQuery({
     queryKey: ['matches', 'unit', state.match.id, unit.id],
     queryFn: async () => {
@@ -352,6 +360,8 @@ export function UnitPanel(props: {
                 <Button
                   variant="destructive"
                   className="self-start"
+                  disabled={phase === 'PRELIMINARY'}
+                  title={phase === 'PRELIMINARY' ? t('game.phase.waitAction') : undefined}
                   onClick={() => card.data && props.onPrepareAttack?.(card.data)}
                 >
                   {t('game.unit.prepareAttack')}

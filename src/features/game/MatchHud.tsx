@@ -5,6 +5,7 @@ import type { MatchState } from '@/features/matches/api'
 import { cn } from '@/lib/utils'
 
 import { Countdown } from './Countdown'
+import { usePhase } from './phase'
 
 /**
  * What a player keeps an eye on while playing, always on the map: the alert of an
@@ -20,6 +21,7 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
         .reduce((sum, territory) => sum + (territory.resources ?? 0), 0)
     : null
   const running = match.status === 'ONGOING'
+  const phase = usePhase(match)
   // One size of type and one baseline for the words and the figures of every pill:
   // side by side, they read as one line.
   const pill =
@@ -34,8 +36,26 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
         <p className={cn(pill, 'bg-background')}>
           <span>{t('game.bar.turn')}</span>
           <b className={figure}>{match.currentTurn}</b>
-          {match.turnEndsAt && (
-            <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
+          {/* The part of the turn, and the time left to it: the whole turn counts down
+              only in its second part. */}
+          {phase && (
+            <span
+              className={cn(
+                'rounded-pill self-center px-2.5 text-sm leading-6 font-bold',
+                phase === 'PRELIMINARY'
+                  ? 'bg-card text-card-foreground'
+                  : 'bg-secondary text-white',
+              )}
+            >
+              {t(`game.phase.${phase}`)}
+            </span>
+          )}
+          {phase === 'PRELIMINARY' && match.preliminaryEndsAt ? (
+            <Countdown until={match.preliminaryEndsAt} label={t('game.phase.timeLeft')} />
+          ) : (
+            match.turnEndsAt && (
+              <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
+            )
           )}
         </p>
       )}

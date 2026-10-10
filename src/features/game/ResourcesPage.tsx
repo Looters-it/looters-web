@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useId, useMemo, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -11,22 +11,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
 import { matchApi, type MatchState, type Territory } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 
-import { sameAmounts, setAmount, splitEqually, totalOf, type Amounts } from './allocation'
+import { rebalance, sameAmounts, splitEqually, totalOf, type Amounts } from './allocation'
+import { AllocationRadar } from './AllocationRadar'
+import { usePhase } from './phase'
 
 /**
- * One slider per municipality. The total stays fixed: lowering one frees
- * resources for the others, and nothing is saved until "Applica", which is
- * available only when nothing is left unallocated (PROMPT §2.4, §11).
+ * The radar of the empire: dragging the point of a municipality changes its share
+ * and the others give way in proportion, so the whole is always assigned and the new
+ * balance is saved as the finger lifts. Only in the preliminary part of a turn
+ * (PROMPT §2.4, §11).
  */
-function Editor(props: { state: MatchState; territories: Territory[]; capitalId: string | null }) {
+function Editor(props: {
+  state: MatchState
+  territories: Territory[]
+  capitalId: string | null
+  editable: boolean
+}) {
   const { t } = useTranslation()
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
-  const { state, territories } = props
+  const { state, territories, editable } = props
   const matchId = state.match.id
 
   const saved = useMemo<Amounts>(
@@ -36,30 +43,38 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
   )
   const total = totalOf(saved)
   const [draft, setDraft] = useState(saved)
-  const unallocated = total - totalOf(draft)
-  const locked = territories.filter((territory) => territory.battleId !== null)
+  // What a gesture has reached, read when it ends: the state itself is a render behind.
+  const latest = useRef(draft)
+  const origin = useRef<Amounts | null>(null)
+  const lockedIds = territories
+    .filter((territory) => territory.battleId !== null)
+    .map((territory) => territory.id)
   const free = territories.filter((territory) => territory.battleId === null)
-  const dirty = !sameAmounts(draft, saved)
 
   const apply = useMutation({
-    mutationFn: () =>
+    mutationFn: (amounts: Amounts) =>
       matchApi.allocate(matchId, {
         // Only what can move is sent: the api refuses a territory in a battle.
         amounts: Object.fromEntries(
-          free.map((territory) => [territory.id, draft[territory.id] ?? 0]),
+          free.map((territory) => [territory.id, amounts[territory.id] ?? 0]),
         ),
         turn: state.match.currentTurn,
       }),
     onSuccess: (next) => queryClient.setQueryData(['matches', 'state', matchId], next),
+    // Refused: back to what the server holds.
+    onError: () => change(saved),
   })
   const change = (next: Amounts) => {
-    apply.reset()
+    latest.current = next
     setDraft(next)
+  }
+  const commit = (amounts = latest.current) => {
+    if (!sameAmounts(amounts, saved)) apply.mutate(amounts)
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <dl className="[&_dt]:text-muted-foreground grid grid-cols-3 gap-2 text-center [&_dd]:font-mono [&_dd]:text-xl [&_dd]:font-bold [&_dt]:text-base">
+      <dl className="[&_dt]:text-muted-foreground grid grid-cols-2 gap-2 text-center [&_dd]:font-mono [&_dd]:text-xl [&_dd]:font-bold [&_dt]:text-base">
         <div>
           <dt>{t('game.resources.units')}</dt>
           <dd>{territories.reduce((sum, territory) => sum + territory.geoUnitIds.length, 0)}</dd>
@@ -68,44 +83,56 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
           <dt>{t('game.resources.total')}</dt>
           <dd>{total}</dd>
         </div>
-        <div>
-          <dt>{t('game.resources.unallocated')}</dt>
-          <dd aria-live="polite" className={unallocated > 0 ? 'text-danger' : undefined}>
-            {unallocated}
-          </dd>
-        </div>
       </dl>
 
-      <ul className="flex flex-col gap-3">
+      <p className={editable ? 'text-muted-foreground' : 'text-danger'}>
+        {t(editable ? 'game.resources.radarHint' : 'game.resources.onlyPreliminary')}
+      </p>
+      {territories.length < 2 ? (
+        <p className="text-muted-foreground">{t('game.resources.single')}</p>
+      ) : (
+        <AllocationRadar
+          axes={territories.map((territory) => ({
+            id: territory.id,
+            name: territory.name,
+            locked: !editable || territory.battleId !== null,
+          }))}
+          amounts={draft}
+          total={total}
+          onChange={(id, wanted) => {
+            apply.reset()
+            // Always from where the gesture began: rebalancing step after step would
+            // let the rounding of each step pile up on the same territories.
+            origin.current ??= latest.current
+            change(rebalance(origin.current, id, wanted, lockedIds))
+          }}
+          onCommit={() => {
+            origin.current = null
+            commit()
+          }}
+        />
+      )}
+
+      <ul className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
         {territories.map((territory) => {
           const amount = draft[territory.id] ?? 0
           return (
-            <li key={territory.id} className="flex flex-col gap-1.5">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="truncate">
-                  {territory.name}
-                  {territory.battleId && (
-                    <span className="text-danger"> · {t('game.resources.locked')}</span>
-                  )}
-                  {territory.id === props.capitalId && (
-                    <span className="text-muted-foreground"> · {t('match.unit.capital')}</span>
-                  )}
+            <li key={territory.id} className="flex items-baseline justify-between gap-3">
+              <span className="truncate">
+                {territory.name}
+                {territory.battleId && (
+                  <span className="text-danger"> · {t('game.resources.locked')}</span>
+                )}
+                {territory.id === props.capitalId && (
+                  <span className="text-muted-foreground"> · {t('match.unit.capital')}</span>
+                )}
+              </span>
+              <span className="font-mono font-bold whitespace-nowrap">
+                {amount}{' '}
+                <span className="text-muted-foreground font-normal">
+                  {total > 0 ? Math.round((amount / total) * 100) : 0}%
                 </span>
-                <span className="font-mono font-bold">{amount}</span>
-              </div>
-              <Slider
-                aria-label={t('game.resources.sliderOf', { name: territory.name })}
-                min={0}
-                // The scale is the whole treasury, so every slider reads the same way.
-                max={Math.max(total, 1)}
-                step={1}
-                value={[amount]}
-                // A municipality in a battle can neither give nor receive resources.
-                disabled={territory.battleId !== null}
-                onValueChange={([wanted]) =>
-                  change(setAmount(draft, total, territory.id, wanted ?? 0))
-                }
-              />
+              </span>
             </li>
           )
         })}
@@ -116,39 +143,34 @@ function Editor(props: { state: MatchState; territories: Territory[]; capitalId:
           {errorText(apply.error)}
         </p>
       )}
-      {unallocated > 0 && (
-        <p className="text-muted-foreground">
-          {t('game.resources.assignAll', { count: unallocated })}
-        </p>
-      )}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Button
           variant="outline"
           size="sm"
-          onClick={() =>
-            change({
+          disabled={!editable || free.length < 2 || apply.isPending}
+          onClick={() => {
+            const next = {
               // Municipalities in a battle keep what they have; the rest is divided.
               ...draft,
               ...splitEqually(
                 free.map((territory) => territory.id),
-                total - locked.reduce((sum, territory) => sum + (territory.resources ?? 0), 0),
+                free.reduce((sum, territory) => sum + (draft[territory.id] ?? 0), 0),
                 props.capitalId,
               ),
-            })
-          }
+            }
+            change(next)
+            commit(next)
+          }}
         >
           {t('game.resources.equal')}
         </Button>
-        <Button variant="quiet" size="sm" disabled={!dirty} onClick={() => change(saved)}>
-          {t('game.resources.cancel')}
-        </Button>
-        <Button
-          size="sm"
-          disabled={!dirty || unallocated !== 0 || apply.isPending}
-          onClick={() => apply.mutate()}
-        >
-          {t('game.resources.apply')}
-        </Button>
+        <p role="status" className="text-muted-foreground text-base">
+          {apply.isPending
+            ? t('game.resources.saving')
+            : apply.isSuccess
+              ? t('game.resources.saved')
+              : ''}
+        </p>
       </div>
     </div>
   )
@@ -215,6 +237,7 @@ export function ResourcesPage({ state }: { state: MatchState }) {
         .sort((a, b) => a.name.localeCompare(b.name)),
     [mine?.id, state.territories],
   )
+  const phase = usePhase(state.match)
   if (!mine) return null
   const total = territories.reduce((sum, territory) => sum + (territory.resources ?? 0), 0)
 
@@ -229,6 +252,7 @@ export function ResourcesPage({ state }: { state: MatchState }) {
         state={state}
         territories={territories}
         capitalId={mine.capitalTerritoryId}
+        editable={phase === 'PRELIMINARY'}
       />
       <IncomeRule state={state} territories={territories} />
     </section>

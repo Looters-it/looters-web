@@ -546,7 +546,8 @@
       "HAS_PLAYERS": "Ci sono già altri giocatori: la partita non si può più eliminare.",
       "SINGLEPLAYER": "Questa partita si gioca da soli.",
       "NOT_PRIVATE": "Solo una partita privata ha inviti.",
-      "OWN_MATCH": "La partita è già tua."
+      "OWN_MATCH": "La partita è già tua.",
+      "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -616,7 +617,13 @@
       "ruleEqual": "Diviso in parti uguali tra i comuni",
       "ruleWeighted": "In proporzione alle risorse di adesso",
       "ruleHint": "La regola vale per tutti i turni finché non la cambi. Scegliendo la proporzione, i pesi restano quelli di questo momento.",
-      "locked": "bloccato: in uno scontro"
+      "locked": "bloccato: in uno scontro",
+      "radar": "Ripartizione delle risorse tra i tuoi comuni",
+      "radarHint": "Trascina il punto di un comune per cambiarne la quota: gli altri si adattano in proporzione e il nuovo equilibrio si salva da solo.",
+      "onlyPreliminary": "Le risorse si spostano solo nella fase preliminare del turno.",
+      "single": "Con un solo comune non c'è nulla da ripartire.",
+      "saving": "Salvataggio…",
+      "saved": "Salvato."
     },
     "unit": {
       "title": "Scheda del comune",
@@ -958,6 +965,14 @@
       "text": "Il tuo impero finisce qui: tutti i tuoi territori resteranno senza proprietario, con le loro risorse, e chiunque potrà annetterli. Potrai ancora guardare la partita, ma non rientrarci. Non si può annullare.",
       "cancel": "Resta in partita",
       "confirm": "Abbandona"
+    },
+    "phase": {
+      "PRELIMINARY": "Preliminare",
+      "ACTION": "Azione",
+      "timeLeft": "Tempo alla fine della fase preliminare",
+      "actionBegins": "Azione!",
+      "waitAction": "Annessioni e attacchi si fanno dopo la fase preliminare del turno.",
+      "onlyPreliminary": "Si fa solo nella fase preliminare del turno."
     }
   },
   "crash": {

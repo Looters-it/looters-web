@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { MatchState } from '@/features/matches/api'
 
+import { usePhase } from './phase'
 import { tick, turnSound } from './tick'
 
 /** How long the announcement of a new turn stays, and from which second the end is counted. */
@@ -30,8 +31,18 @@ export function TurnAnnouncer({
   const [now, setNow] = useState(() => Date.now())
   // The turn the page opened on is not news: only the ones that begin while it is watched.
   const [seenTurn, setSeenTurn] = useState(match.currentTurn)
-  const [announced, setAnnounced] = useState<number | null>(null)
+  // What is announced: the number of a turn that begins or, with 'action', its second part.
+  const [announced, setAnnounced] = useState<number | 'action' | null>(null)
   const running = match.status === 'ONGOING'
+  const phase = usePhase(match)
+  const [seenPhase, setSeenPhase] = useState(phase)
+  if (phase !== seenPhase) {
+    setSeenPhase(phase)
+    // The preliminary part gave way to the action within the turn being watched.
+    if (seenPhase === 'PRELIMINARY' && phase === 'ACTION' && match.currentTurn === seenTurn) {
+      setAnnounced('action')
+    }
+  }
   // Read when a sound is due, without making the sound itself depend on the switch.
   const soundRef = useRef(sound)
   useEffect(() => {
@@ -51,7 +62,7 @@ export function TurnAnnouncer({
   useEffect(() => {
     if (announced === null) return
     // A sound of its own for the turn that begins, unlike the ticking and the warnings.
-    if (part === 'turn' && soundRef.current) turnSound()
+    if (part === 'turn' && soundRef.current && announced !== 'action') turnSound()
     const timer = setTimeout(() => setAnnounced(null), NEW_TURN_MS)
     return () => clearTimeout(timer)
   }, [announced, part])
@@ -79,7 +90,14 @@ export function TurnAnnouncer({
           role="status"
           className="bg-background/90 animate-in fade-in zoom-in-75 font-display rounded-2xl px-10 pt-6 pb-4 text-5xl shadow-lg duration-300 sm:text-7xl"
         >
-          {t('game.turn.begins', { turn: announced })}
+          {announced === 'action'
+            ? t('game.phase.actionBegins')
+            : t('game.turn.begins', { turn: announced })}
+          {announced !== 'action' && phase === 'PRELIMINARY' && (
+            <span className="text-muted-foreground block text-center font-sans text-xl sm:text-2xl">
+              {t('game.phase.PRELIMINARY')}
+            </span>
+          )}
         </p>
       </div>
     )

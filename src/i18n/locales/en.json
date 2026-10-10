@@ -546,7 +546,8 @@
       "HAS_PLAYERS": "Other players are already in: the match can no longer be deleted.",
       "SINGLEPLAYER": "This match is played alone.",
       "NOT_PRIVATE": "Only a private match has invitations.",
-      "OWN_MATCH": "The match is already yours."
+      "OWN_MATCH": "The match is already yours.",
+      "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -616,7 +617,13 @@
       "ruleEqual": "Split equally among the municipalities",
       "ruleWeighted": "In proportion to the current resources",
       "ruleHint": "The rule applies to every turn until you change it. If you choose the proportion, the weights stay as they are at this moment.",
-      "locked": "locked: in a battle"
+      "locked": "locked: in a battle",
+      "radar": "How the resources are split among your municipalities",
+      "radarHint": "Drag the point of a municipality to change its share: the others adapt in proportion and the new balance saves itself.",
+      "onlyPreliminary": "Resources are moved only in the preliminary phase of the turn.",
+      "single": "With one municipality there is nothing to split.",
+      "saving": "Saving…",
+      "saved": "Saved."
     },
     "unit": {
       "title": "Municipality details",
@@ -958,6 +965,14 @@
       "text": "Your empire ends here: all your territories will be left without an owner, with their resources, and anyone can annex them. You can still watch the match, but not come back into it. This cannot be undone.",
       "cancel": "Stay in the match",
       "confirm": "Abandon"
+    },
+    "phase": {
+      "PRELIMINARY": "Preliminary",
+      "ACTION": "Action",
+      "timeLeft": "Time left in the preliminary phase",
+      "actionBegins": "Action!",
+      "waitAction": "Annexations and attacks come after the preliminary phase of the turn.",
+      "onlyPreliminary": "Only in the preliminary phase of the turn."
     }
   },
   "crash": {

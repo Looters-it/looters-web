@@ -27,6 +27,8 @@ export interface MatchSummary {
   turnHours: number
   currentTurn: number
   turnEndsAt: string | null
+  /** Until then the turn is in its preliminary part; null when no turn is being played. */
+  preliminaryEndsAt: string | null
   finishedAt: string | null
   /** The winner, once the match is over. */
   winnerEmpireId: string | null
