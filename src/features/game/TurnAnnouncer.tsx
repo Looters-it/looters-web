@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import type { MatchState } from '@/features/matches/api'
 
+import { tick } from './tick'
+
 /** How long the announcement of a new turn stays, and from which second the end is counted. */
 const NEW_TURN_MS = 2600
 const COUNT_FROM = 10
@@ -12,7 +14,14 @@ const COUNT_FROM = 10
  * of the map: the last ten seconds of a turn counted one by one, and the number of
  * the new turn when it begins. It goes by itself.
  */
-export function TurnAnnouncer({ match }: { match: MatchState['match'] }) {
+export function TurnAnnouncer({
+  match,
+  sound,
+}: {
+  match: MatchState['match']
+  /** Whether the last seconds are also heard: the tick of a clock, one a second. */
+  sound: boolean
+}) {
   const { t } = useTranslation()
   const [now, setNow] = useState(() => Date.now())
   // The turn the page opened on is not news: only the ones that begin while it is watched.
@@ -36,11 +45,17 @@ export function TurnAnnouncer({ match }: { match: MatchState['match'] }) {
     return () => clearTimeout(timer)
   }, [announced])
 
-  if (!running) return null
-  const left = match.turnEndsAt
-    ? Math.ceil((new Date(match.turnEndsAt).getTime() - now) / 1000)
-    : null
+  const left =
+    running && match.turnEndsAt
+      ? Math.ceil((new Date(match.turnEndsAt).getTime() - now) / 1000)
+      : null
   const counting = announced === null && left !== null && left >= 1 && left <= COUNT_FROM
+
+  // The clock ticks once for every second counted: tic on the even ones, tac on the odd.
+  const second = counting ? left : null
+  useEffect(() => {
+    if (sound && second !== null) tick(second % 2 === 0)
+  }, [sound, second])
 
   if (announced === null && !counting) return null
 

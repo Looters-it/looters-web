@@ -937,6 +937,10 @@
       "ending_one": "Il turno finisce tra {{count}} secondo.",
       "ending_other": "Il turno finisce tra {{count}} secondi.",
       "endingShort": "Fine del turno"
+    },
+    "sound": {
+      "on": "Attiva i suoni",
+      "off": "Disattiva i suoni"
     }
   },
   "crash": {

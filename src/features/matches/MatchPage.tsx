@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
-import { ChevronLeft, ChevronRight, ScrollText, Trophy } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ScrollText, Trophy, Volume2, VolumeX } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { AttackToasts } from '@/features/game/AttackToasts'
+import { unlockSoundOnFirstGesture } from '@/features/game/tick'
 import { TurnAnnouncer } from '@/features/game/TurnAnnouncer'
 import { Board } from '@/features/game/Board'
 import { BoardToasts } from '@/features/game/BoardToasts'
@@ -184,6 +185,15 @@ export function MatchPage() {
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
   const [sheet, setSheet] = useState<Sheet | null>(null)
+  // The sounds of the match, on unless the player turned them off on this device.
+  const [sound, setSound] = useState(() => {
+    try {
+      return localStorage.getItem('match.sound') !== 'off'
+    } catch {
+      return true
+    }
+  })
+  useEffect(() => unlockSoundOnFirstGesture(), [])
   // The attack on a capital that already opened its dialog by itself: once is enough.
   const [urgentShown, setUrgentShown] = useState<string | null>(null)
   // Whether the player has already been told, on this device, that their empire fell.
@@ -683,7 +693,7 @@ export function MatchPage() {
               top right (on a phone, under the controls of the map): the turn that ends
               or begins, then the attacks on the player. */}
           <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-3 md:right-[13.5rem] md:left-[21rem] md:mx-auto md:max-w-[30rem]">
-            {!reviewing && <TurnAnnouncer match={match} />}
+            {!reviewing && <TurnAnnouncer match={match} sound={sound} />}
             <AttackToasts state={state} onRespond={() => setAlertOpen(true)} />
           </div>
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}
@@ -726,6 +736,22 @@ export function MatchPage() {
             {(match.status === 'ONGOING' || match.status === 'FINISHED') && (
               <MapFab label={t('game.menu.history')} onClick={() => setSheet('history')}>
                 <ScrollText aria-hidden="true" />
+              </MapFab>
+            )}
+            {match.status === 'ONGOING' && (
+              <MapFab
+                label={t(sound ? 'game.sound.off' : 'game.sound.on')}
+                onClick={() => {
+                  const next = !sound
+                  setSound(next)
+                  try {
+                    localStorage.setItem('match.sound', next ? 'on' : 'off')
+                  } catch {
+                    // Not remembered, that is all.
+                  }
+                }}
+              >
+                {sound ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
               </MapFab>
             )}
           </div>

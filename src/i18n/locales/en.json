@@ -937,6 +937,10 @@
       "ending_one": "The turn ends in {{count}} second.",
       "ending_other": "The turn ends in {{count}} seconds.",
       "endingShort": "End of the turn"
+    },
+    "sound": {
+      "on": "Turn the sounds on",
+      "off": "Turn the sounds off"
     }
   },
   "crash": {
