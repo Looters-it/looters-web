@@ -238,7 +238,7 @@ export function AlliancePage({ state }: { state: MatchState }) {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="alliance-title">
-      <h2 id="alliance-title" className="text-lg">
+      <h2 id="alliance-title" className="sr-only">
         {t('game.alliance.title')}
       </h2>
       <p className="text-muted-foreground text-base">

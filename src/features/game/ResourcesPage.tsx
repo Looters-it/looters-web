@@ -220,7 +220,7 @@ export function ResourcesPage({ state }: { state: MatchState }) {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="resources-title">
-      <h2 id="resources-title" className="text-lg">
+      <h2 id="resources-title" className="sr-only">
         {t('game.resources.title')}
       </h2>
       {/* Keyed by what the server holds: income or an annexation restarts the editor from the truth. */}

@@ -103,9 +103,6 @@ function StructureCard(props: {
             ))}
           </SelectContent>
         </Select>
-        {props.active && (
-          <p className="text-muted-foreground text-base">{t('game.structures.whereHint')}</p>
-        )}
       </div>
 
       {/* The reason is always spelled out when it cannot be built. */}
@@ -232,7 +229,7 @@ export function BuildPage(props: {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="build-title">
-      <h2 id="build-title" className="text-lg">
+      <h2 id="build-title" className="sr-only">
         {t('game.structures.title')}
       </h2>
       <p className="text-muted-foreground text-base">{t('game.structures.intro')}</p>

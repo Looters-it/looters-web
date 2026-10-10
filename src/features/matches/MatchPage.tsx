@@ -4,7 +4,19 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
-import { ChevronLeft, ChevronRight, ScrollText, Trophy, Volume2, VolumeX } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  Combine,
+  Hammer,
+  Handshake,
+  ScrollText,
+  Trophy,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
   Dialog,
@@ -49,16 +61,22 @@ import { InvitePanel } from './InvitePanel'
 import { OwnerPanel } from './OwnerPanel'
 
 /**
- * What the panel shows. Inside an entry the menu gives way to a single "Menu"
- * button. Only what needs the map beside it lives here: the rest opens in a dialog.
+ * What the card over the map shows: the match itself, the way into it for who is
+ * not in yet, or the municipality that was picked and the attack prepared on it.
+ * Everything else opens in a dialog.
  */
-type View = 'menu' | 'match' | 'merge' | 'build' | 'unit' | 'attack'
+type View = 'info' | 'match' | 'unit' | 'attack'
 
 /** What opens in a dialog over the page. */
-type Sheet = 'empire' | 'leaderboard' | 'history' | 'resources' | 'alliance'
+type Sheet = 'empire' | 'leaderboard' | 'history' | 'resources' | 'merge' | 'build' | 'alliance'
 
-/** The pages of the empire, in the order of the menu: some in the panel, some in a dialog. */
-const EMPIRE_PAGES = ['resources', 'merge', 'build', 'alliance'] as const
+/** The pages of the empire, each behind its round button on the map. */
+const EMPIRE_SHEETS = [
+  ['resources', Coins],
+  ['merge', Combine],
+  ['build', Hammer],
+  ['alliance', Handshake],
+] as const
 
 const NOTHING: never[] = []
 const MAP_VIEWS: MapView[] = ['political', 'alliances', 'resources']
@@ -127,8 +145,8 @@ function MatchInfo({ state }: { state: MatchState }) {
   )
 }
 
-/** How long a turn lasts and when the match ends: said at the foot of the menu. */
-function MatchTimes({ match }: { match: MatchState['match'] }) {
+/** How long a turn lasts, when the match ends and who is here now: the foot of the card. */
+function MatchTimes({ match, online }: { match: MatchState['match']; online: string | null }) {
   const { t } = useTranslation()
   const format = useMatchFormat()
   // The last day: as many days after the start as the match may last.
@@ -137,6 +155,7 @@ function MatchTimes({ match }: { match: MatchState['match'] }) {
     : null
   return (
     <ul className="text-muted-foreground mt-auto text-base">
+      {online && <li>{online}</li>}
       <li>
         {/* In the unit that says it in a whole number: 30 seconds, not a fraction of an hour. */}
         {match.turnHours * 60 < 1
@@ -158,14 +177,14 @@ function MapFab(props: { label: string; onClick: () => void; children: ReactNode
       aria-label={props.label}
       title={props.label}
       onClick={props.onClick}
-      className="bg-background hover:bg-accent flex size-12 cursor-pointer items-center justify-center rounded-full shadow-md transition-colors [&_svg]:size-6"
+      className="bg-background hover:bg-accent flex size-10 cursor-pointer items-center justify-center rounded-full shadow-md transition-colors md:size-12 [&_svg]:size-5 md:[&_svg]:size-6"
     >
       {props.children}
     </button>
   )
 }
 
-/** The page of a match: the map on one side, the panel with its menu on the other. */
+/** The page of a match: the map on the whole screen, and over it a card and the controls. */
 export function MatchPage() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
@@ -407,19 +426,12 @@ export function MatchPage() {
   }, [state, targetIds, units.data])
 
   const mineId = state?.me?.empireId
-  const pickingOwn = chosenView === 'merge' || chosenView === 'build'
   // What is lit on the map: the empire pointed at in the ranking, or the free
   // neighbours of the player's own municipality that is selected.
   const highlighted = useMemo(() => {
     if (hoveredEmpire) {
       return (state?.territories ?? [])
         .filter((territory) => territory.ownerEmpireId === hoveredEmpire)
-        .flatMap((territory) => territory.geoUnitIds)
-    }
-    // Choosing territories for a merge or a structure: the player's own are lit.
-    if (pickingOwn) {
-      return (state?.territories ?? [])
-        .filter((territory) => territory.ownerEmpireId === mineId)
         .flatMap((territory) => territory.geoUnitIds)
     }
     // While an attack is prepared: the own territories that can join it.
@@ -435,7 +447,7 @@ export function MatchPage() {
       return card.neighbours.filter((n) => n.ownerEmpireId === null).map((n) => n.geoUnitId)
     }
     return []
-  }, [attack, card, hoveredEmpire, mineId, pickingOwn, selected?.id, state?.territories])
+  }, [attack, card, hoveredEmpire, mineId, selected?.id, state?.territories])
 
   // Territories that are the target of an open battle are marked for everyone.
   const attacked = useMemo(() => {
@@ -496,12 +508,16 @@ export function MatchPage() {
   }
   const fallen = match.status !== 'FINISHED' && state.me?.status === 'FALLEN'
 
-  // Registering happens in "La partita"; a player lands on the menu.
-  const view: View = chosenView ?? (mine ? 'menu' : 'match')
+  // Who is not in the match yet has the way into it in front; a player has the match.
+  const view: View = joining ? 'match' : (chosenView ?? 'info')
   const open = (next: View) => {
     setView(next)
     setHoveredEmpire(null)
     if (next !== 'attack') setAttack(null)
+  }
+  const openSheet = (next: Sheet | null) => {
+    setSheet(next)
+    // What was being chosen in a dialog is dropped with it.
     if (next !== 'merge') setMerging([])
     if (next !== 'build') setBuilding(null)
   }
@@ -509,22 +525,6 @@ export function MatchPage() {
     // Looking at the past: the box says who owned the municipality then, nothing else opens.
     if (reviewing) {
       setSelected(unit)
-      return
-    }
-    // On the pages that choose own territories, a tap on the map chooses one.
-    if (view === 'merge' || view === 'build') {
-      const territory = unit ? ownership.byUnit.get(unit.id) : undefined
-      if (!territory || territory.ownerEmpireId !== mineId) return
-      if (view === 'merge') {
-        if (territory.battleId !== null) return
-        setMerging((chosen) =>
-          chosen.includes(territory.id)
-            ? chosen.filter((other) => other !== territory.id)
-            : [...chosen, territory.id],
-        )
-      } else if (building) {
-        setBuilding({ ...building, territoryId: territory.id })
-      }
       return
     }
     // While an attack is prepared, tapping an own territory that can join it adds or
@@ -545,10 +545,9 @@ export function MatchPage() {
     setSelected(unit)
     // A player who taps a municipality gets its card; someone registering keeps the form.
     if (unit && !joining) setView('unit')
-    if (!unit && view === 'unit') setView('menu')
+    if (!unit && view === 'unit') setView('info')
   }
 
-  // A fallen empire has nothing left to manage.
   // The crossed swords on the map: pressing them prepares the attack on that territory,
   // as the card of the municipality would, without passing through it.
   const onMarker = (markerId: string) => {
@@ -576,20 +575,6 @@ export function MatchPage() {
       .catch(() => onMapSelect(unit))
   }
 
-  const menu = mine && !fallen && (
-    <nav className="flex flex-col" aria-label={t('game.menu.empire')}>
-      {EMPIRE_PAGES.map((page) => (
-        <MenuButton
-          key={page}
-          // Choosing territories on the map needs the map: those stay in the panel.
-          onClick={() => (page === 'merge' || page === 'build' ? open(page) : setSheet(page))}
-        >
-          {t(`game.menu.${page}`)}
-        </MenuButton>
-      ))}
-    </nav>
-  )
-
   const matchView = (
     <div className="flex flex-col gap-6">
       {joining && (
@@ -610,11 +595,11 @@ export function MatchPage() {
   )
 
   return (
-    <div className="flex flex-col max-lg:-mt-14 md:h-dvh md:flex-row">
+    <div className="relative flex flex-col max-lg:-mt-14 md:h-dvh">
       {hasMap && area.data ? (
         <div
           className={cn(
-            'relative h-[calc(100dvh-3.5rem)] flex-none md:h-auto md:flex-1',
+            'relative h-[calc(100dvh-3.5rem)] flex-none md:h-full',
             phoneTab !== 'map' && 'hidden md:block',
           )}
         >
@@ -770,7 +755,7 @@ export function MatchPage() {
           {/* The announcements, at the top of the map between the search and what stands
               top right (on a phone, under the controls of the map): the turn that ends
               or begins, then the attacks on the player. */}
-          <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-3 md:right-[13.5rem] md:left-[21rem] md:mx-auto md:max-w-[30rem]">
+          <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-[11rem] md:right-auto md:w-80 xl:top-3 xl:right-[29.5rem] xl:left-[21rem] xl:mx-auto xl:w-auto xl:max-w-[30rem]">
             {!reviewing && <TurnAnnouncer part="count" match={match} sound={sound} />}
             <AttackToasts state={state} sound={sound} onRespond={() => setAlertOpen(true)} />
           </div>
@@ -785,20 +770,13 @@ export function MatchPage() {
               }}
             />
           )}
-          {/* Top right, beside the zoom: who is here now, then the round buttons that
-              open the empire, the leaderboard and the history. */}
-          <div className="absolute top-3 right-16 z-10 flex flex-col items-end gap-2 max-md:hidden">
-            {match.status !== 'FINISHED' && (
-              <p className="bg-background rounded-pill flex h-11 items-center px-4 text-base whitespace-nowrap shadow-md">
-                {t('game.hud.online', { count: connected, total: state.online.total })}
-              </p>
-            )}
-          </div>
-          <div className="absolute top-28 right-3 z-10 flex flex-col gap-2">
+          {/* On the right edge, under the zoom: the round buttons that open the empire
+              and its pages, the leaderboard and the history, each in a dialog. */}
+          <div className="absolute top-28 right-3 z-10 flex flex-col gap-1.5 md:gap-2">
             {mine && (
               <MapFab
                 label={t('game.fab.empire', { name: mine.name })}
-                onClick={() => setSheet('empire')}
+                onClick={() => openSheet('empire')}
               >
                 <EmpireShield
                   color={mine.color}
@@ -808,11 +786,19 @@ export function MatchPage() {
                 />
               </MapFab>
             )}
-            <MapFab label={t('game.menu.leaderboard')} onClick={() => setSheet('leaderboard')}>
+            {/* A fallen empire has nothing left to manage. */}
+            {mine &&
+              !fallen &&
+              EMPIRE_SHEETS.map(([page, Icon]) => (
+                <MapFab key={page} label={t(`game.menu.${page}`)} onClick={() => openSheet(page)}>
+                  <Icon aria-hidden="true" />
+                </MapFab>
+              ))}
+            <MapFab label={t('game.menu.leaderboard')} onClick={() => openSheet('leaderboard')}>
               <Trophy aria-hidden="true" />
             </MapFab>
             {(match.status === 'ONGOING' || match.status === 'FINISHED') && (
-              <MapFab label={t('game.menu.history')} onClick={() => setSheet('history')}>
+              <MapFab label={t('game.menu.history')} onClick={() => openSheet('history')}>
                 <ScrollText aria-hidden="true" />
               </MapFab>
             )}
@@ -869,40 +855,49 @@ export function MatchPage() {
         <div className="bg-muted hidden flex-1 md:block" />
       )}
 
+      {/* Top right, beside the round buttons: the one card over the map. It says what
+          match this is and, when a municipality is picked, becomes its card. On a phone
+          it is a tab of its own. */}
       <aside
         className={cn(
-          'flex w-full flex-col gap-5 overflow-y-auto p-4 pb-20 max-lg:pt-16 md:w-[26rem] md:flex-none md:pb-4',
+          'flex w-full flex-col gap-4 overflow-y-auto p-4 pb-20 max-lg:pt-16',
+          'md:bg-background md:absolute md:top-3 md:right-[4.5rem] md:z-10 md:max-h-[calc(100dvh-5.5rem)] md:w-[22rem] md:rounded-lg md:p-4 md:shadow-md lg:w-[24rem]',
           hasMap && phoneTab !== 'panel' && 'hidden md:flex',
         )}
       >
-        {view === 'menu' ? (
+        {view === 'info' ? (
           <>
             <MatchInfo state={state} />
-            {menu}
-            <MatchTimes match={match} />
+            <MatchTimes
+              match={match}
+              online={
+                match.status !== 'FINISHED'
+                  ? t('game.hud.online', { count: connected, total: state.online.total })
+                  : null
+              }
+            />
           </>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* The way back: on a phone as tall as a fingertip needs. */}
+            {view !== 'match' && (
               <Button
                 variant="quiet"
-                size="sm"
-                className="max-md:h-10 max-md:px-4"
-                onClick={() => open('menu')}
+                size="icon-sm"
+                className="self-end max-md:size-10"
+                aria-label={t('game.menu.close')}
+                onClick={() => {
+                  setSelected(null)
+                  open('info')
+                }}
               >
-                {t('game.menu.back')}
+                <X aria-hidden="true" />
               </Button>
-            </div>
+            )}
             {view === 'match' && (
               <>
                 <MatchInfo state={state} />
                 {matchView}
               </>
-            )}
-            {view === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
-            {view === 'build' && (
-              <BuildPage state={state} picking={building} onPicking={setBuilding} />
             )}
             {view === 'unit' && selected && (
               <UnitPanel
@@ -939,7 +934,7 @@ export function MatchPage() {
       )}
 
       {/* Everything that does not need the map beside it opens over the page. */}
-      <Dialog open={sheet !== null} onOpenChange={(next) => !next && setSheet(null)}>
+      <Dialog open={sheet !== null} onOpenChange={(next) => !next && openSheet(null)}>
         <DialogContent className="flex max-h-[90dvh] flex-col gap-5 overflow-y-auto sm:max-w-2xl">
           <DialogTitle className="text-2xl">
             {sheet === 'empire' ? (mine?.name ?? '') : sheet ? t(`game.menu.${sheet}`) : ''}
@@ -956,6 +951,10 @@ export function MatchPage() {
           )}
           {sheet === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
           {sheet === 'resources' && <ResourcesPage state={state} />}
+          {sheet === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
+          {sheet === 'build' && (
+            <BuildPage state={state} picking={building} onPicking={setBuilding} />
+          )}
           {sheet === 'alliance' && <AlliancePage state={state} />}
           {sheet === 'history' && (
             <HistoryPage
@@ -1042,18 +1041,5 @@ export function MatchPage() {
         </div>
       )}
     </div>
-  )
-}
-
-/** An entry of the match menu: set like the entries of the main menu of the game. */
-function MenuButton(props: { onClick: () => void; children: string }) {
-  return (
-    <button
-      type="button"
-      onClick={props.onClick}
-      className="font-display focus-visible:outline-ring cursor-pointer rounded-md px-3 py-1 text-center text-base tracking-[0.02em] focus-visible:outline-2"
-    >
-      {props.children}
-    </button>
   )
 }

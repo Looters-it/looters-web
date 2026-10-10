@@ -9,7 +9,7 @@ import { matchApi, type MatchState } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 
 /**
- * Merging own territories into one area: chosen here or on the map, with
+ * Merging own territories into one area: chosen from the list, with
  * the cost and, when it cannot be done, the reason (PROMPT §2.10, §11).
  */
 export function MergePage(props: {
@@ -64,7 +64,7 @@ export function MergePage(props: {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="merge-title">
-      <h2 id="merge-title" className="text-lg">
+      <h2 id="merge-title" className="sr-only">
         {t('game.merge.title')}
       </h2>
       <p className="text-muted-foreground text-base">{t('game.merge.intro')}</p>
