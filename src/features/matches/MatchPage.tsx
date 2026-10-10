@@ -40,6 +40,7 @@ import { historyQuery, turnQuery } from '@/features/game/history'
 import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
 import { empireTags } from '@/features/game/tags'
+import { StatusBadge, unitStatus } from '@/features/game/StatusBadge'
 import { UnitSearch } from '@/features/game/UnitSearch'
 import { Leaderboard } from '@/features/game/Leaderboard'
 import { MergePage } from '@/features/game/MergePage'
@@ -659,13 +660,17 @@ export function MatchPage() {
                           ? t('match.unit.hidden')
                           : t('match.unit.resources', { count: territory.resources })}
                       </p>
+                      <StatusBadge
+                        status={unitStatus(true, territory.battleId !== null)}
+                        className="self-start"
+                      />
                       {empire.capitalTerritoryId === territory.id && (
                         <p>{t('match.unit.capital')}</p>
                       )}
                       {territory.protected && <p>{t('match.unit.protected')}</p>}
                     </>
                   ) : (
-                    <p className="text-muted-foreground">{t('match.unit.free')}</p>
+                    <StatusBadge status="neutral" className="self-start" />
                   )}
                 </UnitCard>
               )

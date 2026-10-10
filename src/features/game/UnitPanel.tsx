@@ -20,6 +20,7 @@ import {
   type UnitCardData,
 } from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
+import { StatusBadge, unitStatus } from './StatusBadge'
 import { useMatchErrorText } from '@/features/matches/errors'
 
 /** The action on a free municipality: annex it, paying from an adjacent own territory. */
@@ -279,12 +280,13 @@ export function UnitPanel(props: {
               </p>
             )}
             {isAlly && <p>{t('game.unit.ally')}</p>}
-            <p className="text-muted-foreground">
-              {t('game.unit.state')}:{' '}
-              {card.data.territory.inBattle ? t('game.unit.war') : t('game.unit.peace')}
-              {owner?.capitalTerritoryId === card.data.territory.id &&
-                ` · ${t('match.unit.capital')}`}
-              {card.data.territory.protected && ` · ${t('match.unit.protected')}`}
+            <p className="text-muted-foreground flex flex-wrap items-center gap-2">
+              <span className="sr-only">{t('game.unit.state')}:</span>
+              <StatusBadge status={unitStatus(owner !== undefined, card.data.territory.inBattle)} />
+              {owner?.capitalTerritoryId === card.data.territory.id && (
+                <span>{t('match.unit.capital')}</span>
+              )}
+              {card.data.territory.protected && <span>{t('match.unit.protected')}</span>}
             </p>
             {territoryState?.alert && <p className="text-danger">{t('game.unit.alert')}</p>}
             {territoryState?.isArea && (
