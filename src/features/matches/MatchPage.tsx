@@ -72,6 +72,9 @@ import { OwnerPanel } from './OwnerPanel'
  * not in yet, or the municipality that was picked and the attack prepared on it.
  * Everything else opens in a dialog.
  */
+/** How long what a territory earned stays written on the map. */
+const GAIN_SHOWN_MS = 4000
+
 type View = 'info' | 'match' | 'unit' | 'attack'
 
 /** What opens in a dialog over the page. */
@@ -420,12 +423,42 @@ export function MatchPage() {
     placeholderData: keepPreviousData,
   })
   const targetIds = canAct ? targets.data?.territoryIds : undefined
+  const annexIds = canAct ? targets.data?.annexUnitIds : undefined
+
+  // What each of the player's territories earned when a turn began, shown on the map
+  // for a moment: the difference with what it held when the turn before ended.
+  const [seenState, setSeenState] = useState(state)
+  const [gains, setGains] = useState<ReadonlyMap<string, number>>(new Map())
+  if (state !== seenState) {
+    setSeenState(state)
+    if (state && seenState && state.match.currentTurn > seenState.match.currentTurn) {
+      const before = new Map(seenState.territories.map((t) => [t.id, t.resources]))
+      const earned = new Map<string, number>()
+      for (const territory of state.territories) {
+        const had = before.get(territory.id)
+        if (territory.ownerEmpireId !== state.me?.empireId) continue
+        if (territory.resources === null || had === null || had === undefined) continue
+        if (territory.resources > had) earned.set(territory.id, territory.resources - had)
+      }
+      setGains(earned)
+    }
+  }
+  useEffect(() => {
+    if (gains.size === 0) return
+    const timer = setTimeout(() => setGains(new Map()), GAIN_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [gains])
 
   const markers = useMemo<MapMarker[]>(() => {
     const attackable = new Set(targetIds)
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
     const empireOf = new Map(state?.empires.map((empire) => [empire.capitalTerritoryId, empire]))
-    return (state?.territories ?? []).flatMap((territory) => {
+    // Free municipalities that can be annexed now: a flag to press, to annex at once.
+    const flags = (annexIds ?? []).flatMap((unitId): MapMarker[] => {
+      const point = points.get(unitId)
+      return point ? [{ id: `annex:${unitId}`, kind: 'annex', lon: point.lon, lat: point.lat }] : []
+    })
+    const signs = (state?.territories ?? []).flatMap((territory) => {
       const point = points.get(territory.geoUnitIds[0] ?? -1)
       if (!point) return []
       const at = { lon: point.lon, lat: point.lat }
@@ -449,6 +482,16 @@ export function MatchPage() {
         // It can be attacked now: crossed swords to press, to prepare the attack at once.
         ...(attackable.has(territory.id)
           ? [{ id: `attack:${territory.id}`, kind: 'attack' as const, ...at }]
+          : []),
+        ...(gains.has(territory.id)
+          ? [
+              {
+                id: `gain:${territory.id}`,
+                kind: 'gain' as const,
+                text: `+${gains.get(territory.id)}`,
+                ...at,
+              },
+            ]
           : []),
         // What the territory holds, where the viewer is allowed to know: seen at a glance.
         ...(territory.resources !== null
@@ -492,7 +535,8 @@ export function MatchPage() {
           ]),
       ]
     })
-  }, [state, targetIds, units.data])
+    return [...signs, ...flags]
+  }, [state, targetIds, annexIds, gains, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
@@ -620,11 +664,37 @@ export function MatchPage() {
   // The crossed swords on the map: pressing them prepares the attack on that territory,
   // as the card of the municipality would, without passing through it.
   const onMarker = (markerId: string) => {
-    if (!markerId.startsWith('attack:')) return
-    const territory = state.territories.find((t) => t.id === markerId.slice('attack:'.length))
-    const point = units.data?.find((unit) => unit.id === territory?.geoUnitIds[0])
+    const [kind, signId] = markerId.split(':')
+    if (kind !== 'attack' && kind !== 'annex') return
+    // An attack is on a territory, an annexation on a free municipality.
+    const unitId =
+      kind === 'annex'
+        ? Number(signId)
+        : state.territories.find((t) => t.id === signId)?.geoUnitIds[0]
+    const point = units.data?.find((unit) => unit.id === unitId)
     if (!point) return
     const unit = { id: point.id, name: point.name }
+    if (kind === 'annex') {
+      // The flag annexes at once, paid by the richest own municipality beside it. If it
+      // cannot be done any more, the card of the municipality says why.
+      void matchApi
+        .unit(id, point.id)
+        .then((target) => {
+          const payer = target.annex?.payFrom.find((candidate) => candidate.usable)
+          if (!payer) throw new Error('not annexable')
+          return matchApi.annex(id, {
+            geoUnitId: point.id,
+            payFromTerritoryId: payer.territoryId,
+            turn: state.match.currentTurn,
+          })
+        })
+        .then((next) => {
+          queryClient.setQueryData(['matches', 'state', id], next)
+          return queryClient.invalidateQueries({ queryKey: ['matches', 'unit', id] })
+        })
+        .catch(() => onMapSelect(unit))
+      return
+    }
     void matchApi
       .unit(id, point.id)
       .then((target) => {

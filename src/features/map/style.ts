@@ -1,7 +1,7 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 
 import type { AreaMap } from './api'
-import { SHIELD_ICON, SWORDS_ICON } from './shield-icon'
+import { ANNEX_ICON, SHIELD_ICON, SWORDS_ICON } from './shield-icon'
 import type { MapColors } from './theme'
 
 export const UNITS_SOURCE = 'units'
@@ -11,6 +11,7 @@ export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
 /** The signs of the territories that can be attacked: they are pressed like buttons. */
 export const ATTACK_LAYER = 'attack-swords'
+export const ANNEX_LAYER = 'annex-flags'
 export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 /** The fronts of the open battles: the border between who attacks and who is attacked. */
@@ -25,6 +26,7 @@ const FRONT_RED = '#e11d2e'
 /** The figures of the resources: yellow like coins, edged in white to stand out on any empire. */
 const RESOURCE_INK = '#f5b800'
 const RESOURCE_EDGE = '#ffffff'
+const GAIN_INK = '#1f9d55'
 
 /** Below this zoom empires are named; from it on, municipalities are. */
 export const EMPIRE_LABEL_MAX_ZOOM = 9
@@ -282,6 +284,42 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-halo-color': RESOURCE_EDGE,
           'text-halo-width': 1.6,
         },
+      },
+      {
+        // What a territory earned when the turn began: a green "+N" over its figure, for
+        // a moment.
+        id: 'resource-gains',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'gain'],
+        layout: {
+          'text-field': ['get', 'text'],
+          'text-font': [EMPIRE_FONT],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 12, 10, 17, 13, 21],
+          'text-offset': [0, -2.7],
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: {
+          'text-color': GAIN_INK,
+          'text-halo-color': RESOURCE_EDGE,
+          'text-halo-width': 2,
+        },
+      },
+      {
+        // Can be annexed now: a flag beside the free municipality, pressed like a button.
+        id: ANNEX_LAYER,
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'annex'],
+        layout: {
+          'icon-image': ANNEX_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 0.85, 14, 1.1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        // Beside the name of the municipality, not over it.
+        paint: { 'icon-translate': [16, 14] },
       },
       {
         // Can be attacked now: crossed swords beside the municipality, bottom right. Drawn

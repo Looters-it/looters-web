@@ -369,7 +369,8 @@ export const matchApi = {
   updateEmpire: (id: string, empire: EmpireIdentity) =>
     apiPatch<MatchState>(`/matches/${id}/empire`, empire),
   /** The territories the player can attack right now. */
-  targets: (id: string) => apiGet<{ territoryIds: string[] }>(`/matches/${id}/targets`),
+  targets: (id: string) =>
+    apiGet<{ territoryIds: string[]; annexUnitIds: number[] }>(`/matches/${id}/targets`),
   unit: (id: string, geoUnitId: number) =>
     apiGet<UnitCardData>(`/matches/${id}/units/${geoUnitId}`),
   annex: (id: string, body: { geoUnitId: number; payFromTerritoryId: string; turn: number }) =>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
+import { Flag, Swords } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import {
   type UnitCardData,
 } from '@/features/matches/api'
 import { EmpireShield } from '@/features/matches/Emblem'
+import { Countdown } from './Countdown'
 import { usePhase } from './phase'
 import { StatusBadge, unitStatus } from './StatusBadge'
 import { useMatchErrorText } from '@/features/matches/errors'
@@ -51,15 +53,16 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
   })
   if (!annex) return null
 
-  // The reason is always spelled out when the action is not possible.
+  // The reason is always spelled out when the municipality cannot be annexed at all.
   const blocked =
-    annex.left === 0
-      ? t('game.unit.annexNoneLeft')
-      : annex.payFrom.length === 0
-        ? t('game.unit.annexNotAdjacent')
-        : usable.length === 0
-          ? t('game.unit.annexNoFunds', { count: annex.cost })
-          : null
+    annex.payFrom.length === 0
+      ? t('game.unit.annexNotAdjacent')
+      : usable.length === 0
+        ? t('game.unit.annexNoFunds', { count: annex.cost })
+        : null
+  // It could be, but not now: the button stays, off, and says when or why.
+  const waiting = phase === 'PRELIMINARY' ? state.match.preliminaryEndsAt : null
+  const spent = annex.left === 0
 
   return (
     <section className="flex flex-col gap-2 rounded-md border p-3" aria-labelledby="annex-title">
@@ -99,12 +102,15 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
               {errorText(act.error)}
             </p>
           )}
-          {phase === 'PRELIMINARY' && (
-            <p className="text-muted-foreground">{t('game.phase.waitAction')}</p>
-          )}
-          <Button disabled={act.isPending || phase === 'PRELIMINARY'} onClick={() => act.mutate()}>
+          <Button
+            disabled={act.isPending || phase === 'PRELIMINARY' || spent}
+            onClick={() => act.mutate()}
+          >
+            <Flag aria-hidden="true" />
             {t('game.unit.annex')}
+            {waiting && <Countdown until={waiting} label={t('game.phase.timeLeft')} />}
           </Button>
+          {spent && <p className="text-muted-foreground">{t('game.unit.annexNoneLeft')}</p>}
         </>
       )}
     </section>
@@ -364,7 +370,14 @@ export function UnitPanel(props: {
                   title={phase === 'PRELIMINARY' ? t('game.phase.waitAction') : undefined}
                   onClick={() => card.data && props.onPrepareAttack?.(card.data)}
                 >
+                  <Swords aria-hidden="true" />
                   {t('game.unit.prepareAttack')}
+                  {phase === 'PRELIMINARY' && state.match.preliminaryEndsAt && (
+                    <Countdown
+                      until={state.match.preliminaryEndsAt}
+                      label={t('game.phase.timeLeft')}
+                    />
+                  )}
                 </Button>
               )}
             </section>

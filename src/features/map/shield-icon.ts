@@ -31,6 +31,43 @@ export function ensureShieldIcon(map: MapLibreMap): void {
   map.addImage(SHIELD_ICON, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
 }
 
+/** The name the sign of a municipality that can be annexed goes by on the map. */
+export const ANNEX_ICON = 'annex-flag'
+
+/**
+ * Makes sure the map has the sign of a free municipality that can be annexed now:
+ * a white flag on a green disc. A button drawn on the map: tapping it annexes.
+ */
+export function ensureAnnexIcon(map: MapLibreMap): void {
+  if (typeof map.hasImage !== 'function' || map.hasImage(ANNEX_ICON)) return
+  const side = 72
+  const canvas = document.createElement('canvas')
+  canvas.width = side
+  canvas.height = side
+  const context = typeof Path2D === 'undefined' ? null : canvas.getContext('2d')
+  if (!context) return
+  context.beginPath()
+  context.arc(side / 2, side / 2, side / 2 - 3, 0, Math.PI * 2)
+  context.fillStyle = '#1f9d55'
+  context.fill()
+  context.lineWidth = 4
+  context.strokeStyle = '#ffffff'
+  context.stroke()
+  // The flag, on a 24 by 24 grid set in the middle of the disc.
+  const scale = 1.75
+  context.translate((side - 24 * scale) / 2, (side - 24 * scale) / 2)
+  context.scale(scale, scale)
+  context.lineWidth = 2
+  context.lineCap = 'round'
+  context.lineJoin = 'round'
+  context.fillStyle = '#ffffff'
+  const cloth = new Path2D('M5 15 C8 13 11 17 19 15 V4 C11 6 8 2 5 4 Z')
+  context.fill(cloth)
+  context.stroke(cloth)
+  context.stroke(new Path2D('M5 22 V4'))
+  map.addImage(ANNEX_ICON, context.getImageData(0, 0, side, side), { pixelRatio: 2 })
+}
+
 /** The name the sign of a territory that can be attacked goes by on the map. */
 export const SWORDS_ICON = 'attack-swords'
 

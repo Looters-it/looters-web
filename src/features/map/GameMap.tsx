@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import type { AreaMap } from './api'
 import { diffFlags, diffState } from './feature-state'
 import {
+  ANNEX_LAYER,
   ATTACK_LAYER,
   AREAS_SOURCE,
   FRONTS_SOURCE,
@@ -35,7 +36,7 @@ import {
   UNITS_SOURCE,
 } from './style'
 import { capitalIconId, ensureCapitalIcons } from './capital-icon'
-import { ensureShieldIcon, ensureSwordsIcon } from './shield-icon'
+import { ensureShieldIcon, ensureSwordsIcon, ensureAnnexIcon } from './shield-icon'
 import { mapColors } from './theme'
 
 export interface MapUnit {
@@ -46,7 +47,16 @@ export interface MapUnit {
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
 export interface MapMarker {
   id: string
-  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected' | 'resources' | 'attack'
+  kind:
+    | 'capital'
+    | 'second-capital'
+    | 'alert'
+    | 'block'
+    | 'protected'
+    | 'resources'
+    | 'gain'
+    | 'attack'
+    | 'annex'
   lon: number
   lat: number
   /** Colour of the empire, for a capital. */
@@ -236,12 +246,16 @@ export function GameMap({
     })
     map.on('mouseleave', FILL_LAYER, () => setHover(null))
 
-    map.on('mouseenter', ATTACK_LAYER, () => {
-      map.getCanvas().style.cursor = 'pointer'
-    })
+    for (const layer of [ATTACK_LAYER, ANNEX_LAYER]) {
+      map.on('mouseenter', layer, () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+    }
     map.on('click', (event) => {
       // A sign that is a button comes before the municipality under it.
-      const sign = map.queryRenderedFeatures(event.point, { layers: [ATTACK_LAYER] })[0]
+      const sign = map.queryRenderedFeatures(event.point, {
+        layers: [ATTACK_LAYER, ANNEX_LAYER],
+      })[0]
       if (sign && onMarkerRef.current) {
         onMarkerRef.current(String(sign.properties.id ?? ''))
         return
@@ -363,6 +377,7 @@ export function GameMap({
     // The shield of the protected territories is the same for all: drawn once.
     if (markers.some((marker) => marker.kind === 'protected')) ensureShieldIcon(map)
     if (markers.some((marker) => marker.kind === 'attack')) ensureSwordsIcon(map)
+    if (markers.some((marker) => marker.kind === 'annex')) ensureAnnexIcon(map)
     // At once with what is there, then again when the arms of the capitals are drawn.
     write(new Set())
     let cancelled = false
