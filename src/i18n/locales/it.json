@@ -636,7 +636,9 @@
         "radial": "Focus radiale",
         "areaHint": "Le risorse si raccolgono attorno al mirino.",
         "mirrorHint": "Le risorse si raccolgono attorno al mirino e al punto opposto.",
-        "radialHint": "Le risorse si dispongono ad anello: più allontani il mirino dal centro, più vanno verso l'esterno."
+        "radialHint": "Le risorse si dispongono ad anello: più allontani il mirino dal centro, più vanno verso l'esterno.",
+        "clear": "Togli il focus",
+        "kept": "Il focus resta memorizzato: a ogni turno le risorse si ridistribuiscono così da sole."
       }
     },
     "unit": {

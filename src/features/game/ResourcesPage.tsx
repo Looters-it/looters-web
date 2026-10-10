@@ -42,6 +42,13 @@ function Editor(props: {
   )
   const total = totalOf(saved)
   const [draft, setDraft] = useState(saved)
+  // What the server holds changed without a gesture here (the focus kept from the
+  // turns before spread the new income): the editor starts again from it.
+  const [seenSaved, setSeenSaved] = useState(saved)
+  if (!sameAmounts(saved, seenSaved)) {
+    setSeenSaved(saved)
+    setDraft(saved)
+  }
   // What a gesture has reached, read when it ends: the state itself is a render behind.
   const latest = useRef(draft)
   const origin = useRef<Amounts | null>(null)
@@ -105,6 +112,7 @@ function Editor(props: {
         <p className="text-muted-foreground">{t('game.resources.single')}</p>
       ) : (
         <AllocationMap
+          matchId={matchId}
           shapes={shapes.data?.territories ?? []}
           places={territories.map((territory) => ({
             id: territory.id,

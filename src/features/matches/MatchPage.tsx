@@ -43,6 +43,7 @@ import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
 import { historyQuery, turnQuery } from '@/features/game/history'
 import { usePhase } from '@/features/game/phase'
+import { useFocusKeeper } from '@/features/game/useFocusKeeper'
 import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
 import { empireTags } from '@/features/game/tags'
@@ -417,6 +418,7 @@ export function MatchPage() {
   const phase = usePhase(
     state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null, pausedAt: null },
   )
+  useFocusKeeper(state, phase)
   const targets = useQuery({
     // Nothing can be attacked in the preliminary part of a turn: asked again when it ends.
     queryKey: ['matches', 'targets', id, state?.match.currentTurn, phase, border],
@@ -698,8 +700,8 @@ export function MatchPage() {
     if (!unit && view === 'unit') setView('info')
   }
 
-  // The crossed swords on the map: pressing them prepares the attack on that territory,
-  // as the card of the municipality would, without passing through it.
+  // The signs on the map that work as buttons: the swords attack that territory, the
+  // flag annexes that municipality, at once and without passing through its card.
   const onMarker = (markerId: string) => {
     const [kind, signId] = markerId.split(':')
     if (kind !== 'attack' && kind !== 'annex') return
@@ -741,12 +743,18 @@ export function MatchPage() {
           onMapSelect(unit)
           return
         }
-        setSelected(unit)
-        setCard(target)
-        // The strongest usable territory is proposed; the player adds or removes.
-        setAttack({ card: target, from: sources[0] ? [sources[0].territoryId] : [] })
-        setView('attack')
-        setPhoneTab('map')
+        // The swords attack at once, from the strongest own territory beside it: to
+        // choose where from, or more than one, the attack is prepared from the card.
+        return matchApi
+          .attack(id, {
+            targetGeoUnitId: point.id,
+            fromTerritoryIds: sources[0] ? [sources[0].territoryId] : [],
+            turn: state.match.currentTurn,
+          })
+          .then((next) => {
+            queryClient.setQueryData(['matches', 'state', id], next)
+            return queryClient.invalidateQueries({ queryKey: ['matches', 'unit', id] })
+          })
       })
       .catch(() => onMapSelect(unit))
   }
@@ -950,7 +958,6 @@ export function MatchPage() {
                   key={selected.id}
                   state={state}
                   unit={selected}
-                  onSelect={selectFromList}
                   onCard={setCard}
                   onPrepareAttack={(target) => {
                     // The strongest usable territory is proposed; the player adds or removes.

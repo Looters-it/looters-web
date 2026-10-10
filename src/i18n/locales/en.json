@@ -636,7 +636,9 @@
         "radial": "Radial focus",
         "areaHint": "The resources gather around the sight.",
         "mirrorHint": "The resources gather around the sight and the point opposite to it.",
-        "radialHint": "The resources form a ring: the further the sight from the middle, the further out they go."
+        "radialHint": "The resources form a ring: the further the sight from the middle, the further out they go.",
+        "clear": "Remove the focus",
+        "kept": "The focus is remembered: every turn the resources spread this way by themselves."
       }
     },
     "unit": {

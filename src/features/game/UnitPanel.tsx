@@ -225,13 +225,12 @@ function RenameArea({ state, territory }: { state: MatchState; territory: Territ
 
 /**
  * The card of the selected municipality: who holds it, its state, the
- * action available, and its neighbours, each of which can be opened in turn.
+ * action available.
  * Resources are never managed here (PROMPT §11).
  */
 export function UnitPanel(props: {
   state: MatchState
   unit: MapUnit
-  onSelect: (unit: MapUnit) => void
   /** Reports the neighbours that could be annexed from here, to light them on the map. */
   onCard?: (card: UnitCardData) => void
   /** Opens the preparation of an attack on this municipality. */
@@ -382,48 +381,6 @@ export function UnitPanel(props: {
               )}
             </section>
           )}
-
-          <div className="flex flex-col gap-2">
-            <h3 className="text-base">{t('game.unit.neighbours')}</h3>
-            {card.data.neighbours.length === 0 && (
-              <p className="text-muted-foreground">{t('game.unit.noNeighbours')}</p>
-            )}
-            <ul className="flex flex-wrap gap-2">
-              {card.data.neighbours.map((neighbour) => {
-                const empire = neighbour.ownerEmpireId
-                  ? empires.get(neighbour.ownerEmpireId)
-                  : undefined
-                return (
-                  <li key={neighbour.geoUnitId}>
-                    <Button
-                      variant="quiet"
-                      size="sm"
-                      className="tracking-normal normal-case"
-                      onClick={() =>
-                        props.onSelect({ id: neighbour.geoUnitId, name: neighbour.name })
-                      }
-                    >
-                      {empire && (
-                        <span
-                          className="border-foreground size-3 rounded-full border"
-                          style={{ backgroundColor: empire.color }}
-                          aria-hidden="true"
-                        />
-                      )}
-                      {neighbour.name}
-                      <span className="text-muted-foreground font-normal">
-                        {!empire
-                          ? t('game.unit.freeTag')
-                          : empire.id === mine
-                            ? t('game.unit.yoursTag')
-                            : empire.name}
-                      </span>
-                    </Button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
         </>
       )}
     </section>

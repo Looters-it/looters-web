@@ -1,11 +1,20 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { CircleDot, Crosshair, FlipHorizontal2, type LucideIcon } from 'lucide-react'
+import { CircleDot, Crosshair, FlipHorizontal2, X, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { TerritoryShape } from '@/features/matches/api'
 import { cn } from '@/lib/utils'
 
 import type { Amounts } from './allocation'
+import {
+  focusWeights,
+  loadFocus,
+  middleOf,
+  oppositeOf,
+  saveFocus,
+  type Focus,
+  type FocusMode,
+} from './focus'
 
 export interface AllocationPlace {
   id: string
@@ -14,19 +23,11 @@ export interface AllocationPlace {
   locked: boolean
 }
 
-/**
- * How the focus spreads the resources: around the point it is on, around that point
- * and the one opposite to it across the empire, or in a ring around the middle of the
- * empire as wide as the focus is far from it.
- */
-type FocusMode = 'area' | 'mirror' | 'radial'
 const FOCUS_MODES: readonly [FocusMode, LucideIcon][] = [
   ['area', Crosshair],
   ['mirror', FlipHorizontal2],
   ['radial', CircleDot],
 ]
-/** How far the focus reaches, as a part of the size of the empire. */
-const FOCUS_REACH = 0.4
 
 const WIDTH = 480
 const HEIGHT = 380
@@ -43,6 +44,8 @@ const LARGEST = 30
  * so the total is always assigned. No name to read: the territory is where it is.
  */
 export function AllocationMap(props: {
+  /** The match the focus is remembered for. */
+  matchId: string
   places: AllocationPlace[]
   shapes: TerritoryShape[]
   amounts: Amounts
@@ -80,7 +83,7 @@ export function AllocationMap(props: {
 
   // The territories, drawn to fill the chart: flat enough at this size to be laid out
   // by their coordinates, narrowed by the latitude.
-  const drawn = useMemo(() => {
+  const view = useMemo(() => {
     const rings = shapes.flatMap((shape) =>
       shape.geometry.type === 'Polygon'
         ? shape.geometry.coordinates
@@ -108,7 +111,11 @@ export function AllocationMap(props: {
           return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`
         })
         .join('') + 'Z'
-    return new Map(
+    const unplace = (x: number, y: number) => ({
+      lon: ((x - WIDTH / 2) / zoom + (left + right) / 2) / narrow,
+      lat: (HEIGHT / 2 - y) / zoom + (bottom + top) / 2,
+    })
+    const byId = new Map(
       shapes.map((shape) => [
         shape.id,
         {
@@ -122,7 +129,9 @@ export function AllocationMap(props: {
         },
       ]),
     )
+    return { byId, place, unplace }
   }, [shapes])
+  const drawn = view?.byId ?? null
 
   const drag = (event: PointerEvent<SVGCircleElement>, place: AllocationPlace, taking: boolean) => {
     const box = svg.current?.getBoundingClientRect()
@@ -142,59 +151,33 @@ export function AllocationMap(props: {
     props.onChange(place.id, Math.round(size * size * scale * total))
   }
   // The focus: a point dragged over the empire, the resources gathering where it says.
-  const [mode, setMode] = useState<FocusMode>('area')
-  const [focus, setFocus] = useState<{ x: number; y: number } | null>(null)
+  // It is remembered with the match, where the map is and not where it is drawn.
+  const [focus, setFocus] = useState<Focus | null>(() => loadFocus(props.matchId))
+  const [mode, setMode] = useState<FocusMode>(focus?.mode ?? 'area')
   const [aiming, setAiming] = useState(false)
-  const movable = places.filter((place) => !place.locked && drawn?.has(place.id))
-  const centres = movable.map((place) => drawn?.get(place.id)?.centre ?? { x: 0, y: 0 })
-  // The middle of the empire as it lies on the map, not of where its territories crowd.
-  const xs = centres.map((centre) => centre.x)
-  const ys = centres.map((centre) => centre.y)
-  const middle =
-    centres.length > 0
-      ? { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }
-      : { x: WIDTH / 2, y: HEIGHT / 2 }
-  const size = Math.max(
-    40,
-    ...centres.map((centre) => Math.hypot(centre.x - middle.x, centre.y - middle.y)),
+  const movable = shapes.filter((shape) =>
+    places.some((place) => place.id === shape.id && !place.locked),
   )
-  const near = (distance: number) => Math.exp(-((distance / (size * FOCUS_REACH)) ** 2))
-  const opposite = (point: { x: number; y: number }) => ({
-    x: 2 * middle.x - point.x,
-    y: 2 * middle.y - point.y,
-  })
-  const spread = (point: { x: number; y: number }, how: FocusMode) => {
-    const ring = Math.hypot(point.x - middle.x, point.y - middle.y)
-    const other = opposite(point)
-    props.onSpread(
-      Object.fromEntries(
-        movable.map((place, index) => {
-          const centre = centres[index] ?? middle
-          const here = Math.hypot(centre.x - point.x, centre.y - point.y)
-          const weight =
-            how === 'area'
-              ? near(here)
-              : how === 'mirror'
-                ? Math.max(near(here), near(Math.hypot(centre.x - other.x, centre.y - other.y)))
-                : near(Math.hypot(centre.x - middle.x, centre.y - middle.y) - ring)
-          // Too far to count: nothing, instead of a unit left behind.
-          return [place.id, weight < 0.02 ? 0 : weight]
-        }),
-      ),
-    )
-  }
+  const spread = (next: Focus) => props.onSpread(focusWeights(movable, next))
   const aim = (event: PointerEvent<SVGGElement>) => {
     const box = svg.current?.getBoundingClientRect()
-    if (!box) return
-    const point = {
-      x: Math.max(0, Math.min(WIDTH, ((event.clientX - box.left) / box.width) * WIDTH)),
-      y: Math.max(0, Math.min(HEIGHT, ((event.clientY - box.top) / box.height) * HEIGHT)),
+    if (!box || !view) return
+    const next = {
+      mode,
+      ...view.unplace(
+        Math.max(0, Math.min(WIDTH, ((event.clientX - box.left) / box.width) * WIDTH)),
+        Math.max(0, Math.min(HEIGHT, ((event.clientY - box.top) / box.height) * HEIGHT)),
+      ),
     }
-    setFocus(point)
-    spread(point, mode)
+    setFocus(next)
+    spread(next)
   }
   const editable = movable.length >= 2
-  const at = focus ?? middle
+  const xy = (point: { lon: number; lat: number }) =>
+    view?.place(point.lon, point.lat) ?? { x: WIDTH / 2, y: HEIGHT / 2 }
+  const middle = xy(middleOf(movable))
+  const at = focus ? xy(focus) : middle
+  const opposite = focus ? xy(oppositeOf(movable, focus)) : middle
 
   const onKey = (event: KeyboardEvent<SVGCircleElement>, place: AllocationPlace) => {
     const step = Math.max(1, Math.round(total / 100)) * (event.shiftKey ? 5 : 1)
@@ -245,7 +228,10 @@ export function AllocationMap(props: {
                   setMode(option)
                   // The focus already placed spreads again, the new way, and is saved.
                   if (focus) {
-                    spread(focus, option)
+                    const next = { ...focus, mode: option }
+                    setFocus(next)
+                    saveFocus(props.matchId, next)
+                    spread(next)
                     props.onCommit()
                   }
                 }}
@@ -254,7 +240,25 @@ export function AllocationMap(props: {
               </button>
             ))}
           </div>
-          <p className="text-muted-foreground text-base">{t(`game.resources.focus.${mode}Hint`)}</p>
+          {focus && (
+            <button
+              type="button"
+              title={t('game.resources.focus.clear')}
+              aria-label={t('game.resources.focus.clear')}
+              className="hover:bg-accent rounded-pill flex size-9 cursor-pointer items-center justify-center border transition-colors [&_svg]:size-5"
+              onClick={() => {
+                setFocus(null)
+                saveFocus(props.matchId, null)
+              }}
+            >
+              <X aria-hidden="true" />
+            </button>
+          )}
+          <p className="text-muted-foreground text-base">
+            {focus && !aiming
+              ? t('game.resources.focus.kept')
+              : t(`game.resources.focus.${mode}Hint`)}
+          </p>
         </div>
       )}
       <svg
@@ -348,6 +352,7 @@ export function AllocationMap(props: {
             onPointerUp={() => {
               if (!aiming) return
               setAiming(false)
+              saveFocus(props.matchId, focus)
               props.onCommit()
             }}
             onPointerCancel={() => setAiming(false)}
@@ -367,15 +372,15 @@ export function AllocationMap(props: {
                 <line
                   x1={at.x}
                   y1={at.y}
-                  x2={opposite(at).x}
-                  y2={opposite(at).y}
+                  x2={opposite.x}
+                  y2={opposite.y}
                   className="pointer-events-none stroke-current opacity-50"
                   strokeWidth={1}
                   strokeDasharray="5 4"
                 />
                 <circle
-                  cx={opposite(at).x}
-                  cy={opposite(at).y}
+                  cx={opposite.x}
+                  cy={opposite.y}
                   r={7}
                   className="fill-background pointer-events-none stroke-current opacity-80"
                   strokeWidth={2}
