@@ -581,7 +581,8 @@
       "turn": "Turn",
       "timeLeft": "Time until the end of the turn",
       "resources": "Resources",
-      "timeLeftShort": "Turn ends"
+      "timeLeftShort": "Turn ends",
+      "added": "+{{count}}s"
     },
     "menu": {
       "title": "Menu",

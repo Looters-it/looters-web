@@ -96,3 +96,39 @@
     transform: translateY(-0.9rem) scale(1);
   }
 }
+
+/* Conquered: the sign turns green and stands still, then shakes sideways once. */
+.battle-sign.battle-won span {
+  background: #1f9d55;
+  animation:
+    battle-won-colour 0.3s ease-out,
+    battle-won-shake 0.5s ease-in-out 0.3s;
+}
+
+@keyframes battle-won-colour {
+  from {
+    background: #e11d2e;
+  }
+  to {
+    background: #1f9d55;
+  }
+}
+
+@keyframes battle-won-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-0.5rem);
+  }
+  45% {
+    transform: translateX(0.45rem);
+  }
+  70% {
+    transform: translateX(-0.25rem);
+  }
+  85% {
+    transform: translateX(0.12rem);
+  }
+}

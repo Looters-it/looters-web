@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { RollingNumber } from '@/components/RollingNumber'
@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils'
 
 import { Countdown } from './Countdown'
 import { usePhase } from './phase'
+
+/** How long the seconds added to a turn stay beside its clock. */
+const ADDED_SHOWN_MS = 4000
 
 /** A bag of coins, tied at the neck, with the sign of money on it. */
 function MoneyBag() {
@@ -42,6 +45,42 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
         .reduce((sum, territory) => sum + (territory.resources ?? 0), 0)
     : null
   const running = match.status === 'ONGOING'
+  // A turn made longer while it is played (an attack in its last seconds): the seconds
+  // added are shown beside the clock for a moment. A pause moves the end too, and is not that.
+  const [seenClock, setSeenClock] = useState({
+    turn: match.currentTurn,
+    endsAt: match.turnEndsAt,
+    paused: match.pausedAt !== null,
+  })
+  const [added, setAdded] = useState<number | null>(null)
+  if (
+    seenClock.turn !== match.currentTurn ||
+    seenClock.endsAt !== match.turnEndsAt ||
+    seenClock.paused !== (match.pausedAt !== null)
+  ) {
+    setSeenClock({
+      turn: match.currentTurn,
+      endsAt: match.turnEndsAt,
+      paused: match.pausedAt !== null,
+    })
+    const longer =
+      seenClock.endsAt && match.turnEndsAt
+        ? new Date(match.turnEndsAt).getTime() - new Date(seenClock.endsAt).getTime()
+        : 0
+    if (
+      seenClock.turn === match.currentTurn &&
+      !seenClock.paused &&
+      match.pausedAt === null &&
+      longer >= 1000
+    ) {
+      setAdded(Math.round(longer / 1000))
+    }
+  }
+  useEffect(() => {
+    if (added === null) return
+    const timer = setTimeout(() => setAdded(null), ADDED_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [added])
   const number = useRef<HTMLSpanElement>(null)
   const shown = useRef<number | null>(null)
   // When the resources change the digits roll and the number swells for a moment,
@@ -93,6 +132,14 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
             match.turnEndsAt && (
               <Countdown until={match.turnEndsAt} label={t('game.bar.timeLeft')} />
             )
+          )}
+          {added !== null && (
+            <b
+              role="status"
+              className="animate-in zoom-in-50 fade-in rounded-pill self-center bg-[#1f9d55] px-2.5 font-mono text-sm leading-6 text-white duration-300"
+            >
+              {t('game.bar.added', { count: added })}
+            </b>
           )}
         </p>
       )}

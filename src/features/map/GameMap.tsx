@@ -58,6 +58,7 @@ export interface MapMarker {
     | 'gain'
     | 'attack'
     | 'battle'
+    | 'captured'
     | 'annex'
   lon: number
   lat: number
@@ -397,24 +398,25 @@ export function GameMap({
     }
   }, [markers, ready])
 
-  // A battle being fought: crossed swords that bounce on the territory. Drawn in the
+  // A battle being fought: crossed swords that bounce on the territory. Once it is
+  // conquered the sign turns green and stops, then shakes sideways once. Drawn in the
   // page, over the map, since nothing drawn by the map moves by itself.
   const battles = markers
-    .filter((marker) => marker.kind === 'battle')
-    .map((marker) => `${marker.lon},${marker.lat}`)
+    .filter((marker) => marker.kind === 'battle' || marker.kind === 'captured')
+    .map((marker) => `${marker.kind},${marker.lon},${marker.lat}`)
     .join(';')
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready || battles === '') return
-    const signs = battles.split(';').map((at) => {
-      const [lon = 0, lat = 0] = at.split(',').map(Number)
+    const signs = battles.split(';').map((sign) => {
+      const [kind, lon, lat] = sign.split(',')
       const element = document.createElement('div')
-      element.className = 'battle-sign'
+      element.className = kind === 'captured' ? 'battle-sign battle-won' : 'battle-sign'
       element.setAttribute('aria-hidden', 'true')
       element.innerHTML = BATTLE_SIGN
       // Above the figure of the resources, which stays readable under it.
       return new Marker({ element, anchor: 'bottom', offset: [0, -30] })
-        .setLngLat([lon, lat])
+        .setLngLat([Number(lon), Number(lat)])
         .addTo(map)
     })
     return () => signs.forEach((sign) => sign.remove())

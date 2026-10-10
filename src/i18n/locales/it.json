@@ -581,7 +581,8 @@
       "turn": "Turno",
       "timeLeft": "Tempo alla fine del turno",
       "resources": "Risorse",
-      "timeLeftShort": "Fine turno"
+      "timeLeftShort": "Fine turno",
+      "added": "+{{count}}s"
     },
     "menu": {
       "title": "Menu",

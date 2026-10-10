@@ -74,6 +74,8 @@ import { OwnerPanel } from './OwnerPanel'
  */
 /** How long what a territory earned stays written on the map. */
 const GAIN_SHOWN_MS = 4000
+/** How long the green sign stays on a territory that was just conquered. */
+const CAPTURED_SHOWN_MS = 3500
 
 type View = 'info' | 'match' | 'unit' | 'attack'
 
@@ -429,8 +431,22 @@ export function MatchPage() {
   // for a moment: the difference with what it held when the turn before ended.
   const [seenState, setSeenState] = useState(state)
   const [gains, setGains] = useState<ReadonlyMap<string, number>>(new Map())
+  // Territories just conquered: the sign of the battle stays on them for a moment, green.
+  const [captured, setCaptured] = useState<readonly string[]>([])
   if (state !== seenState) {
     setSeenState(state)
+    if (state && seenState) {
+      const open = new Set(seenState.battles.filter((b) => b.status === 'OPEN').map((b) => b.id))
+      const taken = state.battles
+        .filter(
+          (b) =>
+            open.has(b.id) &&
+            b.status === 'RESOLVED' &&
+            (b.outcome === 'ATTACKER_WON' || b.outcome === 'SURRENDER'),
+        )
+        .map((b) => b.targetTerritoryId)
+      if (taken.length > 0) setCaptured(taken)
+    }
     if (state && seenState && state.match.currentTurn > seenState.match.currentTurn) {
       const before = new Map(seenState.territories.map((t) => [t.id, t.resources]))
       const earned = new Map<string, number>()
@@ -443,6 +459,11 @@ export function MatchPage() {
       setGains(earned)
     }
   }
+  useEffect(() => {
+    if (captured.length === 0) return
+    const timer = setTimeout(() => setCaptured([]), CAPTURED_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [captured])
   useEffect(() => {
     if (gains.size === 0) return
     const timer = setTimeout(() => setGains(new Map()), GAIN_SHOWN_MS)
@@ -545,8 +566,14 @@ export function MatchPage() {
         ? [{ id: `battle:${territory.id}`, kind: 'battle', lon: point.lon, lat: point.lat }]
         : []
     })
-    return [...signs, ...flags, ...clashes]
-  }, [state, targetIds, annexIds, gains, units.data])
+    const conquests = (state?.territories ?? []).flatMap((territory): MapMarker[] => {
+      const point = points.get(territory.geoUnitIds[0] ?? -1)
+      return captured.includes(territory.id) && point
+        ? [{ id: `captured:${territory.id}`, kind: 'captured', lon: point.lon, lat: point.lat }]
+        : []
+    })
+    return [...signs, ...flags, ...clashes, ...conquests]
+  }, [state, targetIds, annexIds, gains, captured, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
