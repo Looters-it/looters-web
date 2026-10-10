@@ -535,7 +535,17 @@ export function MatchPage() {
           ]),
       ]
     })
-    return [...signs, ...flags]
+    // A territory being fought over: crossed swords bounce on it, for everyone.
+    const fought = new Set(
+      state?.battles.filter((b) => b.status === 'OPEN').map((b) => b.targetTerritoryId),
+    )
+    const clashes = (state?.territories ?? []).flatMap((territory): MapMarker[] => {
+      const point = points.get(territory.geoUnitIds[0] ?? -1)
+      return fought.has(territory.id) && point
+        ? [{ id: `battle:${territory.id}`, kind: 'battle', lon: point.lon, lat: point.lat }]
+        : []
+    })
+    return [...signs, ...flags, ...clashes]
   }, [state, targetIds, annexIds, gains, units.data])
 
   const mineId = state?.me?.empireId

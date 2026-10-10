@@ -61,3 +61,38 @@
   font-family: var(--font-sans);
   font-size: 18px;
 }
+
+/* A battle being fought: crossed swords bouncing on the territory. The marker itself is
+   placed by the map, so what moves is the disc inside it. */
+.battle-sign {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.battle-sign span {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  background: #e11d2e;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  animation: battle-bounce 0.7s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate;
+}
+
+.battle-sign svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@keyframes battle-bounce {
+  from {
+    transform: translateY(0) scale(1.05, 0.95);
+  }
+  to {
+    transform: translateY(-0.9rem) scale(1);
+  }
+}

@@ -2,6 +2,7 @@ import i18next from 'i18next'
 import {
   AttributionControl,
   Map as MapLibreMap,
+  Marker,
   NavigationControl,
   Popup,
   type GeoJSONSource,
@@ -56,6 +57,7 @@ export interface MapMarker {
     | 'resources'
     | 'gain'
     | 'attack'
+    | 'battle'
     | 'annex'
   lon: number
   lat: number
@@ -92,6 +94,9 @@ const NO_COLORS: ReadonlyMap<number, string> = new Map()
 const NO_IDS: readonly number[] = []
 const NO_LABELS: readonly EmpireLabel[] = []
 const NO_MARKERS: readonly MapMarker[] = []
+
+/** Two crossed swords on a red disc: what bounces on a territory while it is fought over. */
+const BATTLE_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5 18 3h3v3l-3.500 3.500M5 14l4 4M7 17l-3 3M3 19l2 2"/></svg></span>`
 
 /** What is drawn on a capital, if the marker is one and says so. */
 const armsOf = (marker: MapMarker) =>
@@ -391,6 +396,29 @@ export function GameMap({
       cancelled = true
     }
   }, [markers, ready])
+
+  // A battle being fought: crossed swords that bounce on the territory. Drawn in the
+  // page, over the map, since nothing drawn by the map moves by itself.
+  const battles = markers
+    .filter((marker) => marker.kind === 'battle')
+    .map((marker) => `${marker.lon},${marker.lat}`)
+    .join(';')
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || battles === '') return
+    const signs = battles.split(';').map((at) => {
+      const [lon = 0, lat = 0] = at.split(',').map(Number)
+      const element = document.createElement('div')
+      element.className = 'battle-sign'
+      element.setAttribute('aria-hidden', 'true')
+      element.innerHTML = BATTLE_SIGN
+      // Above the figure of the resources, which stays readable under it.
+      return new Marker({ element, anchor: 'bottom', offset: [0, -30] })
+        .setLngLat([lon, lat])
+        .addTo(map)
+    })
+    return () => signs.forEach((sign) => sign.remove())
+  }, [battles, ready])
 
   useEffect(() => {
     const map = mapRef.current
