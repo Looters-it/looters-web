@@ -7,15 +7,18 @@
 
 /**
  * How the focus spreads the resources: around the point it is on, around that point
- * and the one opposite to it across the empire, or in a ring around the middle of the
- * empire as wide as the focus is far from it.
+ * and the one opposite to it across the empire, in a ring around the middle of the
+ * empire as wide as the focus is far from it, or evenly along the line between the
+ * point and a second one.
  */
-export type FocusMode = 'area' | 'mirror' | 'radial'
+export type FocusMode = 'area' | 'mirror' | 'radial' | 'line'
 
 export interface Focus {
   mode: FocusMode
   lon: number
   lat: number
+  /** The other end of a line: where it is not set, the point opposite to the first. */
+  to?: { lon: number; lat: number }
 }
 
 interface Placed {
@@ -46,6 +49,11 @@ export function oppositeOf(places: readonly Placed[], focus: Pick<Focus, 'lon' |
   return { lon: 2 * middle.lon - focus.lon, lat: 2 * middle.lat - focus.lat }
 }
 
+/** The second end of the line of a focus. */
+export function lineEndOf(places: readonly Placed[], focus: Focus) {
+  return focus.to ?? oppositeOf(places, focus)
+}
+
 /** How much each territory should weigh under a focus: more the nearer it is to it. */
 export function focusWeights(places: readonly Placed[], focus: Focus): Record<string, number> {
   const middle = middleOf(places)
@@ -57,6 +65,16 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
   const near = (distance: number) => Math.exp(-((distance / (size * FOCUS_REACH)) ** 2))
   const other = oppositeOf(places, focus)
   const ring = apart(focus, middle)
+  // How far a territory is from the line between the two ends, anywhere along it.
+  const end = lineEndOf(places, focus)
+  const fromLine = (place: Placed) => {
+    const along = { x: (end.lon - focus.lon) * narrow, y: end.lat - focus.lat }
+    const to = { x: (place.lon - focus.lon) * narrow, y: place.lat - focus.lat }
+    const length = along.x ** 2 + along.y ** 2
+    const part =
+      length > 0 ? Math.max(0, Math.min(1, (to.x * along.x + to.y * along.y) / length)) : 0
+    return Math.hypot(to.x - along.x * part, to.y - along.y * part)
+  }
   return Object.fromEntries(
     places.map((place) => {
       const weight =
@@ -64,7 +82,9 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
           ? near(apart(place, focus))
           : focus.mode === 'mirror'
             ? Math.max(near(apart(place, focus)), near(apart(place, other)))
-            : near(apart(place, middle) - ring)
+            : focus.mode === 'line'
+              ? near(fromLine(place))
+              : near(apart(place, middle) - ring)
       return [place.id, weight < NEGLIGIBLE ? 0 : weight]
     }),
   )
@@ -81,8 +101,18 @@ export function loadFocus(matchId: string): Focus | null {
     return stored &&
       typeof stored.lon === 'number' &&
       typeof stored.lat === 'number' &&
-      (stored.mode === 'area' || stored.mode === 'mirror' || stored.mode === 'radial')
-      ? { mode: stored.mode, lon: stored.lon, lat: stored.lat }
+      (stored.mode === 'area' ||
+        stored.mode === 'mirror' ||
+        stored.mode === 'radial' ||
+        stored.mode === 'line')
+      ? {
+          mode: stored.mode,
+          lon: stored.lon,
+          lat: stored.lat,
+          ...(typeof stored.to?.lon === 'number' && typeof stored.to.lat === 'number'
+            ? { to: { lon: stored.to.lon, lat: stored.to.lat } }
+            : {}),
+        }
       : null
   } catch {
     return null

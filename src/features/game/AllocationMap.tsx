@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { CircleDot, Crosshair, FlipHorizontal2, X, type LucideIcon } from 'lucide-react'
+import { CircleDot, Crosshair, FlipHorizontal2, Spline, X, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { TerritoryShape } from '@/features/matches/api'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import type { Amounts } from './allocation'
 import {
   focusWeights,
+  lineEndOf,
   loadFocus,
   middleOf,
   oppositeOf,
@@ -27,6 +28,7 @@ const FOCUS_MODES: readonly [FocusMode, LucideIcon][] = [
   ['area', Crosshair],
   ['mirror', FlipHorizontal2],
   ['radial', CircleDot],
+  ['line', Spline],
 ]
 
 const WIDTH = 480
@@ -159,15 +161,29 @@ export function AllocationMap(props: {
     places.some((place) => place.id === shape.id && !place.locked),
   )
   const spread = (next: Focus) => props.onSpread(focusWeights(movable, next))
-  const aim = (event: PointerEvent<SVGGElement>) => {
+  // Which end of a line is being dragged: the one that was nearer when it was taken.
+  const end = useRef<'from' | 'to'>('from')
+  const aim = (event: PointerEvent<SVGGElement>, taking = false) => {
     const box = svg.current?.getBoundingClientRect()
     if (!box || !view) return
-    const next = {
-      mode,
-      ...view.unplace(
-        Math.max(0, Math.min(WIDTH, ((event.clientX - box.left) / box.width) * WIDTH)),
-        Math.max(0, Math.min(HEIGHT, ((event.clientY - box.top) / box.height) * HEIGHT)),
-      ),
+    const x = Math.max(0, Math.min(WIDTH, ((event.clientX - box.left) / box.width) * WIDTH))
+    const y = Math.max(0, Math.min(HEIGHT, ((event.clientY - box.top) / box.height) * HEIGHT))
+    const here = view.unplace(x, y)
+    if (taking) {
+      end.current =
+        mode === 'line' &&
+        focus &&
+        Math.hypot(x - far.x, y - far.y) < Math.hypot(x - at.x, y - at.y)
+          ? 'to'
+          : 'from'
+    }
+    let next: Focus = { ...focus, mode, ...here }
+    if (mode === 'line') {
+      next =
+        end.current === 'to' && focus
+          ? { ...focus, mode, to: here }
+          : // The other end stays where it is; the first time, opposite to this one.
+            { mode, ...here, to: focus ? lineEndOf(movable, focus) : oppositeOf(movable, here) }
     }
     setFocus(next)
     spread(next)
@@ -178,6 +194,7 @@ export function AllocationMap(props: {
   const middle = xy(middleOf(movable))
   const at = focus ? xy(focus) : middle
   const opposite = focus ? xy(oppositeOf(movable, focus)) : middle
+  const far = focus ? xy(lineEndOf(movable, focus)) : middle
 
   const onKey = (event: KeyboardEvent<SVGCircleElement>, place: AllocationPlace) => {
     const step = Math.max(1, Math.round(total / 100)) * (event.shiftKey ? 5 : 1)
@@ -342,11 +359,14 @@ export function AllocationMap(props: {
             tabIndex={-1}
             aria-label={t('game.resources.focus.handle')}
             aria-valuenow={Math.round(Math.hypot(at.x - middle.x, at.y - middle.y))}
-            className={cn('text-foreground', aiming ? 'cursor-grabbing' : 'cursor-grab')}
+            className={cn(
+              'text-foreground outline-none',
+              aiming ? 'cursor-grabbing' : 'cursor-grab',
+            )}
             onPointerDown={(event) => {
               event.currentTarget.setPointerCapture(event.pointerId)
               setAiming(true)
-              aim(event)
+              aim(event, true)
             }}
             onPointerMove={(event) => aiming && aim(event)}
             onPointerUp={() => {
@@ -384,6 +404,32 @@ export function AllocationMap(props: {
                   r={7}
                   className="fill-background pointer-events-none stroke-current opacity-80"
                   strokeWidth={2}
+                />
+              </>
+            )}
+            {mode === 'line' && (
+              <>
+                <line
+                  x1={at.x}
+                  y1={at.y}
+                  x2={far.x}
+                  y2={far.y}
+                  className="pointer-events-none stroke-current opacity-80"
+                  strokeWidth={2}
+                />
+                <circle cx={far.x} cy={far.y} r={16} className="fill-transparent" />
+                <circle
+                  cx={far.x}
+                  cy={far.y}
+                  r={aiming && end.current === 'to' ? 11 : 9}
+                  className="fill-background stroke-current"
+                  strokeWidth={2.5}
+                />
+                <circle
+                  cx={far.x}
+                  cy={far.y}
+                  r={2.5}
+                  className="fill-secondary pointer-events-none"
                 />
               </>
             )}
