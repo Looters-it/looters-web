@@ -14,7 +14,8 @@
     "profile": "Profile",
     "how": "How it works",
     "matches": "See matches in progress",
-    "newMatch": "New match"
+    "newMatch": "New match",
+    "leaveMatch": "Leave the match page"
   },
   "home": {
     "title": "Loot your neighbours!",
@@ -857,7 +858,8 @@
         "ALLIANCE_ENDING": "{{empireName}} announced the end of its alliance with {{otherName}}.",
         "ALLIANCE_KEPT": "{{empireName}} confirmed its alliance with {{otherName}}.",
         "ALLIANCE_ENDED": "The alliance between {{empireName}} and {{otherName}} has ended.",
-        "EMPIRE_WITHDRAWN": "{{empireName}} withdrew: {{territoryName}} is free again."
+        "EMPIRE_WITHDRAWN": "{{empireName}} withdrew: {{territoryName}} is free again.",
+        "EMPIRE_ABANDONED": "{{empireName}} abandoned the match: its territories are free."
       },
       "latest": "Latest news of the board"
     },
@@ -949,6 +951,13 @@
     "sound": {
       "on": "Turn the sounds on",
       "off": "Turn the sounds off"
+    },
+    "abandon": {
+      "open": "Abandon the match",
+      "title": "Abandon the match?",
+      "text": "Your empire ends here: all your territories will be left without an owner, with their resources, and anyone can annex them. You can still watch the match, but not come back into it. This cannot be undone.",
+      "cancel": "Stay in the match",
+      "confirm": "Abandon"
     }
   },
   "crash": {

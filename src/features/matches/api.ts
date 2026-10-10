@@ -356,6 +356,8 @@ export const matchApi = {
   preview: (id: string) => apiGet<MatchPreview>(`/matches/${id}/preview`),
   /** Leaves a match that has not started: the starting municipality is free again. */
   withdraw: (id: string) => apiDelete<MatchState>(`/matches/${id}/empire`),
+  /** Leaves for good a match that is being played: what the empire holds becomes free. */
+  abandon: (id: string) => apiPost<{ accepted: boolean }>(`/matches/${id}/abandon`, {}),
   updateEmpire: (id: string, empire: EmpireIdentity) =>
     apiPatch<MatchState>(`/matches/${id}/empire`, empire),
   /** The territories the player can attack right now. */

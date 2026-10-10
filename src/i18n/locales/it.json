@@ -14,7 +14,8 @@
     "profile": "Profilo",
     "how": "Come funziona",
     "matches": "Vedi partite in corso",
-    "newMatch": "Nuova partita"
+    "newMatch": "Nuova partita",
+    "leaveMatch": "Esci dalla partita"
   },
   "home": {
     "title": "Saccheggia i tuoi vicini!",
@@ -857,7 +858,8 @@
         "ALLIANCE_ENDING": "{{empireName}} ha annunciato la fine dell'alleanza con {{otherName}}.",
         "ALLIANCE_KEPT": "{{empireName}} ha confermato l'alleanza con {{otherName}}.",
         "ALLIANCE_ENDED": "L'alleanza tra {{empireName}} e {{otherName}} è finita.",
-        "EMPIRE_WITHDRAWN": "{{empireName}} si è ritirato: {{territoryName}} è di nuovo libero."
+        "EMPIRE_WITHDRAWN": "{{empireName}} si è ritirato: {{territoryName}} è di nuovo libero.",
+        "EMPIRE_ABANDONED": "{{empireName}} ha abbandonato la partita: i suoi territori sono liberi."
       },
       "latest": "Ultime notizie della bacheca"
     },
@@ -949,6 +951,13 @@
     "sound": {
       "on": "Attiva i suoni",
       "off": "Disattiva i suoni"
+    },
+    "abandon": {
+      "open": "Abbandona la partita",
+      "title": "Abbandonare la partita?",
+      "text": "Il tuo impero finisce qui: tutti i tuoi territori resteranno senza proprietario, con le loro risorse, e chiunque potrà annetterli. Potrai ancora guardare la partita, ma non rientrarci. Non si può annullare.",
+      "cancel": "Resta in partita",
+      "confirm": "Abbandona"
     }
   },
   "crash": {

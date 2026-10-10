@@ -1,7 +1,7 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
 import {
@@ -233,6 +233,21 @@ export function MatchPage() {
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
   const [sheet, setSheet] = useState<Sheet | null>(null)
+  const navigate = useNavigate()
+  const [abandoning, setAbandoning] = useState(false)
+  const abandon = useMutation({
+    mutationFn: () => matchApi.abandon(id),
+    onSuccess: () => {
+      // The player chose it: the fall needs no telling, and there is nothing left to do here.
+      setFallenSeen(true)
+      try {
+        localStorage.setItem(`fallen-seen:${id}`, 'yes')
+      } catch {
+        // Told at the next visit, that is all.
+      }
+      void navigate('/matches')
+    },
+  })
   // The sounds of the match, on unless the player turned them off on this device.
   const [sound, setSound] = useState(() => {
     try {
@@ -909,6 +924,15 @@ export function MatchPage() {
                   : null
               }
             />
+            {canAct && (
+              <Button
+                variant="destructive"
+                className="border-[#e11d2e] bg-[#e11d2e] text-white hover:border-[#b81524] hover:bg-[#b81524]"
+                onClick={() => setAbandoning(true)}
+              >
+                {t('game.abandon.open')}
+              </Button>
+            )}
           </>
         ) : (
           <>
@@ -1008,6 +1032,40 @@ export function MatchPage() {
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Leaving for good is asked twice: it cannot be undone. */}
+      <Dialog
+        open={abandoning}
+        onOpenChange={(next) => {
+          setAbandoning(next)
+          if (!next) abandon.reset()
+        }}
+      >
+        <DialogContent className="flex flex-col gap-5 sm:max-w-lg">
+          <DialogTitle className="text-2xl">{t('game.abandon.title')}</DialogTitle>
+          <DialogDescription className="text-foreground text-lg">
+            {t('game.abandon.text')}
+          </DialogDescription>
+          {abandon.error && (
+            <p role="alert" className="text-danger">
+              {t('match.errors.UNKNOWN')}
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-3">
+            <DialogClose asChild>
+              <Button variant="outline">{t('game.abandon.cancel')}</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              className="border-[#e11d2e] bg-[#e11d2e] text-white hover:border-[#b81524] hover:bg-[#b81524]"
+              disabled={abandon.isPending}
+              onClick={() => abandon.mutate()}
+            >
+              {t('game.abandon.confirm')}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

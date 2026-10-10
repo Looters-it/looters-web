@@ -96,15 +96,25 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="truncate">{user.username}</span>
               </Link>
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                onNavigate?.()
-                void logout()
-              }}
-            >
-              {t('auth.logout')}
-            </Button>
+            {inMatch ? (
+              // In a match the way out is out of its page, back to the menu of the game:
+              // the player stays in the match.
+              <Button asChild variant="secondary">
+                <Link to="/matches" onClick={onNavigate}>
+                  {t('nav.leaveMatch')}
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  onNavigate?.()
+                  void logout()
+                }}
+              >
+                {t('auth.logout')}
+              </Button>
+            )}
           </>
         ) : (
           // Unknown while the session is being read: nothing that would change under the finger.
