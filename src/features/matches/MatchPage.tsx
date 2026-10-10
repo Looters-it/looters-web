@@ -636,22 +636,20 @@ export function MatchPage() {
   }
 
   const matchView = (
-    <div className="flex flex-col gap-6">
-      {joining && (
-        <>
-          {selected && selectedTerritory && (
-            <p role="status" className="text-danger">
-              {t('match.join.placeTaken', { name: selected.name })}
-            </p>
-          )}
-          <JoinPanel state={state} start={start} />
-        </>
-      )}
-      {match.isOwner && match.mode === 'MULTIPLAYER' && match.visibility === 'PRIVATE' && (
-        <InvitePanel match={match} />
-      )}
-      {match.isOwner && <OwnerPanel key={match.status} match={match} />}
-    </div>
+    // Only the way in, a step at a time: the match is managed from the empire, once there is one.
+    <JoinPanel
+      state={state}
+      start={start}
+      header={<MatchInfo state={state} />}
+      notice={
+        selected &&
+        selectedTerritory && (
+          <p role="status" className="text-danger">
+            {t('match.join.placeTaken', { name: selected.name })}
+          </p>
+        )
+      }
+    />
   )
 
   // What is said of the municipality that was picked, in a card beside the map.
@@ -1024,14 +1022,7 @@ export function MatchPage() {
             )}
           </>
         ) : (
-          <>
-            {view === 'match' && (
-              <>
-                <MatchInfo state={state} />
-                {matchView}
-              </>
-            )}
-          </>
+          <>{view === 'match' && matchView}</>
         )}
       </aside>
 

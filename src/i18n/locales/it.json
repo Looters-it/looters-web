@@ -417,13 +417,14 @@
       "guest": "Accedi per partecipare a questa partita.",
       "full": "La partita è al completo.",
       "closed": "Le iscrizioni a questa partita sono chiuse.",
-      "stepPlace": "Il comune di partenza",
-      "placeHint": "Tocca sulla mappa un comune libero. Sarà la tua capitale: se la perdi, il tuo impero cade.",
+      "placeHint": "Seleziona un comune di partenza per il tuo impero.",
       "placeChosen": "Parti da {{name}}.",
       "placeTaken": "{{name}} appartiene già a un impero: scegline un altro.",
-      "stepEmpire": "Il tuo impero",
       "submit": "Fonda l'impero",
-      "submitNoPlace": "Scegli un comune per continuare"
+      "confirmPlace": "Conferma il comune",
+      "next": "Avanti",
+      "back": "Indietro",
+      "steps": "Passi per fondare l'impero"
     },
     "empire": {
       "name": "Nome dell'impero",

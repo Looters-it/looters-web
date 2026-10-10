@@ -417,13 +417,14 @@
       "guest": "Sign in to join this match.",
       "full": "The match is full.",
       "closed": "Registrations for this match are closed.",
-      "stepPlace": "Starting municipality",
-      "placeHint": "Tap a free municipality on the map. It will be your capital: if you lose it, your empire falls.",
+      "placeHint": "Select a starting municipality for your empire.",
       "placeChosen": "You start from {{name}}.",
       "placeTaken": "{{name}} already belongs to an empire: choose another.",
-      "stepEmpire": "Your empire",
       "submit": "Found empire",
-      "submitNoPlace": "Choose a municipality to continue"
+      "confirmPlace": "Confirm the municipality",
+      "next": "Next",
+      "back": "Back",
+      "steps": "Steps to found the empire"
     },
     "empire": {
       "name": "Empire name",
