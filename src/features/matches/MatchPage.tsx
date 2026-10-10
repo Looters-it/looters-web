@@ -630,7 +630,7 @@ export function MatchPage() {
         // The strongest usable territory is proposed; the player adds or removes.
         setAttack({ card: target, from: sources[0] ? [sources[0].territoryId] : [] })
         setView('attack')
-        setPhoneTab('panel')
+        setPhoneTab('map')
       })
       .catch(() => onMapSelect(unit))
   }
@@ -815,8 +815,46 @@ export function MatchPage() {
           {/* Top left, under the controls of the map: the municipality that was picked.
               On a phone it comes up from the bottom. */}
           {selected && (
-            <div className="bg-background animate-in fade-in absolute top-[11rem] left-3 z-10 w-72 rounded-lg p-4 shadow-md duration-200 max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:max-h-[60%] max-md:w-auto max-md:overflow-y-auto max-md:rounded-b-none">
-              {unitInfo(selected)}
+            <div className="bg-background animate-in fade-in absolute top-[11rem] left-3 z-10 flex max-h-[calc(100%-16.5rem)] w-80 flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-md duration-200 max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:max-h-[60%] max-md:w-auto max-md:rounded-b-none lg:w-[24rem]">
+              <Button
+                variant="quiet"
+                size="icon-sm"
+                className="self-end max-md:size-10"
+                aria-label={t('game.menu.close')}
+                onClick={() => {
+                  setSelected(null)
+                  open('info')
+                }}
+              >
+                <X aria-hidden="true" />
+              </Button>
+              {/* A player gets everything about it and what can be done there; who is
+                  looking at the past, or choosing where to start, only what it is. */}
+              {(reviewing || (view !== 'unit' && view !== 'attack')) && unitInfo(selected)}
+              {!reviewing && view === 'unit' && (
+                <UnitPanel
+                  key={selected.id}
+                  state={state}
+                  unit={selected}
+                  onSelect={selectFromList}
+                  onCard={setCard}
+                  onPrepareAttack={(target) => {
+                    // The strongest usable territory is proposed; the player adds or removes.
+                    const first = target.attack?.from.find((source) => source.usable)
+                    setAttack({ card: target, from: first ? [first.territoryId] : [] })
+                    setView('attack')
+                  }}
+                />
+              )}
+              {!reviewing && view === 'attack' && attack && (
+                <AttackPanel
+                  state={state}
+                  card={attack.card}
+                  chosen={attack.from}
+                  onChoose={(from) => setAttack({ ...attack, from })}
+                  onDone={() => open('unit')}
+                />
+              )}
             </div>
           )}
           {/* Bottom left, over the map: the news of the board as they come. */}
@@ -964,7 +1002,7 @@ export function MatchPage() {
           hasMap && phoneTab !== 'panel' && 'hidden md:flex',
         )}
       >
-        {view === 'info' ? (
+        {view !== 'match' ? (
           <>
             <MatchInfo state={state} />
             <MatchTimes
@@ -987,49 +1025,11 @@ export function MatchPage() {
           </>
         ) : (
           <>
-            {view !== 'match' && (
-              <Button
-                variant="quiet"
-                size="icon-sm"
-                className="self-end max-md:size-10"
-                aria-label={t('game.menu.close')}
-                onClick={() => {
-                  setSelected(null)
-                  open('info')
-                }}
-              >
-                <X aria-hidden="true" />
-              </Button>
-            )}
             {view === 'match' && (
               <>
                 <MatchInfo state={state} />
                 {matchView}
               </>
-            )}
-            {view === 'unit' && selected && (
-              <UnitPanel
-                key={selected.id}
-                state={state}
-                unit={selected}
-                onSelect={selectFromList}
-                onCard={setCard}
-                onPrepareAttack={(target) => {
-                  // The strongest usable territory is proposed; the player adds or removes.
-                  const first = target.attack?.from.find((source) => source.usable)
-                  setAttack({ card: target, from: first ? [first.territoryId] : [] })
-                  setView('attack')
-                }}
-              />
-            )}
-            {view === 'attack' && attack && (
-              <AttackPanel
-                state={state}
-                card={attack.card}
-                chosen={attack.from}
-                onChoose={(from) => setAttack({ ...attack, from })}
-                onDone={() => open('unit')}
-              />
             )}
           </>
         )}
