@@ -391,7 +391,14 @@
       "turnMinutes_other": "Turns of {{count}} minutes",
       "endsOn": "Ends on {{date}}",
       "turnHours_one": "Turns of {{count}} hour",
-      "turnHours_other": "Turns of {{count}} hours"
+      "turnHours_other": "Turns of {{count}} hours",
+      "area": "Area",
+      "ownerLabel": "Created by",
+      "unit": {
+        "turnSeconds": "s",
+        "turnMinutes": "m",
+        "turnHours": "h"
+      }
     },
     "owner": {
       "title": "Managing the match",
@@ -987,6 +994,11 @@
         "VALIDATION": "The new password is not valid.",
         "UNKNOWN": "The password could not be changed. Try again."
       }
+    },
+    "public": {
+      "since": "On Looters since",
+      "matches": "Matches played",
+      "mine": "Go to your profile"
     }
   }
 }

@@ -391,7 +391,14 @@
       "turnMinutes_other": "Turni di {{count}} minuti",
       "endsOn": "Termina il giorno {{date}}",
       "turnHours_one": "Turni di {{count}} ora",
-      "turnHours_other": "Turni di {{count}} ore"
+      "turnHours_other": "Turni di {{count}} ore",
+      "area": "Territorio",
+      "ownerLabel": "Creata da",
+      "unit": {
+        "turnSeconds": "s",
+        "turnMinutes": "m",
+        "turnHours": "h"
+      }
     },
     "owner": {
       "title": "Gestione della partita",
@@ -987,6 +994,11 @@
         "VALIDATION": "La nuova password non è valida.",
         "UNKNOWN": "Non è stato possibile cambiare la password. Riprova."
       }
+    },
+    "public": {
+      "since": "Su Looters dal",
+      "matches": "Partite giocate",
+      "mine": "Vai al tuo profilo"
     }
   }
 }

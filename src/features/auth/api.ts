@@ -38,6 +38,14 @@ export const usernameAvailable = (username: string, signal?: AbortSignal) =>
       signal,
     },
   )
+/** What anybody may know of a player. */
+export interface PublicUser {
+  username: string
+  createdAt: string
+  matches: number
+}
+export const publicUser = (username: string) =>
+  apiGet<PublicUser>(`/users/${encodeURIComponent(username)}`)
 export const changePassword = (body: { currentPassword: string; newPassword: string }) =>
   apiPost<void>('/auth/password', body)
 export const logout = () => apiPost<void>('/auth/logout')

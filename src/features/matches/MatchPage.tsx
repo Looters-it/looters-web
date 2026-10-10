@@ -1,18 +1,21 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 
 import { NotFoundPage } from '@/app/NotFoundPage'
 import {
   ChevronLeft,
   ChevronRight,
+  Clock,
   Coins,
   Combine,
   Hammer,
+  Map as MapIcon,
   Handshake,
   ScrollText,
   Trophy,
+  User,
   Volume2,
   VolumeX,
   X,
@@ -105,9 +108,20 @@ function MatchInfo({ state }: { state: MatchState }) {
           {t(`match.status.${match.status}`)}
         </span>
       </div>
-      <p className="text-muted-foreground">
-        {match.areas.map((area) => area.name).join(', ')} ·{' '}
-        {t('match.info.owner', { owner: match.owner })}
+      <p className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1">
+        <span className="flex items-center gap-1.5">
+          <MapIcon aria-hidden="true" className="size-5 flex-none" />
+          <span className="sr-only">{t('match.info.area')}</span>
+          {match.areas.map((area) => area.name).join(', ')}
+        </span>
+        <Link
+          to={`/user/${encodeURIComponent(match.owner)}`}
+          className="hover:text-foreground flex items-center gap-1.5 underline underline-offset-4"
+        >
+          <User aria-hidden="true" className="size-5 flex-none" />
+          <span className="sr-only">{t('match.info.ownerLabel')}</span>
+          {match.owner}
+        </Link>
       </p>
       {match.status === 'PLANNED' && (
         <p className="text-base">
@@ -154,19 +168,33 @@ function MatchTimes({ match, online }: { match: MatchState['match']; online: str
   const end = match.maxDays
     ? new Date(new Date(match.startAt).getTime() + match.maxDays * 86_400_000).toISOString()
     : null
+  // In the unit that says it in a whole number: 30 seconds, not a fraction of an hour.
+  const [turn, unit] =
+    match.turnHours * 60 < 1
+      ? ([Math.round(match.turnHours * 3600), 'turnSeconds'] as const)
+      : match.turnHours < 1
+        ? ([Math.round(match.turnHours * 60), 'turnMinutes'] as const)
+        : ([match.turnHours, 'turnHours'] as const)
+  const turnText = t(`match.info.${unit}`, { count: turn })
   return (
-    <ul className="text-muted-foreground mt-auto text-base">
-      {online && <li>{online}</li>}
-      <li>
-        {/* In the unit that says it in a whole number: 30 seconds, not a fraction of an hour. */}
-        {match.turnHours * 60 < 1
-          ? t('match.info.turnSeconds', { count: Math.round(match.turnHours * 3600) })
-          : match.turnHours < 1
-            ? t('match.info.turnMinutes', { count: Math.round(match.turnHours * 60) })
-            : t('match.info.turnHours', { count: match.turnHours })}
-      </li>
-      <li>{end ? t('match.info.endsOn', { date: format.date(end) }) : t('match.info.noEnd')}</li>
-    </ul>
+    <div className="text-muted-foreground mt-auto flex items-center gap-4 text-base">
+      {/* A clock with the length of a turn at its corner; said in full to who cannot see it. */}
+      <span className="relative flex-none pt-2 pr-7" title={turnText}>
+        <Clock aria-hidden="true" className="size-7" />
+        <span
+          aria-hidden="true"
+          className="bg-primary text-primary-foreground rounded-pill absolute top-0 right-0 flex h-5 min-w-5 items-center justify-center px-1 font-mono text-xs leading-none font-bold"
+        >
+          {turn}
+          {t(`match.info.unit.${unit}`)}
+        </span>
+        <span className="sr-only">{turnText}</span>
+      </span>
+      <ul>
+        {online && <li>{online}</li>}
+        <li>{end ? t('match.info.endsOn', { date: format.date(end) }) : t('match.info.noEnd')}</li>
+      </ul>
+    </div>
   )
 }
 

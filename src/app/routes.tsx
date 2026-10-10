@@ -4,6 +4,7 @@ import { AdminPage } from '@/features/admin/AdminPage'
 import { AuthPage } from '@/features/auth/AuthPage'
 import { ChangePasswordPage } from '@/features/profile/ChangePasswordPage'
 import { InvitationsPage } from '@/features/profile/InvitationsPage'
+import { PublicProfilePage } from '@/features/profile/PublicProfilePage'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import { MatchPage } from '@/features/matches/MatchPage'
 import { NewMatchPage } from '@/features/matches/NewMatchPage'
@@ -31,6 +32,7 @@ export const routes: RouteObject[] = [
           { path: '/profile', element: <ProfilePage /> },
           { path: '/profile/invitations', element: <InvitationsPage /> },
           { path: '/profile/change-password', element: <ChangePasswordPage /> },
+          { path: '/user/:username', element: <PublicProfilePage /> },
           { path: '/profilo', element: <Redirect to="/profile" /> },
           { path: '/admin', element: <AdminPage /> },
           { path: '/matches', element: <MatchList /> },
