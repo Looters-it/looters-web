@@ -1,9 +1,11 @@
 import { Swords, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import type { MatchState } from '@/features/matches/api'
+
+import { alertSound } from './tick'
 
 /**
  * A warning over the map for every attack on a municipality of the player: who
@@ -14,6 +16,8 @@ export function AttackToasts(props: {
   state: MatchState
   /** Opens the dialog where the attack is answered. */
   onRespond: () => void
+  /** Whether a warning that appears is also heard. */
+  sound: boolean
 }) {
   const { t } = useTranslation()
   const [closed, setClosed] = useState<Set<string>>(() => new Set())
@@ -21,6 +25,20 @@ export function AttackToasts(props: {
   const attacks = state.battles.filter(
     (battle) => battle.role === 'defender' && battle.status === 'OPEN' && !closed.has(battle.id),
   )
+  // A call for every attack that was not there a moment ago, one at a time however many arrive.
+  const mine = state.battles
+    .filter((battle) => battle.role === 'defender' && battle.status === 'OPEN')
+    .map((battle) => battle.id)
+    .join(',')
+  const heard = useRef(new Set<string>())
+  const { sound } = props
+  useEffect(() => {
+    const fresh = mine.split(',').filter((id) => id !== '' && !heard.current.has(id))
+    if (fresh.length === 0) return
+    for (const id of fresh) heard.current.add(id)
+    if (sound) alertSound()
+  }, [mine, sound])
+
   if (attacks.length === 0) return null
 
   return (
