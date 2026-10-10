@@ -29,6 +29,8 @@ export interface MatchSummary {
   turnEndsAt: string | null
   /** Until then the turn is in its preliminary part; null when no turn is being played. */
   preliminaryEndsAt: string | null
+  /** Since when a single-player match is paused, or null: its clock stands still. */
+  pausedAt: string | null
   finishedAt: string | null
   /** The winner, once the match is over. */
   winnerEmpireId: string | null
@@ -361,6 +363,8 @@ export const matchApi = {
   /** Leaves a match that has not started: the starting municipality is free again. */
   withdraw: (id: string) => apiDelete<MatchState>(`/matches/${id}/empire`),
   /** Leaves for good a match that is being played: what the empire holds becomes free. */
+  pause: (id: string) => apiPost<MatchState>(`/matches/${id}/pause`, {}),
+  resume: (id: string) => apiPost<MatchState>(`/matches/${id}/resume`, {}),
   abandon: (id: string) => apiPost<{ accepted: boolean }>(`/matches/${id}/abandon`, {}),
   updateEmpire: (id: string, empire: EmpireIdentity) =>
     apiPatch<MatchState>(`/matches/${id}/empire`, empire),

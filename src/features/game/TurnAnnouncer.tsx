@@ -33,7 +33,8 @@ export function TurnAnnouncer({
   const [seenTurn, setSeenTurn] = useState(match.currentTurn)
   // What is announced: the number of a turn that begins or, with 'action', its second part.
   const [announced, setAnnounced] = useState<number | 'action' | null>(null)
-  const running = match.status === 'ONGOING'
+  // A paused match counts nothing down.
+  const running = match.status === 'ONGOING' && !match.pausedAt
   const phase = usePhase(match)
   const [seenPhase, setSeenPhase] = useState(phase)
   if (phase !== seenPhase) {

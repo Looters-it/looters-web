@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -19,6 +19,8 @@ import {
   Volume2,
   VolumeX,
   X,
+  Pause,
+  Play,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
@@ -249,6 +251,11 @@ export function MatchPage() {
   const [resourcesOpen, setResourcesOpen] = useState(false)
   const navigate = useNavigate()
   const [abandoning, setAbandoning] = useState(false)
+  const queryClient = useQueryClient()
+  const pause = useMutation({
+    mutationFn: (paused: boolean) => (paused ? matchApi.pause(id) : matchApi.resume(id)),
+    onSuccess: (next) => queryClient.setQueryData(['matches', 'state', id], next),
+  })
   const abandon = useMutation({
     mutationFn: () => matchApi.abandon(id),
     onSuccess: () => {
@@ -402,7 +409,9 @@ export function MatchPage() {
     )
     .join()
   const canAct = state?.match.status === 'ONGOING' && state.me?.status === 'ACTIVE'
-  const phase = usePhase(state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null })
+  const phase = usePhase(
+    state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null, pausedAt: null },
+  )
   const targets = useQuery({
     // Nothing can be attacked in the preliminary part of a turn: asked again when it ends.
     queryKey: ['matches', 'targets', id, state?.match.currentTurn, phase, border],
@@ -890,6 +899,23 @@ export function MatchPage() {
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
           {!reviewing && <TurnAnnouncer part="turn" match={match} sound={sound} />}
+          {/* Paused: said in the middle of the map, with the way back into the match. */}
+          {match.status === 'ONGOING' && match.pausedAt && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+              <div
+                role="status"
+                className="bg-background/95 pointer-events-auto flex flex-col items-center gap-4 rounded-2xl px-10 py-6 shadow-lg"
+              >
+                <p className="font-display text-4xl sm:text-5xl">{t('game.pause.title')}</p>
+                {match.isOwner && (
+                  <Button size="lg" disabled={pause.isPending} onClick={() => pause.mutate(false)}>
+                    <Play aria-hidden="true" />
+                    {t('game.pause.resume')}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
           {/* The announcements, at the top of the map between the search and what stands
               top right (on a phone, under the controls of the map): the turn that ends
               or begins, then the attacks on the player. */}
@@ -946,6 +972,15 @@ export function MatchPage() {
             {(match.status === 'ONGOING' || match.status === 'FINISHED') && (
               <MapFab label={t('game.menu.history')} onClick={() => openSheet('history')}>
                 <ScrollText aria-hidden="true" />
+              </MapFab>
+            )}
+            {/* Played alone, a match can be stopped: nobody else is kept waiting. */}
+            {match.status === 'ONGOING' && match.mode === 'SINGLEPLAYER' && match.isOwner && (
+              <MapFab
+                label={t(match.pausedAt ? 'game.pause.resume' : 'game.pause.pause')}
+                onClick={() => pause.mutate(!match.pausedAt)}
+              >
+                {match.pausedAt ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
               </MapFab>
             )}
             {match.status === 'ONGOING' && (

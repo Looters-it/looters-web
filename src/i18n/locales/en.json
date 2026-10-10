@@ -549,7 +549,8 @@
       "SINGLEPLAYER": "This match is played alone.",
       "NOT_PRIVATE": "Only a private match has invitations.",
       "OWN_MATCH": "The match is already yours.",
-      "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn."
+      "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn.",
+      "MATCH_PAUSED": "The match is paused."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -976,6 +977,12 @@
       "actionBegins": "Action!",
       "waitAction": "Annexations and attacks come after the preliminary phase of the turn.",
       "onlyPreliminary": "Only in the preliminary phase of the turn."
+    },
+    "pause": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "title": "Match paused",
+      "paused": "Paused"
     }
   },
   "crash": {

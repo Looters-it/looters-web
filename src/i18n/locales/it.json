@@ -549,7 +549,8 @@
       "SINGLEPLAYER": "Questa partita si gioca da soli.",
       "NOT_PRIVATE": "Solo una partita privata ha inviti.",
       "OWN_MATCH": "La partita è già tua.",
-      "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno."
+      "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno.",
+      "MATCH_PAUSED": "La partita è in pausa."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -976,6 +977,12 @@
       "actionBegins": "Azione!",
       "waitAction": "Annessioni e attacchi si fanno dopo la fase preliminare del turno.",
       "onlyPreliminary": "Si fa solo nella fase preliminare del turno."
+    },
+    "pause": {
+      "pause": "Metti in pausa",
+      "resume": "Riprendi",
+      "title": "Partita in pausa",
+      "paused": "In pausa"
     }
   },
   "crash": {

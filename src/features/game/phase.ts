@@ -9,7 +9,7 @@ import type { MatchState } from '@/features/matches/api'
  */
 export type TurnPhase = 'PRELIMINARY' | 'ACTION'
 
-type Clock = Pick<MatchState['match'], 'status' | 'preliminaryEndsAt'>
+type Clock = Pick<MatchState['match'], 'status' | 'preliminaryEndsAt' | 'pausedAt'>
 
 const phaseAt = (match: Clock, now: number): TurnPhase | null =>
   match.status !== 'ONGOING'
@@ -30,5 +30,6 @@ export function usePhase(match: Clock): TurnPhase | null {
     if (left > 0) timers.push(setTimeout(() => setNow(Date.now()), left + 30))
     return () => timers.forEach(clearTimeout)
   }, [status, preliminaryEndsAt])
-  return phaseAt(match, now)
+  // Paused, the turn is still in the part it was stopped in.
+  return phaseAt(match, match.pausedAt ? new Date(match.pausedAt).getTime() : now)
 }

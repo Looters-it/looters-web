@@ -50,7 +50,9 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
               {t(`game.phase.${phase}`)}
             </span>
           )}
-          {phase === 'PRELIMINARY' && match.preliminaryEndsAt ? (
+          {match.pausedAt ? (
+            <b>{t('game.pause.paused')}</b>
+          ) : phase === 'PRELIMINARY' && match.preliminaryEndsAt ? (
             <Countdown until={match.preliminaryEndsAt} label={t('game.phase.timeLeft')} />
           ) : (
             match.turnEndsAt && (
