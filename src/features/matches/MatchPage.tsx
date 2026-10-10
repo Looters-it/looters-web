@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
@@ -305,7 +305,25 @@ export function MatchPage() {
   }, [state, units.data])
 
   // Capitals (always visible to everyone) and accumulation alerts, drawn on the map.
+  // What the player could attack now changes with who owns what, what is protected and
+  // what is in a battle: asked again whenever any of that moves.
+  const border = (state?.territories ?? [])
+    .map(
+      (territory) =>
+        `${territory.id}${territory.ownerEmpireId}${territory.protected ? 'p' : ''}${territory.battleId ?? ''}${(territory.resources ?? 0) > 0 ? '+' : ''}`,
+    )
+    .join()
+  const canAct = state?.match.status === 'ONGOING' && state.me?.status === 'ACTIVE'
+  const targets = useQuery({
+    queryKey: ['matches', 'targets', id, state?.match.currentTurn, border],
+    queryFn: () => matchApi.targets(id),
+    enabled: canAct,
+    placeholderData: keepPreviousData,
+  })
+  const targetIds = canAct ? targets.data?.territoryIds : undefined
+
   const markers = useMemo<MapMarker[]>(() => {
+    const attackable = new Set(targetIds)
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
     const empireOf = new Map(state?.empires.map((empire) => [empire.capitalTerritoryId, empire]))
     return (state?.territories ?? []).flatMap((territory) => {
@@ -328,6 +346,10 @@ export function MatchPage() {
           : []),
         ...(territory.alert
           ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
+          : []),
+        // It can be attacked now: crossed swords to press, to prepare the attack at once.
+        ...(attackable.has(territory.id)
+          ? [{ id: `attack:${territory.id}`, kind: 'attack' as const, ...at }]
           : []),
         // What the territory holds, where the viewer is allowed to know: seen at a glance.
         ...(territory.resources !== null
@@ -371,7 +393,7 @@ export function MatchPage() {
           ]),
       ]
     })
-  }, [state, units.data])
+  }, [state, targetIds, units.data])
 
   const mineId = state?.me?.empireId
   const pickingOwn = chosenView === 'merge' || chosenView === 'build'
@@ -516,6 +538,33 @@ export function MatchPage() {
   }
 
   // A fallen empire has nothing left to manage.
+  // The crossed swords on the map: pressing them prepares the attack on that territory,
+  // as the card of the municipality would, without passing through it.
+  const onMarker = (markerId: string) => {
+    if (!markerId.startsWith('attack:')) return
+    const territory = state.territories.find((t) => t.id === markerId.slice('attack:'.length))
+    const point = units.data?.find((unit) => unit.id === territory?.geoUnitIds[0])
+    if (!point) return
+    const unit = { id: point.id, name: point.name }
+    void matchApi
+      .unit(id, point.id)
+      .then((target) => {
+        const sources = target.attack?.from.filter((source) => source.usable) ?? []
+        // No longer attackable by the time it was pressed: its card says why.
+        if (!target.attack || target.attack.blocked !== null || sources.length === 0) {
+          onMapSelect(unit)
+          return
+        }
+        setSelected(unit)
+        setCard(target)
+        // The strongest usable territory is proposed; the player adds or removes.
+        setAttack({ card: target, from: sources[0] ? [sources[0].territoryId] : [] })
+        setView('attack')
+        setPhoneTab('panel')
+      })
+      .catch(() => onMapSelect(unit))
+  }
+
   const menu = mine && !fallen && (
     <nav className="flex flex-col" aria-label={t('game.menu.empire')}>
       {EMPIRE_PAGES.map((page) => (
@@ -564,6 +613,7 @@ export function MatchPage() {
             colors={reviewing ? pastColors : ownership.colors}
             empireLabels={reviewing ? NOTHING : labels}
             markers={reviewing ? NOTHING : markers}
+            onMarker={onMarker}
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             selected={selected}

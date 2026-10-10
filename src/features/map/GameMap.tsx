@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import type { AreaMap } from './api'
 import { diffFlags, diffState } from './feature-state'
 import {
+  ATTACK_LAYER,
   AREAS_SOURCE,
   ATTACKED_LAYER,
   buildStyle,
@@ -33,7 +34,7 @@ import {
   UNITS_SOURCE,
 } from './style'
 import { capitalIconId, ensureCapitalIcons } from './capital-icon'
-import { ensureShieldIcon } from './shield-icon'
+import { ensureShieldIcon, ensureSwordsIcon } from './shield-icon'
 import { mapColors } from './theme'
 
 export interface MapUnit {
@@ -44,7 +45,7 @@ export interface MapUnit {
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
 export interface MapMarker {
   id: string
-  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected' | 'resources'
+  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected' | 'resources' | 'attack'
   lon: number
   lat: number
   /** Colour of the empire, for a capital. */
@@ -105,6 +106,8 @@ interface Props {
   /** Municipalities under attack, marked for everyone with a pulsing red border. */
   attackedIds?: readonly number[]
   onSelect?: (unit: MapUnit | null) => void
+  /** Called with the id of a sign that works as a button (an attack sign) when it is pressed. */
+  onMarker?: (id: string) => void
   /** Content of the box shown for the selected municipality. */
   renderInfo?: (unit: MapUnit) => ReactNode
   /** A point to bring into view when it changes. */
@@ -140,6 +143,7 @@ export function GameMap({
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
   onSelect,
+  onMarker,
   renderInfo,
   focus = null,
   embedded = false,
@@ -160,6 +164,10 @@ export function GameMap({
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
     onSelectRef.current = onSelect
+  })
+  const onMarkerRef = useRef(onMarker)
+  useEffect(() => {
+    onMarkerRef.current = onMarker
   })
 
   // The box of the selected municipality: anchored to it on wide screens,
@@ -224,7 +232,16 @@ export function GameMap({
     })
     map.on('mouseleave', FILL_LAYER, () => setHover(null))
 
+    map.on('mouseenter', ATTACK_LAYER, () => {
+      map.getCanvas().style.cursor = 'pointer'
+    })
     map.on('click', (event) => {
+      // A sign that is a button comes before the municipality under it.
+      const sign = map.queryRenderedFeatures(event.point, { layers: [ATTACK_LAYER] })[0]
+      if (sign && onMarkerRef.current) {
+        onMarkerRef.current(String(sign.properties.id ?? ''))
+        return
+      }
       const feature = map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER] })[0]
       if (typeof feature?.id !== 'number') {
         onSelectRef.current?.(null)
@@ -328,6 +345,7 @@ export function GameMap({
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
             properties: {
+              id: marker.id,
               kind: marker.kind,
               color: marker.color ?? '',
               text: marker.text ?? '',
@@ -340,6 +358,7 @@ export function GameMap({
     }
     // The shield of the protected territories is the same for all: drawn once.
     if (markers.some((marker) => marker.kind === 'protected')) ensureShieldIcon(map)
+    if (markers.some((marker) => marker.kind === 'attack')) ensureSwordsIcon(map)
     // At once with what is there, then again when the arms of the capitals are drawn.
     write(new Set())
     let cancelled = false

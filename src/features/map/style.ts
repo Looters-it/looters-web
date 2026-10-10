@@ -1,7 +1,7 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 
 import type { AreaMap } from './api'
-import { SHIELD_ICON } from './shield-icon'
+import { SHIELD_ICON, SWORDS_ICON } from './shield-icon'
 import type { MapColors } from './theme'
 
 export const UNITS_SOURCE = 'units'
@@ -9,6 +9,8 @@ export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
 export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
+/** The signs of the territories that can be attacked: they are pressed like buttons. */
+export const ATTACK_LAYER = 'attack-swords'
 export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 export const FILL_LAYER = 'units-fill'
@@ -253,6 +255,21 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-halo-color': RESOURCE_EDGE,
           'text-halo-width': 1.6,
         },
+      },
+      {
+        // Can be attacked now: crossed swords beside the municipality, bottom right. Drawn
+        // large enough for a fingertip, and pressed like a button.
+        id: ATTACK_LAYER,
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'attack'],
+        layout: {
+          'icon-image': SWORDS_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 0.85, 14, 1.1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-translate': [16, 14] },
       },
       {
         // Protected until the end of the turn: a shield beside the municipality, bottom left.
