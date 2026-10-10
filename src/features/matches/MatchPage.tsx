@@ -855,8 +855,14 @@ export function MatchPage() {
               )}
             </div>
           )}
-          {/* Bottom left, over the map: the news of the board as they come. */}
-          <div className="absolute bottom-12 left-3 z-10 max-md:hidden">
+          {/* Bottom left, over the map: the news of the board as they come. With a
+              municipality picked they stand beside its card, never over what is done there. */}
+          <div
+            className={cn(
+              'absolute bottom-12 left-3 z-10 max-md:hidden',
+              selected && 'md:left-[21.5rem] lg:left-[25.5rem]',
+            )}
+          >
             <BoardToasts state={state} />
           </div>
           {/* The resources of the empire, where the card of the match is: not a dialog,

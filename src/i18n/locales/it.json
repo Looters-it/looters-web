@@ -296,7 +296,7 @@
       "singleText": "Da solo contro i bot. La partita è solo tua.",
       "multiText": "Contro persone online. Puoi aggiungere anche i bot.",
       "paceTitle": "A che ritmo?",
-      "rushText": "Turni da 30 secondi: una partita tutta d'un fiato.",
+      "rushText": "Turni da 60 secondi, 30 per prepararsi e 30 per agire: una partita tutta d'un fiato.",
       "normalText": "Turni della durata che decidi tu, da 30 secondi a più giorni.",
       "detailsTitle": "Gli ultimi dettagli",
       "opponents": "Avversari bot",
@@ -307,7 +307,7 @@
         "m": "minuti",
         "h": "ore"
       },
-      "rushTurn": "Ogni turno dura 30 secondi.",
+      "rushTurn": "Ogni turno dura 60 secondi: 30 di preparazione e 30 di azione.",
       "visibility": "Chi può vederla",
       "privateHint": "Non compare negli elenchi: entra solo chi inviti tu, dalla pagina della partita.",
       "start": "Inizio",

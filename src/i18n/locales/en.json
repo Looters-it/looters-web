@@ -296,7 +296,7 @@
       "singleText": "Alone against bots. The match is yours only.",
       "multiText": "Against people online. You can add bots too.",
       "paceTitle": "At what pace?",
-      "rushText": "Turns of 30 seconds: a match in one breath.",
+      "rushText": "Turns of 60 seconds, 30 to prepare and 30 to act: a match in one breath.",
       "normalText": "Turns as long as you decide, from 30 seconds to several days.",
       "detailsTitle": "The last details",
       "opponents": "Bot opponents",
@@ -307,7 +307,7 @@
         "m": "minutes",
         "h": "hours"
       },
-      "rushTurn": "Every turn lasts 30 seconds.",
+      "rushTurn": "Every turn lasts 60 seconds: 30 to prepare and 30 to act.",
       "visibility": "Who can see it",
       "privateHint": "It is not in the lists: only who you invite comes in, from the page of the match.",
       "start": "Start",

@@ -7,7 +7,7 @@ import type { AreaMap, UnitPoint } from '@/features/map/api'
 export type MatchStatus = 'PLANNED' | 'ONGOING' | 'FINISHED'
 /** Alone against bots, or with people online. */
 export type MatchMode = 'SINGLEPLAYER' | 'MULTIPLAYER'
-/** Rush: turns of thirty seconds. Normal: as long as whoever created the match decided. */
+/** Rush: turns of sixty seconds. Normal: as long as whoever created the match decided. */
 export type MatchPace = 'RUSH' | 'NORMAL'
 export type MatchVisibility = 'PUBLIC' | 'PRIVATE'
 
