@@ -73,7 +73,7 @@ import { OwnerPanel } from './OwnerPanel'
 type View = 'info' | 'match' | 'unit' | 'attack'
 
 /** What opens in a dialog over the page. */
-type Sheet = 'empire' | 'leaderboard' | 'history' | 'resources' | 'merge' | 'build' | 'alliance'
+type Sheet = 'empire' | 'leaderboard' | 'history' | 'merge' | 'build' | 'alliance'
 
 /** The pages of the empire, each behind its round button on the map. */
 const EMPIRE_SHEETS = [
@@ -246,6 +246,7 @@ export function MatchPage() {
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
   const [sheet, setSheet] = useState<Sheet | null>(null)
+  const [resourcesOpen, setResourcesOpen] = useState(false)
   const navigate = useNavigate()
   const [abandoning, setAbandoning] = useState(false)
   const abandon = useMutation({
@@ -653,6 +654,62 @@ export function MatchPage() {
     </div>
   )
 
+  // What is said of the municipality that was picked, in a card beside the map.
+  const unitInfo = (unit: MapUnit) => {
+    if (reviewing) {
+      const then = ownership.empires.get(reviewing.ownership[String(unit.id)] ?? '')
+      return (
+        <UnitCard name={unit.name}>
+          {then ? (
+            <p className="flex items-center gap-2">
+              <EmpireShield
+                color={then.color}
+                emblem={then.emblem}
+                logo={then.logoUrl}
+                className="size-6"
+              />
+              {t('match.unit.owned', { name: then.name })}
+            </p>
+          ) : (
+            <p className="text-muted-foreground">{t('match.unit.free')}</p>
+          )}
+        </UnitCard>
+      )
+    }
+    const territory = ownership.byUnit.get(unit.id)
+    const empire = territory && ownership.empires.get(territory.ownerEmpireId)
+    return (
+      <UnitCard name={unit.name}>
+        {empire && territory ? (
+          <>
+            <p className="flex items-center gap-2">
+              <EmpireShield
+                color={empire.color}
+                emblem={empire.emblem}
+                logo={empire.logoUrl}
+                className="size-6"
+              />
+              {t('match.unit.owned', { name: empire.name })}
+            </p>
+            <p className="text-muted-foreground">
+              {territory.resources === null
+                ? t('match.unit.hidden')
+                : t('match.unit.resources', { count: territory.resources })}
+            </p>
+            <StatusBadge
+              status={unitStatus(true, territory.battleId !== null)}
+              className="self-start"
+            />
+            {empire.capitalTerritoryId === territory.id && <p>{t('match.unit.capital')}</p>}
+            {territory.protected && <p>{t('match.unit.protected')}</p>}
+          </>
+        ) : (
+          <StatusBadge status="neutral" className="self-start" />
+        )}
+      </UnitCard>
+    )
+  }
+
   return (
     <div className="relative flex flex-col max-lg:-mt-14 md:h-dvh">
       {hasMap && area.data ? (
@@ -677,62 +734,6 @@ export function MatchPage() {
             attackedIds={reviewing ? NOTHING : attacked}
             focus={focus}
             onSelect={onMapSelect}
-            renderInfo={(unit) => {
-              if (reviewing) {
-                const then = ownership.empires.get(reviewing.ownership[String(unit.id)] ?? '')
-                return (
-                  <UnitCard name={unit.name}>
-                    {then ? (
-                      <p className="flex items-center gap-2">
-                        <EmpireShield
-                          color={then.color}
-                          emblem={then.emblem}
-                          logo={then.logoUrl}
-                          className="size-6"
-                        />
-                        {t('match.unit.owned', { name: then.name })}
-                      </p>
-                    ) : (
-                      <p className="text-muted-foreground">{t('match.unit.free')}</p>
-                    )}
-                  </UnitCard>
-                )
-              }
-              const territory = ownership.byUnit.get(unit.id)
-              const empire = territory && ownership.empires.get(territory.ownerEmpireId)
-              return (
-                <UnitCard name={unit.name}>
-                  {empire && territory ? (
-                    <>
-                      <p className="flex items-center gap-2">
-                        <EmpireShield
-                          color={empire.color}
-                          emblem={empire.emblem}
-                          logo={empire.logoUrl}
-                          className="size-6"
-                        />
-                        {t('match.unit.owned', { name: empire.name })}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {territory.resources === null
-                          ? t('match.unit.hidden')
-                          : t('match.unit.resources', { count: territory.resources })}
-                      </p>
-                      <StatusBadge
-                        status={unitStatus(true, territory.battleId !== null)}
-                        className="self-start"
-                      />
-                      {empire.capitalTerritoryId === territory.id && (
-                        <p>{t('match.unit.capital')}</p>
-                      )}
-                      {territory.protected && <p>{t('match.unit.protected')}</p>}
-                    </>
-                  ) : (
-                    <StatusBadge status="neutral" className="self-start" />
-                  )}
-                </UnitCard>
-              )
-            }}
             className="h-full"
           />
           {reviewing ? (
@@ -811,6 +812,38 @@ export function MatchPage() {
           >
             {t('game.map.tags')}
           </button>
+          {/* Top left, under the controls of the map: the municipality that was picked.
+              On a phone it comes up from the bottom. */}
+          {selected && (
+            <div className="bg-background animate-in fade-in absolute top-[11rem] left-3 z-10 w-72 rounded-lg p-4 shadow-md duration-200 max-md:inset-x-0 max-md:top-auto max-md:bottom-0 max-md:max-h-[60%] max-md:w-auto max-md:overflow-y-auto max-md:rounded-b-none">
+              {unitInfo(selected)}
+            </div>
+          )}
+          {/* Bottom left, over the map: the news of the board as they come. */}
+          <div className="absolute bottom-12 left-3 z-10 max-md:hidden">
+            <BoardToasts state={state} />
+          </div>
+          {/* The resources of the empire, where the card of the match is: not a dialog,
+              so the map stays in sight and in use while they are balanced. */}
+          {resourcesOpen && mine && !fallen && (
+            <section
+              aria-label={t('game.menu.resources')}
+              className="bg-background animate-in fade-in absolute inset-x-3 top-16 z-20 flex max-h-[calc(100%-9rem)] flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-200 md:top-3 md:right-[4.5rem] md:left-auto md:max-h-[calc(100%-7rem)] md:w-[26rem] lg:w-[30rem]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl">{t('game.menu.resources')}</h2>
+                <Button
+                  variant="quiet"
+                  size="icon-sm"
+                  aria-label={t('game.menu.close')}
+                  onClick={() => setResourcesOpen(false)}
+                >
+                  <X aria-hidden="true" />
+                </Button>
+              </div>
+              <ResourcesPage state={state} />
+            </section>
+          )}
           {/* Bottom right, over the map: the news of the board as they come, and under
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
@@ -818,7 +851,7 @@ export function MatchPage() {
           {/* The announcements, at the top of the map between the search and what stands
               top right (on a phone, under the controls of the map): the turn that ends
               or begins, then the attacks on the player. */}
-          <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-[11rem] md:right-auto md:w-80 xl:top-3 xl:right-[29.5rem] xl:left-[21rem] xl:mx-auto xl:w-auto xl:max-w-[30rem]">
+          <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-16 md:right-auto md:left-[23rem] md:w-72 xl:top-3 xl:right-[29.5rem] xl:left-[21rem] xl:mx-auto xl:w-auto xl:max-w-[30rem]">
             {!reviewing && <TurnAnnouncer part="count" match={match} sound={sound} />}
             <AttackToasts state={state} sound={sound} onRespond={() => setAlertOpen(true)} />
           </div>
@@ -856,7 +889,10 @@ export function MatchPage() {
                 <MapFab
                   key={page}
                   label={t(`game.menu.${page}`)}
-                  onClick={() => openSheet(page)}
+                  // The resources open beside the map, the rest over it.
+                  onClick={() =>
+                    page === 'resources' ? setResourcesOpen((open) => !open) : openSheet(page)
+                  }
                   dimmed={PRELIMINARY_SHEETS.includes(page) && phase !== 'PRELIMINARY'}
                 >
                   <Icon aria-hidden="true" />
@@ -910,11 +946,6 @@ export function MatchPage() {
                     />
                   }
                 />
-              }
-              above={
-                <div className="max-md:hidden">
-                  <BoardToasts state={state} />
-                </div>
               }
             />
           </div>
@@ -1026,16 +1057,12 @@ export function MatchPage() {
               {match.isOwner && <OwnerPanel key={match.status} match={match} />}
             </div>
           )}
-          {sheet !== null &&
-            PRELIMINARY_SHEETS.includes(sheet) &&
-            sheet !== 'resources' &&
-            phase === 'ACTION' && (
-              <p role="status" className="text-danger">
-                {t('game.phase.onlyPreliminary')}
-              </p>
-            )}
+          {sheet !== null && PRELIMINARY_SHEETS.includes(sheet) && phase === 'ACTION' && (
+            <p role="status" className="text-danger">
+              {t('game.phase.onlyPreliminary')}
+            </p>
+          )}
           {sheet === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
-          {sheet === 'resources' && <ResourcesPage state={state} />}
           {sheet === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
           {sheet === 'build' && (
             <BuildPage state={state} picking={building} onPicking={setBuilding} />
