@@ -93,6 +93,11 @@ export function BattleAlert(props: {
             {battle.status === 'RESOLVED' && battle.outcome ? (
               <p role="status" className="text-lg">
                 {t(`game.battles.outcome.defender.${battle.outcome}`, { name: battle.targetName })}
+                {battle.spoils !== undefined && (
+                  <span className="block font-bold text-[#1f9d55]">
+                    {t('game.battles.spoils', { count: battle.spoils })}
+                  </span>
+                )}
               </p>
             ) : battle.response ? (
               <p role="status">{t('game.alert.resolving')}</p>
@@ -108,7 +113,12 @@ export function BattleAlert(props: {
                   <p className="text-danger">{t('game.alert.capital')}</p>
                 )}
                 <ul className="text-muted-foreground text-base">
-                  <li>{t('game.alert.defendHint', { count: battle.defenseCost ?? 0 })}</li>
+                  <li>
+                    {t('game.alert.defendHint', {
+                      count: battle.defenseCost ?? 0,
+                      pct: state.match.config.battleSpoilsPct,
+                    })}
+                  </li>
                   <li>{t('game.alert.surrenderHint')}</li>
                 </ul>
                 {respond.error && (

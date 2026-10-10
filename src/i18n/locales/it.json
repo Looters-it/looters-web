@@ -376,7 +376,8 @@
       "allianceMaxAllies": "Alleati massimi per impero",
       "botsEnabled": "Imperi bot",
       "botsMax": "Bot al massimo in una partita",
-      "botSpawnChancePct": "Probabilità che nasca un bot a ogni turno (%)"
+      "botSpawnChancePct": "Probabilità che nasca un bot a ogni turno (%)",
+      "battleSpoilsPct": "Bottino del vincitore (% di quanto speso dalle due parti)"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -708,7 +709,8 @@
           "CANCELLED": "L'attacco a {{name}} è stato annullato."
         }
       },
-      "from": "L'attacco parte da: {{names}}."
+      "from": "L'attacco parte da: {{names}}.",
+      "spoils": "Bottino: {{count}} risorse."
     },
     "alert": {
       "button_one": "Sotto attacco",
@@ -720,7 +722,7 @@
       "capital": "È la tua capitale: se la perdi, il tuo impero cade.",
       "defend": "Difenditi",
       "surrender": "Arrenditi",
-      "defendHint": "Paghi {{count}} risorse e si combatte subito.",
+      "defendHint": "Paghi {{count}} risorse e si combatte subito. Chi vince prende il {{pct}}% di quanto speso dalle due parti.",
       "surrenderHint": "Cedi il comune con tutte le sue risorse, senza spendere nulla.",
       "resolving": "Risposta inviata. In attesa dell'esito…",
       "close": "Chiudi",

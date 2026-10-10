@@ -229,6 +229,8 @@ export interface Battle {
   /** Resources on the attacked territory when the attack was declared. */
   defenseForce?: number
   defenseCost?: number
+  /** What winning the battle paid: told to the winner only. */
+  spoils?: number
 }
 
 export interface AttackPreview {

@@ -35,7 +35,17 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
     ],
   ],
   ['annex', ['annexCost', 'annexPerTurn']],
-  ['battle', ['attackPct', 'attackStepPct', 'attackMaxPct', 'defensePct', 'surrenderRefundPct']],
+  [
+    'battle',
+    [
+      'attackPct',
+      'attackStepPct',
+      'attackMaxPct',
+      'defensePct',
+      'surrenderRefundPct',
+      'battleSpoilsPct',
+    ],
+  ],
   ['capital', ['capitalMoveEveryTurns', 'accumAlertPct', 'accumAlertMinTerritories']],
   [
     'structures',

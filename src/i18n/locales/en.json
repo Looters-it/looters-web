@@ -376,7 +376,8 @@
       "allianceMaxAllies": "Maximum allies per empire",
       "botsEnabled": "Bot empires",
       "botsMax": "Maximum bots in a match",
-      "botSpawnChancePct": "Chance of a bot appearing each turn (%)"
+      "botSpawnChancePct": "Chance of a bot appearing each turn (%)",
+      "battleSpoilsPct": "Winner's spoils (% of what the two sides spent)"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -708,7 +709,8 @@
           "CANCELLED": "The attack on {{name}} was cancelled."
         }
       },
-      "from": "The attack comes from: {{names}}."
+      "from": "The attack comes from: {{names}}.",
+      "spoils": "Spoils: {{count}} resources."
     },
     "alert": {
       "button_one": "Under attack",
@@ -720,7 +722,7 @@
       "capital": "This is your capital: if you lose it, your empire falls.",
       "defend": "Defend",
       "surrender": "Surrender",
-      "defendHint": "You pay {{count}} resources and the battle is fought straight away.",
+      "defendHint": "You pay {{count}} resources and the battle is fought at once. The winner takes {{pct}}% of what the two sides spent.",
       "surrenderHint": "You give up the municipality with all its resources, without spending anything.",
       "resolving": "Response sent. Waiting for the outcome…",
       "close": "Close",
