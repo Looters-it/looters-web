@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -15,7 +15,7 @@ import { matchApi, type MatchState, type Territory } from '@/features/matches/ap
 import { useMatchErrorText } from '@/features/matches/errors'
 
 import { rebalance, sameAmounts, splitEqually, totalOf, type Amounts } from './allocation'
-import { AllocationRadar } from './AllocationRadar'
+import { AllocationMap } from './AllocationMap'
 import { usePhase } from './phase'
 
 /**
@@ -50,6 +50,20 @@ function Editor(props: {
     .filter((territory) => territory.battleId !== null)
     .map((territory) => territory.id)
   const free = territories.filter((territory) => territory.battleId === null)
+
+  // The outlines of the territories the bubbles stand on: asked again when the empire changes.
+  const shapes = useQuery({
+    queryKey: [
+      'matches',
+      'shapes',
+      matchId,
+      territories
+        .map((territory) => `${territory.id}:${String(territory.geoUnitIds.length)}`)
+        .join(),
+    ],
+    queryFn: () => matchApi.shapes(matchId),
+    placeholderData: keepPreviousData,
+  })
 
   const apply = useMutation({
     mutationFn: (amounts: Amounts) =>
@@ -91,8 +105,9 @@ function Editor(props: {
       {territories.length < 2 ? (
         <p className="text-muted-foreground">{t('game.resources.single')}</p>
       ) : (
-        <AllocationRadar
-          axes={territories.map((territory) => ({
+        <AllocationMap
+          shapes={shapes.data?.territories ?? []}
+          places={territories.map((territory) => ({
             id: territory.id,
             name: territory.name,
             locked: !editable || territory.battleId !== null,

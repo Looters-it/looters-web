@@ -235,6 +235,15 @@ export interface Battle {
   spoils?: number
 }
 
+export interface TerritoryShape {
+  id: string
+  geometry:
+    | { type: 'Polygon'; coordinates: number[][][] }
+    | { type: 'MultiPolygon'; coordinates: number[][][][] }
+  lon: number
+  lat: number
+}
+
 export interface AttackPreview {
   pct: number
   totalCost: number
@@ -412,6 +421,8 @@ export const matchApi = {
     apiPost<MatchState>(`/matches/${id}/structures`, body),
   areas: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/areas`),
   /** The border fought over in each open battle, as lines for the map. */
+  /** The outlines of the viewer's own territories, each with a point inside it. */
+  shapes: (id: string) => apiGet<{ territories: TerritoryShape[] }>(`/matches/${id}/shapes`),
   fronts: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/fronts`),
   previewMerge: (id: string, territoryIds: string[]) =>
     apiPost<MergePreview>(`/matches/${id}/merge/preview`, { territoryIds }),
