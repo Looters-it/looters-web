@@ -623,11 +623,22 @@
       "ruleHint": "La regola vale per tutti i turni finché non la cambi. Scegliendo la proporzione, i pesi restano quelli di questo momento.",
       "locked": "bloccato: in uno scontro",
       "radar": "Ripartizione delle risorse sulla mappa dei tuoi comuni",
-      "radarHint": "Ogni comune ha una bolla grande quanto la sua quota. Trascina il bordo di una bolla verso l'esterno per dargli più risorse, verso l'interno per toglierne: gli altri si adattano in proporzione e il nuovo equilibrio si salva da solo.",
+      "radarHint": "Trascina il bordo di una bolla per dare o togliere risorse a un comune: gli altri si adattano in proporzione e il nuovo equilibrio si salva da solo.",
       "onlyPreliminary": "Le risorse si spostano solo nella fase preliminare del turno.",
       "single": "Con un solo comune non c'è nulla da ripartire.",
       "saving": "Salvataggio…",
-      "saved": "Salvato."
+      "saved": "Salvato.",
+      "presets": "Distribuzioni rapide",
+      "preset": {
+        "equal": "Ovunque",
+        "frontier": "Confini",
+        "north": "Nord",
+        "south": "Sud",
+        "east": "Est",
+        "west": "Ovest",
+        "eastWest": "Est + ovest",
+        "northSouth": "Nord + sud"
+      }
     },
     "unit": {
       "title": "Scheda del comune",

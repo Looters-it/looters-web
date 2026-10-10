@@ -155,7 +155,8 @@ export function AllocationMap(props: {
       viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
       role="group"
       aria-label={t('game.resources.radar')}
-      className="w-full touch-none select-none"
+      // Never taller than what is left of the screen: the whole empire stays in sight.
+      className="max-h-[calc(100dvh-28rem)] min-h-64 w-full touch-none select-none"
     >
       {places.map((place) => (
         <path

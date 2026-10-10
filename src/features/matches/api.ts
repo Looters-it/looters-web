@@ -242,6 +242,8 @@ export interface TerritoryShape {
     | { type: 'MultiPolygon'; coordinates: number[][][][] }
   lon: number
   lat: number
+  /** It touches something that is not the empire's. */
+  frontier: boolean
 }
 
 export interface AttackPreview {

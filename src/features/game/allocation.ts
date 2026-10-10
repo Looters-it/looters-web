@@ -66,3 +66,64 @@ export function rebalance(
     })
   return next
 }
+
+/** Where a preset puts the resources: one side of the empire, two opposite ones, its edge, everywhere. */
+export type AllocationPreset =
+  'equal' | 'frontier' | 'north' | 'south' | 'east' | 'west' | 'eastWest' | 'northSouth'
+
+export const ALLOCATION_PRESETS: readonly AllocationPreset[] = [
+  'equal',
+  'frontier',
+  'north',
+  'south',
+  'west',
+  'east',
+  'eastWest',
+  'northSouth',
+]
+
+interface Placed {
+  id: string
+  lon: number
+  lat: number
+  frontier: boolean
+}
+
+/**
+ * The territories a preset gives the resources to. Sides are halves of the empire as
+ * it lies on the map, and two opposite sides are its outer thirds; a choice that
+ * would leave nobody (an empire all in one place) takes them all.
+ */
+export function presetIds(preset: AllocationPreset, places: readonly Placed[]): string[] {
+  if (places.length === 0) return []
+  const span = (values: number[]) => {
+    const low = Math.min(...values)
+    const width = Math.max(...values) - low
+    return (value: number) => (width > 0 ? (value - low) / width : 0.5)
+  }
+  const across = span(places.map((place) => place.lon))
+  const up = span(places.map((place) => place.lat))
+  const chosen = places.filter((place) => {
+    const x = across(place.lon)
+    const y = up(place.lat)
+    switch (preset) {
+      case 'equal':
+        return true
+      case 'frontier':
+        return place.frontier
+      case 'north':
+        return y > 0.5
+      case 'south':
+        return y < 0.5
+      case 'east':
+        return x > 0.5
+      case 'west':
+        return x < 0.5
+      case 'eastWest':
+        return x <= 1 / 3 || x >= 2 / 3
+      case 'northSouth':
+        return y <= 1 / 3 || y >= 2 / 3
+    }
+  })
+  return (chosen.length > 0 ? chosen : places).map((place) => place.id)
+}

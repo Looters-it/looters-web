@@ -623,11 +623,22 @@
       "ruleHint": "The rule applies to every turn until you change it. If you choose the proportion, the weights stay as they are at this moment.",
       "locked": "locked: in a battle",
       "radar": "Split of the resources on the map of your municipalities",
-      "radarHint": "Each municipality has a bubble as large as its share. Drag the edge of a bubble outwards to give it more resources, inwards to take some away: the others give way in proportion and the new balance saves itself.",
+      "radarHint": "Drag the edge of a bubble to give resources to a municipality or take them away: the others give way in proportion and the new balance saves itself.",
       "onlyPreliminary": "Resources are moved only in the preliminary phase of the turn.",
       "single": "With one municipality there is nothing to split.",
       "saving": "Saving…",
-      "saved": "Saved."
+      "saved": "Saved.",
+      "presets": "Quick splits",
+      "preset": {
+        "equal": "Everywhere",
+        "frontier": "Borders",
+        "north": "North",
+        "south": "South",
+        "east": "East",
+        "west": "West",
+        "eastWest": "East + west",
+        "northSouth": "North + south"
+      }
     },
     "unit": {
       "title": "Municipality details",
