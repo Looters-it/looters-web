@@ -38,6 +38,7 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
   [
     'battle',
     [
+      'attacksPerTurn',
       'attackPct',
       'attackStepPct',
       'attackMaxPct',

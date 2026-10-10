@@ -93,6 +93,8 @@ export interface MatchState {
     empireId: string
     /** Annexations still available this turn. */
     annexLeft: number
+    /** Attacks still available this turn. */
+    attacksLeft: number
     /** What the empire earns when this turn ends. */
     turnValue: number
     allocationMode: 'EQUAL' | 'WEIGHTED'
@@ -275,10 +277,19 @@ export interface UnitCardData {
   annex: {
     cost: number
     left: number
-    payFrom: { territoryId: string; name: string; resources: number; usable: boolean }[]
+    payFrom: {
+      territoryId: string
+      name: string
+      resources: number
+      usable: boolean
+      /** What the nearest capital adds, when the territory alone cannot pay. */
+      fromCapital: number
+    }[]
   } | null
   /** Present for a player looking at a territory of another empire in a running match. */
   attack: {
+    /** Attacks the empire can still declare this turn. */
+    left: number
     blocked: 'PROTECTED' | 'BLOCKED' | 'IN_BATTLE' | 'NOT_ADJACENT' | null
     from: { territoryId: string; name: string; resources: number; usable: boolean }[]
   } | null

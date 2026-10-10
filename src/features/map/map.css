@@ -132,3 +132,40 @@
     transform: translateX(0.12rem);
   }
 }
+
+/* What is written over a sign: the cost of defending, what a conquest took. */
+.battle-sign {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.battle-sign b {
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #072a3e;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+.battle-sign.battle-won b {
+  background: #1f9d55;
+  color: #ffffff;
+}
+
+/* An attack to answer: a shield to press, which defends at once. */
+.battle-sign.battle-defend {
+  pointer-events: auto;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.battle-sign.battle-defend span {
+  background: #1d6fd6;
+}

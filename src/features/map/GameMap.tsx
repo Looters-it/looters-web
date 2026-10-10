@@ -59,6 +59,7 @@ export interface MapMarker {
     | 'attack'
     | 'battle'
     | 'captured'
+    | 'defend'
     | 'annex'
   lon: number
   lat: number
@@ -97,6 +98,8 @@ const NO_LABELS: readonly EmpireLabel[] = []
 const NO_MARKERS: readonly MapMarker[] = []
 
 /** Two crossed swords on a red disc: what bounces on a territory while it is fought over. */
+/** A shield on a blue disc: the answer to an attack, pressed to defend. */
+const DEFEND_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.500 20 5.500v6c0 5-3.500 8.500-8 10-4.500-1.500-8-5-8-10v-6Z"/><path d="m9 12 2 2 4-4"/></svg></span>`
 const BATTLE_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5 18 3h3v3l-3.500 3.500M5 14l4 4M7 17l-3 3M3 19l2 2"/></svg></span>`
 
 /** What is drawn on a capital, if the marker is one and says so. */
@@ -401,26 +404,70 @@ export function GameMap({
   // A battle being fought: crossed swords that bounce on the territory. Once it is
   // conquered the sign turns green and stops, then shakes sideways once. Drawn in the
   // page, over the map, since nothing drawn by the map moves by itself.
+  // An attack the viewer can answer is a shield instead, with the cost of defending
+  // over it: pressing it defends at once.
   const battles = markers
-    .filter((marker) => marker.kind === 'battle' || marker.kind === 'captured')
-    .map((marker) => `${marker.kind},${marker.lon},${marker.lat}`)
+    .filter(
+      (marker) =>
+        marker.kind === 'battle' || marker.kind === 'captured' || marker.kind === 'defend',
+    )
+    .map((marker) => [marker.kind, marker.lon, marker.lat, marker.id, marker.text ?? ''].join('|'))
     .join(';')
+  // Each sign stays the same element for as long as it is there: one that is pressed
+  // must not be taken away and put back under the finger when another sign changes.
+  const signsRef = useRef(new Map<string, Marker>())
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !ready || battles === '') return
-    const signs = battles.split(';').map((sign) => {
-      const [kind, lon, lat] = sign.split(',')
-      const element = document.createElement('div')
-      element.className = kind === 'captured' ? 'battle-sign battle-won' : 'battle-sign'
-      element.setAttribute('aria-hidden', 'true')
-      element.innerHTML = BATTLE_SIGN
+    if (!map || !ready) return
+    const shown = signsRef.current
+    const wanted = new Set(battles === '' ? [] : battles.split(';'))
+    for (const [sign, marker] of shown) {
+      if (wanted.has(sign)) continue
+      marker.remove()
+      shown.delete(sign)
+    }
+    for (const sign of wanted) {
+      if (shown.has(sign)) continue
+      const [kind, lon, lat, id = '', text = ''] = sign.split('|')
+      const element = document.createElement(kind === 'defend' ? 'button' : 'div')
+      element.className =
+        kind === 'captured'
+          ? 'battle-sign battle-won'
+          : kind === 'defend'
+            ? 'battle-sign battle-defend'
+            : 'battle-sign'
+      if (kind === 'defend') {
+        element.setAttribute('type', 'button')
+        element.setAttribute('aria-label', i18next.t('game.map.defend', { count: Number(text) }))
+        element.addEventListener('click', (event) => {
+          event.stopPropagation()
+          onMarkerRef.current?.(id)
+        })
+      } else {
+        element.setAttribute('aria-hidden', 'true')
+      }
+      // What is written over the sign: the cost of defending, or what a conquest took.
+      const label = document.createElement('b')
+      label.textContent = text
+      element.innerHTML = kind === 'defend' ? DEFEND_SIGN : BATTLE_SIGN
+      if (text !== '') element.prepend(label)
       // Above the figure of the resources, which stays readable under it.
-      return new Marker({ element, anchor: 'bottom', offset: [0, -30] })
-        .setLngLat([Number(lon), Number(lat)])
-        .addTo(map)
-    })
-    return () => signs.forEach((sign) => sign.remove())
+      shown.set(
+        sign,
+        new Marker({ element, anchor: 'bottom', offset: [0, -30] })
+          .setLngLat([Number(lon), Number(lat)])
+          .addTo(map),
+      )
+    }
   }, [battles, ready])
+  // Gone with the map.
+  useEffect(() => {
+    const shown = signsRef.current
+    return () => {
+      for (const marker of shown.values()) marker.remove()
+      shown.clear()
+    }
+  }, [])
 
   useEffect(() => {
     const map = mapRef.current

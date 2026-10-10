@@ -97,6 +97,11 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
               {t('game.unit.payOption', { name: payFrom.name, count: payFrom.resources })}
             </p>
           )}
+          {payFrom && payFrom.fromCapital > 0 && (
+            <p className="text-muted-foreground">
+              {t('game.unit.payWithCapital', { count: payFrom.fromCapital })}
+            </p>
+          )}
           {act.error && (
             <p role="alert" className="text-danger">
               {errorText(act.error)}
@@ -361,6 +366,14 @@ export function UnitPanel(props: {
                 <p className="text-muted-foreground">{t('game.unit.attackNotAdjacent')}</p>
               ) : !card.data.attack.from.some((source) => source.usable) ? (
                 <p className="text-muted-foreground">{t('game.unit.attackNoForce')}</p>
+              ) : card.data.attack.left === 0 ? (
+                <>
+                  <Button variant="destructive" className="self-start" disabled>
+                    <Swords aria-hidden="true" />
+                    {t('game.unit.prepareAttack')}
+                  </Button>
+                  <p className="text-muted-foreground">{t('game.unit.attackNoneLeft')}</p>
+                </>
               ) : (
                 <Button
                   variant="destructive"

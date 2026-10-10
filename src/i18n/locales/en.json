@@ -377,7 +377,8 @@
       "botsEnabled": "Bot empires",
       "botsMax": "Maximum bots in a match",
       "botSpawnChancePct": "Chance of a bot appearing each turn (%)",
-      "battleSpoilsPct": "Winner's spoils (% of what the two sides spent)"
+      "battleSpoilsPct": "Winner's spoils (% of what the two sides spent)",
+      "attacksPerTurn": "Attacks per turn"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -550,7 +551,8 @@
       "NOT_PRIVATE": "Only a private match has invitations.",
       "OWN_MATCH": "The match is already yours.",
       "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn.",
-      "MATCH_PAUSED": "The match is paused."
+      "MATCH_PAUSED": "The match is paused.",
+      "ATTACK_LIMIT": "You have used the attacks of this turn."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -658,7 +660,7 @@
       "annexCost": "It costs {{count}} resources, paid by one of your neighbouring municipalities.",
       "annexNoneLeft": "You have already used this turn's annexations.",
       "annexNotAdjacent": "It does not border any of your municipalities: you cannot annex it.",
-      "annexNoFunds": "None of your neighbouring municipalities has {{count}} resources. Move some there from \"Resources by municipality\".",
+      "annexNoFunds": "Neither your municipality beside it nor the nearest capital has the {{count}} resources it takes.",
       "payFrom": "Pay from",
       "payOption": "{{name}} ({{count}} resources)",
       "annexed": "Annexed.",
@@ -681,7 +683,9 @@
       "renameArea": "Area name",
       "rename": "Rename",
       "partOf": "Part of the area {{name}}.",
-      "ally": "Allied empire: you cannot attack each other."
+      "ally": "Allied empire: you cannot attack each other.",
+      "attackNoneLeft": "You have used the attacks of this turn.",
+      "payWithCapital": "The municipality does not have enough: {{count}} come from the nearest capital."
     },
     "attack": {
       "title": "Attack on {{name}}",
@@ -768,7 +772,9 @@
       "alliances": "Alliances",
       "resources": "Resources",
       "canvas": "Map: arrow keys to move, plus and minus to zoom",
-      "tags": "Empire tags"
+      "tags": "Empire tags",
+      "defend_one": "Defend: it costs {{count}} resource",
+      "defend_other": "Defend: it costs {{count}} resources"
     },
     "structures": {
       "title": "Structures",
@@ -806,7 +812,11 @@
       "moveTo": "Move to another of your municipalities",
       "moveWait_one": "You can move it in {{count}} turn.",
       "moveWait_other": "You can move it in {{count}} turns.",
-      "moveNowhere": "To move it you need another municipality of yours that is not the capital."
+      "moveNowhere": "To move it you need another municipality of yours that is not the capital.",
+      "dragIntro": "Drag a structure onto one of your municipalities on the map below to build it: it is paid with the resources of that municipality.",
+      "map": "Map of your municipalities",
+      "notHere": "it cannot be built here.",
+      "moveDrag": "drag it on the map to move it"
     },
     "merge": {
       "title": "Merge territories",

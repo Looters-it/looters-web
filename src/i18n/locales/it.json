@@ -377,7 +377,8 @@
       "botsEnabled": "Imperi bot",
       "botsMax": "Bot al massimo in una partita",
       "botSpawnChancePct": "Probabilità che nasca un bot a ogni turno (%)",
-      "battleSpoilsPct": "Bottino del vincitore (% di quanto speso dalle due parti)"
+      "battleSpoilsPct": "Bottino del vincitore (% di quanto speso dalle due parti)",
+      "attacksPerTurn": "Attacchi per turno"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -550,7 +551,8 @@
       "NOT_PRIVATE": "Solo una partita privata ha inviti.",
       "OWN_MATCH": "La partita è già tua.",
       "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno.",
-      "MATCH_PAUSED": "La partita è in pausa."
+      "MATCH_PAUSED": "La partita è in pausa.",
+      "ATTACK_LIMIT": "Hai già usato gli attacchi di questo turno."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -658,7 +660,7 @@
       "annexCost": "Costa {{count}} risorse, pagate da un tuo comune confinante.",
       "annexNoneLeft": "Hai già usato le annessioni di questo turno.",
       "annexNotAdjacent": "Non confina con nessun tuo comune: non puoi annetterlo.",
-      "annexNoFunds": "Nessun tuo comune confinante ha {{count}} risorse. Spostane lì da \"Risorse per comune\".",
+      "annexNoFunds": "Né il tuo comune confinante né la capitale più vicina hanno le {{count}} risorse che servono.",
       "payFrom": "Paga da",
       "payOption": "{{name}} ({{count}} risorse)",
       "annexed": "Annesso.",
@@ -681,7 +683,9 @@
       "renameArea": "Nome dell'area",
       "rename": "Rinomina",
       "partOf": "Fa parte dell'area {{name}}.",
-      "ally": "Impero alleato: non potete attaccarvi."
+      "ally": "Impero alleato: non potete attaccarvi.",
+      "attackNoneLeft": "Hai già usato gli attacchi di questo turno.",
+      "payWithCapital": "Il comune non ne ha abbastanza: {{count}} arrivano dalla capitale più vicina."
     },
     "attack": {
       "title": "Attacco a {{name}}",
@@ -768,7 +772,9 @@
       "alliances": "Alleanze",
       "resources": "Risorse",
       "canvas": "Mappa: frecce per spostarsi, più e meno per lo zoom",
-      "tags": "Sigle degli imperi"
+      "tags": "Sigle degli imperi",
+      "defend_one": "Difendi: costa {{count}} risorsa",
+      "defend_other": "Difendi: costa {{count}} risorse"
     },
     "structures": {
       "title": "Costruzioni",
@@ -806,7 +812,11 @@
       "moveTo": "Sposta in un altro tuo comune",
       "moveWait_one": "Potrai spostarla tra {{count}} turno.",
       "moveWait_other": "Potrai spostarla tra {{count}} turni.",
-      "moveNowhere": "Per spostarla serve un altro tuo comune che non sia la capitale."
+      "moveNowhere": "Per spostarla serve un altro tuo comune che non sia la capitale.",
+      "dragIntro": "Trascina una costruzione su un tuo comune nella mappa qui sotto per costruirla: si paga con le risorse di quel comune.",
+      "map": "Mappa dei tuoi comuni",
+      "notHere": "qui non si può costruire.",
+      "moveDrag": "trascinala sulla mappa per spostarla"
     },
     "merge": {
       "title": "Unisci territori",

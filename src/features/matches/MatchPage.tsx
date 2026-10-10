@@ -294,11 +294,8 @@ export function MatchPage() {
       return false
     }
   })
-  // Territories being chosen for a merge, and the structure a territory is being chosen for.
+  // Territories being chosen for a merge.
   const [merging, setMerging] = useState<string[]>([])
-  const [building, setBuilding] = useState<{ type: string; territoryId: string | null } | null>(
-    null,
-  )
 
   const hasMap = state !== undefined
   const area = useQuery({
@@ -426,15 +423,17 @@ export function MatchPage() {
     enabled: canAct,
     placeholderData: keepPreviousData,
   })
-  const targetIds = canAct ? targets.data?.territoryIds : undefined
-  const annexIds = canAct ? targets.data?.annexUnitIds : undefined
+  // Only in the part of the turn they can be pressed in: what the last one left is not shown.
+  const acting = canAct && phase === 'ACTION'
+  const targetIds = acting ? targets.data?.territoryIds : undefined
+  const annexIds = acting ? targets.data?.annexUnitIds : undefined
 
   // What each of the player's territories earned when a turn began, shown on the map
   // for a moment: the difference with what it held when the turn before ended.
   const [seenState, setSeenState] = useState(state)
   const [gains, setGains] = useState<ReadonlyMap<string, number>>(new Map())
   // Territories just conquered: the sign of the battle stays on them for a moment, green.
-  const [captured, setCaptured] = useState<readonly string[]>([])
+  const [captured, setCaptured] = useState<ReadonlyMap<string, number | null>>(new Map())
   if (state !== seenState) {
     setSeenState(state)
     if (state && seenState) {
@@ -446,8 +445,15 @@ export function MatchPage() {
             b.status === 'RESOLVED' &&
             (b.outcome === 'ATTACKER_WON' || b.outcome === 'SURRENDER'),
         )
-        .map((b) => b.targetTerritoryId)
-      if (taken.length > 0) setCaptured(taken)
+        .map((b): [string, number | null] => {
+          // For who took it: what was on the territory, and what winning the battle paid.
+          const found = state.territories.find((t) => t.id === b.targetTerritoryId)?.resources
+          return [
+            b.targetTerritoryId,
+            b.role === 'attacker' ? (found ?? 0) + (b.spoils ?? 0) : null,
+          ]
+        })
+      if (taken.length > 0) setCaptured(new Map(taken))
     }
     if (state && seenState && state.match.currentTurn > seenState.match.currentTurn) {
       const before = new Map(seenState.territories.map((t) => [t.id, t.resources]))
@@ -462,8 +468,8 @@ export function MatchPage() {
     }
   }
   useEffect(() => {
-    if (captured.length === 0) return
-    const timer = setTimeout(() => setCaptured([]), CAPTURED_SHOWN_MS)
+    if (captured.size === 0) return
+    const timer = setTimeout(() => setCaptured(new Map()), CAPTURED_SHOWN_MS)
     return () => clearTimeout(timer)
   }, [captured])
   useEffect(() => {
@@ -562,20 +568,45 @@ export function MatchPage() {
     const fought = new Set(
       state?.battles.filter((b) => b.status === 'OPEN').map((b) => b.targetTerritoryId),
     )
+    // An attack on the viewer still to answer: a shield to press, with what defending costs.
+    const toAnswer = new Map(
+      state?.battles
+        .filter((b) => b.status === 'OPEN' && b.role === 'defender' && !b.response)
+        .map((b) => [b.targetTerritoryId, b]),
+    )
     const clashes = (state?.territories ?? []).flatMap((territory): MapMarker[] => {
       const point = points.get(territory.geoUnitIds[0] ?? -1)
-      return fought.has(territory.id) && point
-        ? [{ id: `battle:${territory.id}`, kind: 'battle', lon: point.lon, lat: point.lat }]
-        : []
+      if (!fought.has(territory.id) || !point) return []
+      const answer = canAct ? toAnswer.get(territory.id) : undefined
+      return answer
+        ? [
+            {
+              id: `defend:${answer.id}`,
+              kind: 'defend',
+              text: String(answer.defenseCost ?? 0),
+              lon: point.lon,
+              lat: point.lat,
+            },
+          ]
+        : [{ id: `battle:${territory.id}`, kind: 'battle', lon: point.lon, lat: point.lat }]
     })
     const conquests = (state?.territories ?? []).flatMap((territory): MapMarker[] => {
       const point = points.get(territory.geoUnitIds[0] ?? -1)
-      return captured.includes(territory.id) && point
-        ? [{ id: `captured:${territory.id}`, kind: 'captured', lon: point.lon, lat: point.lat }]
+      const gain = captured.get(territory.id)
+      return captured.has(territory.id) && point
+        ? [
+            {
+              id: `captured:${territory.id}`,
+              kind: 'captured',
+              text: gain ? `+${String(gain)}` : '',
+              lon: point.lon,
+              lat: point.lat,
+            },
+          ]
         : []
     })
     return [...signs, ...flags, ...clashes, ...conquests]
-  }, [state, targetIds, annexIds, gains, captured, units.data])
+  }, [state, targetIds, annexIds, gains, captured, canAct, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
@@ -671,7 +702,6 @@ export function MatchPage() {
     setSheet(next)
     // What was being chosen in a dialog is dropped with it.
     if (next !== 'merge') setMerging([])
-    if (next !== 'build') setBuilding(null)
   }
   const onMapSelect = (unit: MapUnit | null) => {
     // Looking at the past: the box says who owned the municipality then, nothing else opens.
@@ -704,6 +734,14 @@ export function MatchPage() {
   // flag annexes that municipality, at once and without passing through its card.
   const onMarker = (markerId: string) => {
     const [kind, signId] = markerId.split(':')
+    if (kind === 'defend' && signId) {
+      // The shield defends at once; to surrender instead, the alert of the attack is opened.
+      void matchApi
+        .respond(id, signId, 'DEFEND')
+        .then((next) => queryClient.setQueryData(['matches', 'state', id], next))
+        .catch(() => setAlertOpen(true))
+      return
+    }
     if (kind !== 'attack' && kind !== 'annex') return
     // An attack is on a territory, an annexation on a free municipality.
     const unitId =
@@ -743,12 +781,12 @@ export function MatchPage() {
           onMapSelect(unit)
           return
         }
-        // The swords attack at once, from the strongest own territory beside it: to
-        // choose where from, or more than one, the attack is prepared from the card.
+        // The swords attack at once, from every own territory beside it that can: to
+        // choose where from, the attack is prepared from the card.
         return matchApi
           .attack(id, {
             targetGeoUnitId: point.id,
-            fromTerritoryIds: sources[0] ? [sources[0].territoryId] : [],
+            fromTerritoryIds: sources.map((source) => source.territoryId),
             turn: state.match.currentTurn,
           })
           .then((next) => {
@@ -1210,9 +1248,7 @@ export function MatchPage() {
           )}
           {sheet === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
           {sheet === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
-          {sheet === 'build' && (
-            <BuildPage state={state} picking={building} onPicking={setBuilding} />
-          )}
+          {sheet === 'build' && <BuildPage state={state} />}
           {sheet === 'alliance' && <AlliancePage state={state} />}
           {sheet === 'history' && (
             <HistoryPage
