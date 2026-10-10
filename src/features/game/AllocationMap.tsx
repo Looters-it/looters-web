@@ -14,12 +14,12 @@ export interface AllocationPlace {
 }
 
 const WIDTH = 480
-const HEIGHT = 400
+const HEIGHT = 380
 /** Room around the territories, for the bubbles of the ones at the edge. */
-const MARGIN = 44
+const MARGIN = 32
 /** The bubble of a territory with nothing, and of one that holds the whole scale. */
-const SMALLEST = 9
-const LARGEST = 40
+const SMALLEST = 6.5
+const LARGEST = 30
 
 /**
  * The resources of an empire on the map of its own territories: on each one a bubble
@@ -155,7 +155,7 @@ export function AllocationMap(props: {
       viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
       role="group"
       aria-label={t('game.resources.radar')}
-      className="mx-auto w-full max-w-xl touch-none select-none"
+      className="w-full touch-none select-none"
     >
       {places.map((place) => (
         <path
@@ -192,7 +192,7 @@ export function AllocationMap(props: {
                 place.locked ? 'fill-muted-foreground/80' : 'fill-secondary/75 cursor-grab',
                 held === place.id && 'cursor-grabbing',
               )}
-              strokeWidth={2}
+              strokeWidth={1.5}
               onPointerDown={(event) => {
                 if (place.locked) return
                 event.currentTarget.setPointerCapture(event.pointerId)
@@ -209,13 +209,13 @@ export function AllocationMap(props: {
               onKeyDown={(event) => !place.locked && onKey(event, place)}
             />
             {/* What it holds, inside the bubble once there is room for the figure. */}
-            {radius >= 14 && (
+            {radius >= 10 && (
               <text
                 x={centre.x}
                 y={centre.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                className="pointer-events-none fill-white font-mono text-[11px] font-bold"
+                className="pointer-events-none fill-white font-mono text-[9px] font-bold"
               >
                 {amounts[place.id] ?? 0}
               </text>
@@ -229,8 +229,8 @@ export function AllocationMap(props: {
           x={Math.max(70, Math.min(WIDTH - 70, heldCentre.x))}
           y={Math.max(14, heldCentre.y - radiusOf(heldPlace.id) - 8)}
           textAnchor="middle"
-          className="fill-foreground stroke-background pointer-events-none text-[13px] font-bold [paint-order:stroke]"
-          strokeWidth={4}
+          className="fill-foreground stroke-background pointer-events-none text-[11px] font-bold [paint-order:stroke]"
+          strokeWidth={3}
         >
           {heldPlace.name} · {amounts[heldPlace.id] ?? 0} ({percent(heldPlace.id)}%)
         </text>

@@ -986,7 +986,7 @@ export function MatchPage() {
           {resourcesOpen && mine && !fallen && (
             <section
               aria-label={t('game.menu.resources')}
-              className="bg-background animate-in fade-in absolute inset-x-3 top-16 z-20 flex max-h-[calc(100%-9rem)] flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-200 md:top-3 md:right-[4.5rem] md:left-auto md:max-h-[calc(100%-7rem)] md:w-[26rem] lg:w-[30rem]"
+              className="bg-background animate-in fade-in absolute inset-x-3 top-16 z-20 flex max-h-[calc(100%-9rem)] flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-200 md:top-3 md:right-[4.5rem] md:left-auto md:max-h-[calc(100%-7rem)] md:w-[32rem] lg:w-[42rem] xl:w-[48rem]"
             >
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl">{t('game.menu.resources')}</h2>
