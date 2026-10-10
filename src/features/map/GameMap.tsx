@@ -33,6 +33,7 @@ import {
   UNITS_SOURCE,
 } from './style'
 import { capitalIconId, ensureCapitalIcons } from './capital-icon'
+import { ensureShieldIcon } from './shield-icon'
 import { mapColors } from './theme'
 
 export interface MapUnit {
@@ -43,7 +44,7 @@ export interface MapUnit {
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
 export interface MapMarker {
   id: string
-  kind: 'capital' | 'second-capital' | 'alert' | 'block'
+  kind: 'capital' | 'second-capital' | 'alert' | 'block' | 'protected'
   lon: number
   lat: number
   /** Colour of the empire, for a capital. */
@@ -337,6 +338,8 @@ export function GameMap({
         }),
       })
     }
+    // The shield of the protected territories is the same for all: drawn once.
+    if (markers.some((marker) => marker.kind === 'protected')) ensureShieldIcon(map)
     // At once with what is there, then again when the arms of the capitals are drawn.
     write(new Set())
     let cancelled = false

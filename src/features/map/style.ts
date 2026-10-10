@@ -1,6 +1,7 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 
 import type { AreaMap } from './api'
+import { SHIELD_ICON } from './shield-icon'
 import type { MapColors } from './theme'
 
 export const UNITS_SOURCE = 'units'
@@ -228,6 +229,20 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
+      },
+      {
+        // Protected until the end of the turn: a shield beside the municipality, bottom left.
+        id: 'protected-shields',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'protected'],
+        layout: {
+          'icon-image': SHIELD_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 0.85, 14, 1.1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-translate': [-13, 13] },
       },
       {
         // Accumulation alerts: a red disc with an exclamation mark, a shape and not just a colour.

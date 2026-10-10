@@ -143,7 +143,7 @@ function MatchTimes({ match }: { match: MatchState['match'] }) {
           ? t('match.info.turnSeconds', { count: Math.round(match.turnHours * 3600) })
           : match.turnHours < 1
             ? t('match.info.turnMinutes', { count: Math.round(match.turnHours * 60) })
-            : t('match.info.turnLength', { hours: match.turnHours })}
+            : t('match.info.turnHours', { count: match.turnHours })}
       </li>
       <li>{end ? t('match.info.endsOn', { date: format.date(end) }) : t('match.info.noEnd')}</li>
     </ul>
@@ -328,6 +328,10 @@ export function MatchPage() {
           : []),
         ...(territory.alert
           ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
+          : []),
+        // Just acquired: it cannot be attacked until the turn ends.
+        ...(territory.protected
+          ? [{ id: `protected:${territory.id}`, kind: 'protected' as const, ...at }]
           : []),
         // Structures are read by their effects, so new ones with the same effects are drawn too.
         ...(state?.structures ?? [])

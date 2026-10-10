@@ -382,7 +382,6 @@
       "started": "Iniziata {{when}}",
       "turn": "Turno {{turn}}",
       "players": "{{players}} di {{max}} giocatori",
-      "turnLength": "Turni di {{hours}} ore",
       "owner": "Creata da {{owner}}",
       "noEnd": "Senza scadenza",
       "lateStart": "L'inizio è passato ma la partita non è partita: servono almeno {{min}} giocatori. Chi l'ha creata può fissare una nuova data.",
@@ -390,7 +389,9 @@
       "turnSeconds_other": "Turni di {{count}} secondi",
       "turnMinutes_one": "Turni di {{count}} minuto",
       "turnMinutes_other": "Turni di {{count}} minuti",
-      "endsOn": "Termina il giorno {{date}}"
+      "endsOn": "Termina il giorno {{date}}",
+      "turnHours_one": "Turni di {{count}} ora",
+      "turnHours_other": "Turni di {{count}} ore"
     },
     "owner": {
       "title": "Gestione della partita",

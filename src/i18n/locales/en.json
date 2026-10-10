@@ -382,7 +382,6 @@
       "started": "Started {{when}}",
       "turn": "Turn {{turn}}",
       "players": "{{players}} of {{max}} players",
-      "turnLength": "{{hours}}-hour turns",
       "owner": "Created by {{owner}}",
       "noEnd": "No time limit",
       "lateStart": "The start time has passed but the match has not started: at least {{min}} players are needed. Whoever created it can set a new date.",
@@ -390,7 +389,9 @@
       "turnSeconds_other": "Turns of {{count}} seconds",
       "turnMinutes_one": "Turns of {{count}} minute",
       "turnMinutes_other": "Turns of {{count}} minutes",
-      "endsOn": "Ends on {{date}}"
+      "endsOn": "Ends on {{date}}",
+      "turnHours_one": "Turns of {{count}} hour",
+      "turnHours_other": "Turns of {{count}} hours"
     },
     "owner": {
       "title": "Managing the match",
