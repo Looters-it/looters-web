@@ -66,6 +66,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Item to="/match/new" onClick={onNavigate}>
               {t('nav.newMatch')}
             </Item>
+            <Item to="/leaderboard" onClick={onNavigate}>
+              {t('nav.leaderboard')}
+            </Item>
             {user.role === 'ADMIN' && (
               <Item to="/admin" onClick={onNavigate}>
                 {t('nav.admin')}

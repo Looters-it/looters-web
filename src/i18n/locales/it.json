@@ -15,7 +15,8 @@
     "how": "Come funziona",
     "matches": "Vedi partite in corso",
     "newMatch": "Nuova partita",
-    "leaveMatch": "Esci dalla partita"
+    "leaveMatch": "Esci dalla partita",
+    "leaderboard": "Classifica"
   },
   "home": {
     "title": "Saccheggia i tuoi vicini!",
@@ -761,7 +762,9 @@
       "spectatorShort": "Il tuo impero è caduto: segui la partita da spettatore.",
       "fallenTitle": "Il tuo impero è caduto",
       "fallenText": "{{name}} ha perso la capitale. Non puoi più giocare in questa partita, ma puoi seguirla da spettatore fino alla fine.",
-      "fallenContinue": "Continua da spettatore"
+      "fallenContinue": "Continua da spettatore",
+      "award_one": "+{{count}} ELO",
+      "award_other": "+{{count}} ELO"
     },
     "map": {
       "legendCapital": "Capitale",
@@ -1059,6 +1062,31 @@
       "since": "Su Looters dal",
       "matches": "Partite giocate",
       "mine": "Vai al tuo profilo"
+    }
+  },
+  "leaderboard": {
+    "title": "Classifica globale",
+    "intro": "Ogni partita conclusa lascia un premio in ELO: più alto è il piazzamento, più giocatori c'erano e più turni è durata, più vale.",
+    "search": "Giocatore",
+    "searchPlaceholder": "Cerca per nome",
+    "minMatches": "Partite giocate",
+    "minAll": "Tutti",
+    "minAtLeast_one": "Almeno {{count}}",
+    "minAtLeast_other": "Almeno {{count}}",
+    "pageSize": "Per pagina",
+    "reset": "Togli i filtri",
+    "error": "La classifica non è disponibile in questo momento.",
+    "none": "Nessun giocatore corrisponde ai filtri.",
+    "empty": "Nessuno ha ancora concluso una partita.",
+    "pages": "Pagine della classifica",
+    "total_one": "{{count}} giocatore",
+    "total_other": "{{count}} giocatori",
+    "columns": {
+      "rank": "Pos.",
+      "username": "Giocatore",
+      "matches": "Partite",
+      "elo": "Punteggio",
+      "turns": "Turni"
     }
   }
 }

@@ -84,6 +84,8 @@ const empire = (
   capitalTerritoryId: capital,
   units,
   fallenTurn: null,
+  place: null,
+  award: null,
 })
 const territory = (
   id: string,

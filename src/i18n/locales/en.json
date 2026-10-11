@@ -15,7 +15,8 @@
     "how": "How it works",
     "matches": "See matches in progress",
     "newMatch": "New match",
-    "leaveMatch": "Leave the match page"
+    "leaveMatch": "Leave the match page",
+    "leaderboard": "Ranking"
   },
   "home": {
     "title": "Loot your neighbours!",
@@ -761,7 +762,9 @@
       "spectatorShort": "Your empire has fallen: you follow the match as a spectator.",
       "fallenTitle": "Your empire has fallen",
       "fallenText": "{{name}} has lost its capital. You can no longer play in this match, but you can follow it as a spectator until the end.",
-      "fallenContinue": "Go on as a spectator"
+      "fallenContinue": "Go on as a spectator",
+      "award_one": "+{{count}} ELO",
+      "award_other": "+{{count}} ELO"
     },
     "map": {
       "legendCapital": "Capital",
@@ -1059,6 +1062,31 @@
       "since": "On Looters since",
       "matches": "Matches played",
       "mine": "Go to your profile"
+    }
+  },
+  "leaderboard": {
+    "title": "Global ranking",
+    "intro": "Every finished match leaves a prize in ELO: the higher the place, the more players there were and the more turns it lasted, the more it is worth.",
+    "search": "Player",
+    "searchPlaceholder": "Search by name",
+    "minMatches": "Matches played",
+    "minAll": "Everyone",
+    "minAtLeast_one": "At least {{count}}",
+    "minAtLeast_other": "At least {{count}}",
+    "pageSize": "Per page",
+    "reset": "Clear the filters",
+    "error": "The ranking is not available right now.",
+    "none": "No player matches the filters.",
+    "empty": "Nobody has finished a match yet.",
+    "pages": "Pages of the ranking",
+    "total_one": "{{count}} player",
+    "total_other": "{{count}} players",
+    "columns": {
+      "rank": "Pos.",
+      "username": "Player",
+      "matches": "Matches",
+      "elo": "Score",
+      "turns": "Turns"
     }
   }
 }

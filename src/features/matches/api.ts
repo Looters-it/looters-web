@@ -64,6 +64,9 @@ export interface Empire {
   /** Municipalities controlled. */
   units: number
   fallenTurn: number | null
+  /** Once the match is over: where the empire finished (1 is first) and what it earned. */
+  place: number | null
+  award: number | null
   /** The image the player uploaded in place of the emblem, if any. */
   logoUrl: string | null
   /** Total resources: sent only when the match is over. */

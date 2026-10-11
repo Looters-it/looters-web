@@ -1,3 +1,4 @@
+import { LeaderboardPage } from '@/features/leaderboard/LeaderboardPage'
 import type { RouteObject } from 'react-router'
 
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -36,6 +37,8 @@ export const routes: RouteObject[] = [
           { path: '/profilo', element: <Redirect to="/profile" /> },
           { path: '/admin', element: <AdminPage /> },
           { path: '/matches', element: <MatchList /> },
+          { path: '/leaderboard', element: <LeaderboardPage /> },
+          { path: '/classifica', element: <Redirect to="/leaderboard" /> },
           { path: '/come-funziona', element: <HowItWorks /> },
           { path: '/match/new', element: <NewMatchPage /> },
           { path: '/match/:id', element: <MatchPage /> },

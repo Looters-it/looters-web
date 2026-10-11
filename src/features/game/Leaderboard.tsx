@@ -28,8 +28,9 @@ export function Leaderboard(props: {
     mutationFn: (empireId: string) => matchApi.removeLogo(state.match.id, empireId),
     onSuccess: (next) => queryClient.setQueryData(['matches', 'state', state.match.id], next),
   })
+  // Once the match is over, in the order it ended in.
   const empires = [...state.empires].sort(
-    (a, b) => b.units - a.units || a.name.localeCompare(b.name),
+    (a, b) => (a.place ?? 0) - (b.place ?? 0) || b.units - a.units || a.name.localeCompare(b.name),
   )
   const total = empires.reduce((sum, empire) => sum + empire.units, 0)
 
@@ -103,6 +104,12 @@ export function Leaderboard(props: {
                     {empire.status === 'FALLEN' &&
                       empire.fallenTurn !== null &&
                       ` · ${t('game.end.fallen', { turn: empire.fallenTurn })}`}
+                    {/* What the match left to who played it, for the global ranking. */}
+                    {!empire.isBot && empire.award !== null && (
+                      <b className="text-foreground ml-auto pl-2 font-mono whitespace-nowrap">
+                        {t('game.end.award', { count: empire.award })}
+                      </b>
+                    )}
                   </p>
                   {/* Who runs the match can take down a picture that should not be there. */}
                   {canModerate && empire.logoUrl && empire.id !== state.me?.empireId && (
