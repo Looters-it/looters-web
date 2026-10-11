@@ -815,10 +815,9 @@
       "moveWait_one": "You can move it in {{count}} turn.",
       "moveWait_other": "You can move it in {{count}} turns.",
       "moveNowhere": "To move it you need another municipality of yours that is not the capital.",
-      "dragIntro": "Drag a structure onto one of your municipalities on the map below to build it: it is paid with the resources of that municipality.",
-      "map": "Map of your municipalities",
+      "dragIntro": "Drag a structure from this menu onto one of your municipalities on the map: where it can be built lights up, and it is paid with the resources of that municipality.",
       "notHere": "it cannot be built here.",
-      "moveDrag": "drag it on the map to move it"
+      "moveDrag": "drag it onto the map to move it"
     },
     "merge": {
       "title": "Merge territories",

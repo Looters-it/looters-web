@@ -815,8 +815,7 @@
       "moveWait_one": "Potrai spostarla tra {{count}} turno.",
       "moveWait_other": "Potrai spostarla tra {{count}} turni.",
       "moveNowhere": "Per spostarla serve un altro tuo comune che non sia la capitale.",
-      "dragIntro": "Trascina una costruzione su un tuo comune nella mappa qui sotto per costruirla: si paga con le risorse di quel comune.",
-      "map": "Mappa dei tuoi comuni",
+      "dragIntro": "Trascina una costruzione dal menu su un tuo comune nella mappa: i comuni dove puoi costruirla si illuminano e si paga con le risorse di quel comune.",
       "notHere": "qui non si può costruire.",
       "moveDrag": "trascinala sulla mappa per spostarla"
     },

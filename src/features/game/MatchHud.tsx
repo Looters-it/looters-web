@@ -10,6 +10,8 @@ import { usePhase } from './phase'
 
 /** How long the seconds added to a turn stay beside its clock. */
 const ADDED_SHOWN_MS = 4000
+/** How long what the empire just earned or spent stays over its resources. */
+const DELTA_SHOWN_MS = 2600
 
 /** A bag of coins, tied at the neck, with the sign of money on it. */
 function MoneyBag() {
@@ -81,6 +83,21 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
     const timer = setTimeout(() => setAdded(null), ADDED_SHOWN_MS)
     return () => clearTimeout(timer)
   }, [added])
+  // What the empire earned or spent since the last figure: said over the counter for a
+  // moment, green or red. Moving resources between territories changes nothing here.
+  const [seenResources, setSeenResources] = useState(resources)
+  const [delta, setDelta] = useState<{ amount: number; nth: number } | null>(null)
+  if (resources !== seenResources) {
+    setSeenResources(resources)
+    if (resources !== null && seenResources !== null) {
+      setDelta({ amount: resources - seenResources, nth: (delta?.nth ?? 0) + 1 })
+    }
+  }
+  useEffect(() => {
+    if (delta === null) return
+    const timer = setTimeout(() => setDelta(null), DELTA_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [delta])
   const number = useRef<HTMLSpanElement>(null)
   const shown = useRef<number | null>(null)
   // When the resources change the digits roll and the number swells for a moment,
@@ -151,7 +168,20 @@ export function MatchHud({ state, alert }: { state: MatchState; alert?: ReactNod
       </p>
       {resources !== null && (
         // The green of money, with its bag: what the empire has, rolling when it changes.
-        <p className={cn(pill, 'items-center bg-[#85bb65] text-[#0b3d1e]')}>
+        <p className={cn(pill, 'relative items-center bg-[#85bb65] text-[#0b3d1e]')}>
+          {delta && (
+            <b
+              key={delta.nth}
+              role="status"
+              className={cn(
+                'animate-in fade-in slide-in-from-bottom-3 rounded-pill absolute -top-8 right-2 px-2.5 font-mono text-base leading-7 text-white shadow-md duration-300',
+                delta.amount < 0 ? 'bg-[#e11d2e]' : 'bg-[#1f9d55]',
+              )}
+            >
+              {delta.amount > 0 ? '+' : '−'}
+              {Math.abs(delta.amount)}
+            </b>
+          )}
           <MoneyBag />
           <span className="sr-only">{t('game.bar.resources')}</span>
           <span ref={number} className="inline-flex">

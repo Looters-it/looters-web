@@ -56,6 +56,7 @@ export interface MapMarker {
     | 'protected'
     | 'resources'
     | 'gain'
+    | 'loss'
     | 'attack'
     | 'battle'
     | 'captured'
@@ -85,6 +86,12 @@ export interface MapBag {
   later: boolean
   /** Whether it can be split in two. */
   split: boolean
+}
+
+/** What the page can ask the map. */
+export interface MapProbe {
+  /** The municipality drawn under a point of the screen, if any. */
+  unitAt: (clientX: number, clientY: number) => number | null
 }
 
 /** The tag of the owning empire, written on a municipality. */
@@ -153,6 +160,8 @@ interface Props {
   onSelect?: (unit: MapUnit | null) => void
   /** Called with the id of a sign that works as a button (an attack sign) when it is pressed. */
   onMarker?: (id: string) => void
+  /** Given once the map is drawn: the way to ask which municipality is under a point of the screen. */
+  onProbe?: (probe: MapProbe | null) => void
   /** The bags of money the resources gather by, each one draggable. */
   bags?: readonly MapBag[]
   /** A bag let go: where, and the bag it was dropped on if any. */
@@ -199,6 +208,7 @@ export function GameMap({
   bags = NO_BAGS,
   onBagDrop,
   onBagSplit,
+  onProbe,
   renderInfo,
   focus = null,
   embedded = false,
@@ -320,6 +330,27 @@ export function GameMap({
     }
     // A different area (or a new version of its data) is a different map.
   }, [area, embedded, fitPadding, attribution])
+
+  const onProbeRef = useRef(onProbe)
+  useEffect(() => {
+    onProbeRef.current = onProbe
+  })
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    onProbeRef.current?.({
+      unitAt: (clientX, clientY) => {
+        const box = map.getCanvas().getBoundingClientRect()
+        if (clientX < box.left || clientX > box.right || clientY < box.top || clientY > box.bottom)
+          return null
+        const id = map.queryRenderedFeatures([clientX - box.left, clientY - box.top], {
+          layers: [FILL_LAYER],
+        })[0]?.id
+        return typeof id === 'number' ? id : null
+      },
+    })
+    return () => onProbeRef.current?.(null)
+  }, [ready])
 
   // Owner colours: only the municipalities that changed are touched.
   useEffect(() => {

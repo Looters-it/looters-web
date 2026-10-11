@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState, type PointerEvent } from 'react'
+import { useEffect, useState, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { matchApi, type CatalogueEntry, type MatchState } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 import { cn } from '@/lib/utils'
 
-import { drawEmpire } from './empire-map'
 import { usePhase } from './phase'
 
 /** Names and descriptions of a structure; one the interface does not know yet shows its key. */
@@ -29,16 +28,12 @@ function useStructureText() {
   }
 }
 
-const WIDTH = 480
-const HEIGHT = 340
-const MARGIN = 26
-
 /** What is being dragged: a structure of the catalogue to build, or one that stands to move. */
 type Dragged =
   | { kind: 'build'; type: string; x: number; y: number }
   | { kind: 'move'; type: string; structureId: string; x: number; y: number }
 
-/** The first letters of the name of a structure: what stands for it on the small map. */
+/** The first letters of the name of a structure: what stands for it while it is carried. */
 const initials = (name: string) =>
   name
     .split(/\s+/)
@@ -49,12 +44,18 @@ const initials = (name: string) =>
 
 /**
  * The structures of an empire, placed by hand: each structure of the catalogue is a
- * piece that is dragged onto one of the player's territories on a small map of the
- * empire, and dropped there to build it. A structure that can change territory is
- * moved the same way, from where it stands. Whatever the api lists is shown: a
+ * piece taken from this menu and carried onto the map of the game, dropped on one of
+ * the player's territories to build it there. A structure that can change territory is
+ * moved the same way, from the list of what stands. Whatever the api lists is shown: a
  * structure added to the catalogue appears here without a change.
  */
-export function BuildPage(props: { state: MatchState }) {
+export function BuildPage(props: {
+  state: MatchState
+  /** The territory of the map under a point of the screen, if any. */
+  territoryAt: (clientX: number, clientY: number) => string | null
+  /** While something is carried: the territories it can be dropped on. Null when nothing is. */
+  onSites: (territoryIds: string[] | null) => void
+}) {
   const { t } = useTranslation()
   const text = useStructureText()
   const errorText = useMatchErrorText()
@@ -69,19 +70,6 @@ export function BuildPage(props: { state: MatchState }) {
   })
   const own = state.territories.filter(
     (territory) => territory.ownerEmpireId === state.me?.empireId,
-  )
-  const shapes = useQuery({
-    queryKey: [
-      'matches',
-      'shapes',
-      matchId,
-      own.map((territory) => `${territory.id}:${String(territory.geoUnitIds.length)}`).join(),
-    ],
-    queryFn: () => matchApi.shapes(matchId),
-  })
-  const drawn = useMemo(
-    () => drawEmpire(shapes.data?.territories ?? [], WIDTH, HEIGHT, MARGIN),
-    [shapes.data],
   )
   const mine = state.structures.filter((structure) => structure.empireId === state.me?.empireId)
   const capital = state.empires.find(
@@ -135,12 +123,9 @@ export function BuildPage(props: { state: MatchState }) {
       ? t('game.structures.notHere')
       : t(`game.structures.blocked.${reason}` as 'game.structures.blocked.IN_BATTLE')
 
-  /** The territory of the small map under a point of the screen, if any. */
-  const territoryAt = (x: number, y: number) =>
-    document
-      .elementsFromPoint(x, y)
-      .map((element) => element.getAttribute('data-territory'))
-      .find((id) => id !== null) ?? null
+  const { territoryAt, onSites } = props
+  // Nothing is left lit on the map when the menu closes with a piece in the hand.
+  useEffect(() => () => onSites(null), [onSites])
 
   // What is dragged follows the pointer wherever it goes, and is dropped where it lifts.
   useEffect(() => {
@@ -153,6 +138,7 @@ export function BuildPage(props: { state: MatchState }) {
       const territoryId = territoryAt(event.clientX, event.clientY)
       setDragged(null)
       setOver(null)
+      onSites(null)
       if (!territoryId) return
       const reason = blockedOn(dragged, territoryId)
       if (reason) {
@@ -165,6 +151,7 @@ export function BuildPage(props: { state: MatchState }) {
     const onCancel = () => {
       setDragged(null)
       setOver(null)
+      onSites(null)
     }
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
@@ -187,7 +174,9 @@ export function BuildPage(props: { state: MatchState }) {
     build.reset()
     move.reset()
     setRefused(null)
-    setDragged({ ...piece, x: event.clientX, y: event.clientY })
+    const carried = { ...piece, x: event.clientX, y: event.clientY }
+    setDragged(carried)
+    onSites(own.filter((territory) => blockedOn(carried, territory.id) === null).map((t) => t.id))
   }
   const error = build.error ?? move.error
 
@@ -201,7 +190,7 @@ export function BuildPage(props: { state: MatchState }) {
       </p>
 
       {/* The pieces: one for each structure of the catalogue, taken and carried to the map. */}
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="flex flex-col gap-3">
         {catalogue.data?.map((entry) => {
           const anywhere = entry.sites.some((site) => site.blocked === null)
           return (
@@ -232,77 +221,7 @@ export function BuildPage(props: { state: MatchState }) {
         })}
       </ul>
 
-      {/* The empire: where a piece is dropped, and where what is built stands. */}
-      {drawn && (
-        <svg
-          viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
-          role="group"
-          aria-label={t('game.structures.map')}
-          className="w-full touch-none select-none"
-        >
-          {own.map((territory) => {
-            const reason = dragged ? blockedOn(dragged, territory.id) : null
-            return (
-              <path
-                key={territory.id}
-                data-territory={territory.id}
-                d={drawn.byId.get(territory.id)?.path}
-                fillRule="evenodd"
-                className={cn(
-                  'stroke-foreground/60 transition-colors',
-                  !dragged
-                    ? 'fill-secondary/20'
-                    : reason
-                      ? 'fill-foreground/5'
-                      : over === territory.id
-                        ? 'fill-[#1f9d55]'
-                        : 'fill-[#1f9d55]/40',
-                )}
-                strokeWidth={1}
-                strokeLinejoin="round"
-              >
-                <title>{territory.name}</title>
-              </path>
-            )
-          })}
-          {mine.map((structure, index) => {
-            const centre = drawn.byId.get(structure.territoryId)?.centre
-            if (!centre) return null
-            // Two on the same territory stand side by side.
-            const beside = mine
-              .slice(0, index)
-              .filter((other) => other.territoryId === structure.territoryId).length
-            const movable = editable && structure.moveInTurns === 0
-            return (
-              <g
-                key={structure.id}
-                transform={`translate(${String(centre.x + beside * 20)} ${String(centre.y)})`}
-                className={cn(movable ? 'cursor-grab' : 'pointer-events-none')}
-                onPointerDown={(event) =>
-                  movable &&
-                  take(event, { kind: 'move', type: structure.type, structureId: structure.id })
-                }
-              >
-                <circle r={11} className="fill-secondary stroke-background" strokeWidth={2} />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  className="pointer-events-none fill-white font-mono text-[9px] font-bold"
-                >
-                  {initials(text.name(structure.type))}
-                </text>
-                <title>
-                  {t('game.structures.activeItem', {
-                    type: text.name(structure.type),
-                    name: nameOf(structure.territoryId),
-                  })}
-                </title>
-              </g>
-            )
-          })}
-        </svg>
-      )}
-      {/* The name of the territory under the piece: nothing else says which one it is. */}
+      {/* The territory under the piece, and why it cannot go there when it cannot. */}
       <p role="status" className="min-h-6 text-base">
         {dragged && over
           ? (() => {
@@ -322,7 +241,19 @@ export function BuildPage(props: { state: MatchState }) {
         {mine.length === 0 && <p className="text-muted-foreground">{t('game.structures.none')}</p>}
         <ul className="flex flex-col gap-1">
           {mine.map((structure) => (
-            <li key={structure.id} className="flex flex-wrap justify-between gap-x-3">
+            <li
+              key={structure.id}
+              className={cn(
+                'flex flex-wrap justify-between gap-x-3',
+                editable &&
+                  structure.moveInTurns === 0 &&
+                  'cursor-grab touch-none rounded-md border p-2 select-none',
+              )}
+              onPointerDown={(event) =>
+                structure.moveInTurns === 0 &&
+                take(event, { kind: 'move', type: structure.type, structureId: structure.id })
+              }
+            >
               <span>
                 {t('game.structures.activeItem', {
                   type: text.name(structure.type),

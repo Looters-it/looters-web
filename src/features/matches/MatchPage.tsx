@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -55,7 +55,7 @@ import { MergePage } from '@/features/game/MergePage'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
-import type { EmpireLabel, MapMarker, MapUnit, OwnerTag } from '@/features/map/GameMap'
+import type { EmpireLabel, MapMarker, MapProbe, MapUnit, OwnerTag } from '@/features/map/GameMap'
 import { LazyGameMap } from '@/features/map/LazyGameMap'
 import { UnitCard } from '@/features/map/UnitCard'
 import { ApiError } from '@/lib/api'
@@ -256,6 +256,11 @@ export function MatchPage() {
   const [alertOpen, setAlertOpen] = useState(false)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [resourcesOpen, setResourcesOpen] = useState(false)
+  // The structures open beside the map too: they are dragged from there onto it.
+  const [buildOpen, setBuildOpen] = useState(false)
+  const probe = useRef<MapProbe | null>(null)
+  // While a structure is dragged: the territories it can be dropped on.
+  const [dropSites, setDropSites] = useState<readonly string[] | null>(null)
   const navigate = useNavigate()
   const [abandoning, setAbandoning] = useState(false)
   const queryClient = useQueryClient()
@@ -438,6 +443,7 @@ export function MatchPage() {
   const [captured, setCaptured] = useState<ReadonlyMap<string, number | null>>(new Map())
   if (state !== seenState) {
     setSeenState(state)
+    let conquered: ReadonlySet<string> = new Set()
     if (state && seenState) {
       const open = new Set(seenState.battles.filter((b) => b.status === 'OPEN').map((b) => b.id))
       const taken = state.battles
@@ -456,6 +462,7 @@ export function MatchPage() {
           ]
         })
       if (taken.length > 0) setCaptured(new Map(taken))
+      conquered = new Set(taken.map(([id]) => id))
     }
     if (state && seenState && state.match.currentTurn > seenState.match.currentTurn) {
       const before = new Map(seenState.territories.map((t) => [t.id, t.resources]))
@@ -467,6 +474,30 @@ export function MatchPage() {
         if (territory.resources > had) earned.set(territory.id, territory.resources - had)
       }
       setGains(earned)
+    } else if (state?.me && seenState) {
+      // Within a turn: what the empire has as a whole changed (an attack or an
+      // annexation paid for, something built, a battle that paid). Each territory shows
+      // what it spent or took. Resources only moved among the territories leave the
+      // whole as it was, and say nothing.
+      const mineId = state.me.empireId
+      const before = new Map(
+        seenState.territories
+          .filter((t) => t.ownerEmpireId === mineId)
+          .map((t) => [t.id, t.resources ?? 0]),
+      )
+      const now = state.territories.filter((t) => t.ownerEmpireId === mineId)
+      const had = [...before.values()].reduce((sum, amount) => sum + amount, 0)
+      const has = now.reduce((sum, t) => sum + (t.resources ?? 0), 0)
+      if (had !== has) {
+        const moved = new Map<string, number>()
+        for (const territory of now) {
+          // A conquest says what it took on its own sign.
+          if (conquered.has(territory.id)) continue
+          const change = (territory.resources ?? 0) - (before.get(territory.id) ?? 0)
+          if (change !== 0) moved.set(territory.id, change)
+        }
+        if (moved.size > 0) setGains(moved)
+      }
     }
   }
   useEffect(() => {
@@ -518,8 +549,8 @@ export function MatchPage() {
           ? [
               {
                 id: `gain:${territory.id}`,
-                kind: 'gain' as const,
-                text: `+${gains.get(territory.id)}`,
+                kind: (gains.get(territory.id) ?? 0) < 0 ? ('loss' as const) : ('gain' as const),
+                text: `${(gains.get(territory.id) ?? 0) < 0 ? '−' : '+'}${String(Math.abs(gains.get(territory.id) ?? 0))}`,
                 ...at,
               },
             ]
@@ -614,6 +645,12 @@ export function MatchPage() {
   // What is lit on the map: the empire pointed at in the ranking, or the free
   // neighbours of the player's own municipality that is selected.
   const highlighted = useMemo(() => {
+    // A structure in the hand: where it can be put down.
+    if (dropSites) {
+      return (state?.territories ?? [])
+        .filter((territory) => dropSites.includes(territory.id))
+        .flatMap((territory) => territory.geoUnitIds)
+    }
     if (hoveredEmpire) {
       return (state?.territories ?? [])
         .filter((territory) => territory.ownerEmpireId === hoveredEmpire)
@@ -632,7 +669,7 @@ export function MatchPage() {
       return card.neighbours.filter((n) => n.ownerEmpireId === null).map((n) => n.geoUnitId)
     }
     return []
-  }, [attack, card, hoveredEmpire, mineId, selected?.id, state?.territories])
+  }, [attack, card, dropSites, hoveredEmpire, mineId, selected?.id, state?.territories])
 
   // Territories that are the target of an open battle are marked for everyone.
   const attacked = useMemo(() => {
@@ -891,6 +928,9 @@ export function MatchPage() {
             bags={reviewing ? NOTHING : focusBags.bags}
             onBagDrop={focusBags.drop}
             onBagSplit={focusBags.split}
+            onProbe={(next) => {
+              probe.current = next
+            }}
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
@@ -1052,6 +1092,37 @@ export function MatchPage() {
               <ResourcesPage state={state} />
             </section>
           )}
+          {/* The structures, in the same place: a menu that leaves the map in sight, since
+              what it lists is dragged onto the map itself. */}
+          {buildOpen && mine && !fallen && (
+            <section
+              aria-label={t('game.menu.build')}
+              className="bg-background animate-in fade-in absolute inset-x-3 bottom-16 z-20 flex max-h-[45%] flex-col gap-3 overflow-y-auto rounded-lg p-4 shadow-lg duration-200 md:top-3 md:right-[4.5rem] md:bottom-auto md:left-auto md:max-h-[calc(100%-7rem)] md:w-[22rem] lg:w-[24rem]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl">{t('game.menu.build')}</h2>
+                <Button
+                  variant="quiet"
+                  size="icon-sm"
+                  aria-label={t('game.menu.close')}
+                  onClick={() => setBuildOpen(false)}
+                >
+                  <X aria-hidden="true" />
+                </Button>
+              </div>
+              <BuildPage
+                state={state}
+                onSites={setDropSites}
+                territoryAt={(x, y) => {
+                  const unitId = probe.current?.unitAt(x, y) ?? null
+                  return unitId === null
+                    ? null
+                    : (state.territories.find((territory) => territory.geoUnitIds.includes(unitId))
+                        ?.id ?? null)
+                }}
+              />
+            </section>
+          )}
           {/* Bottom right, over the map: the news of the board as they come, and under
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
@@ -1115,9 +1186,15 @@ export function MatchPage() {
                   key={page}
                   label={t(`game.menu.${page}`)}
                   // The resources open beside the map, the rest over it.
-                  onClick={() =>
-                    page === 'resources' ? setResourcesOpen((open) => !open) : openSheet(page)
-                  }
+                  onClick={() => {
+                    if (page === 'resources') {
+                      setBuildOpen(false)
+                      setResourcesOpen((open) => !open)
+                    } else if (page === 'build') {
+                      setResourcesOpen(false)
+                      setBuildOpen((open) => !open)
+                    } else openSheet(page)
+                  }}
                   dimmed={PRELIMINARY_SHEETS.includes(page) && phase !== 'PRELIMINARY'}
                 >
                   <Icon aria-hidden="true" />
@@ -1253,7 +1330,6 @@ export function MatchPage() {
           )}
           {sheet === 'leaderboard' && <Leaderboard state={state} onHover={setHoveredEmpire} />}
           {sheet === 'merge' && <MergePage state={state} chosen={merging} onChoose={setMerging} />}
-          {sheet === 'build' && <BuildPage state={state} />}
           {sheet === 'alliance' && <AlliancePage state={state} />}
           {sheet === 'history' && (
             <HistoryPage

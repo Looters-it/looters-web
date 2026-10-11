@@ -27,6 +27,7 @@ const FRONT_RED = '#e11d2e'
 const RESOURCE_INK = '#f5b800'
 const RESOURCE_EDGE = '#ffffff'
 const GAIN_INK = '#1f9d55'
+const LOSS_INK = '#e11d2e'
 
 /** Below this zoom empires are named; from it on, municipalities are. */
 export const EMPIRE_LABEL_MAX_ZOOM = 9
@@ -291,7 +292,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         id: 'resource-gains',
         type: 'symbol',
         source: MARKERS_SOURCE,
-        filter: ['==', ['get', 'kind'], 'gain'],
+        filter: ['in', ['get', 'kind'], ['literal', ['gain', 'loss']]],
         layout: {
           'text-field': ['get', 'text'],
           'text-font': [EMPIRE_FONT],
@@ -301,7 +302,8 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': GAIN_INK,
+          // What it spent instead, in red.
+          'text-color': ['case', ['==', ['get', 'kind'], 'loss'], LOSS_INK, GAIN_INK],
           'text-halo-color': RESOURCE_EDGE,
           'text-halo-width': 2,
         },
