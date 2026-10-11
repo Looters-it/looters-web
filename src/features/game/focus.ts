@@ -18,8 +18,21 @@ export interface Focus {
   lon: number
   lat: number
   /** The other end of a line: where it is not set, the point opposite to the first. */
-  to?: { lon: number; lat: number }
+  to?: Point
+  /**
+   * The focus split in more parts: each further point gathers around itself a part of
+   * the resources as large as the one of the focus.
+   */
+  more?: Point[]
 }
+
+export interface Point {
+  lon: number
+  lat: number
+}
+
+/** How many parts a focus can be split in. */
+export const FOCUS_PARTS = 6
 
 interface Placed {
   id: string
@@ -75,29 +88,128 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
       length > 0 ? Math.max(0, Math.min(1, (to.x * along.x + to.y * along.y) / length)) : 0
     return Math.hypot(to.x - along.x * part, to.y - along.y * part)
   }
-  return Object.fromEntries(
-    places.map((place) => {
-      const weight =
-        focus.mode === 'area'
-          ? near(apart(place, focus))
-          : focus.mode === 'mirror'
-            ? Math.max(near(apart(place, focus)), near(apart(place, other)))
-            : focus.mode === 'line'
-              ? near(fromLine(place))
-              : near(apart(place, middle) - ring)
-      return [place.id, weight < NEGLIGIBLE ? 0 : weight]
-    }),
+  const first = (place: Placed) =>
+    focus.mode === 'area'
+      ? near(apart(place, focus))
+      : focus.mode === 'mirror'
+        ? Math.max(near(apart(place, focus)), near(apart(place, other)))
+        : focus.mode === 'line'
+          ? near(fromLine(place))
+          : near(apart(place, middle) - ring)
+  // Every part carries the same share of the whole, however many territories it
+  // reaches: each is brought to one before they are put together.
+  const parts = [
+    first,
+    ...(focus.more ?? []).map((point) => (place: Placed) => near(apart(place, point))),
+  ]
+  const weights: Record<string, number> = Object.fromEntries(places.map((place) => [place.id, 0]))
+  for (const part of parts) {
+    const reached = places.map((place) => {
+      const weight = part(place)
+      return weight < NEGLIGIBLE ? 0 : weight
+    })
+    const sum = reached.reduce((all, weight) => all + weight, 0)
+    if (sum <= 0) continue
+    places.forEach((place, index) => {
+      weights[place.id] = (weights[place.id] ?? 0) + (reached[index] ?? 0) / sum
+    })
+  }
+  return weights
+}
+
+/** A point of a focus that can be taken and moved: the focus, the end of its line, a part. */
+export interface FocusPoint extends Point {
+  id: string
+}
+
+/** The points of a focus, the first being the focus itself. */
+export function pointsOf(focus: Focus): FocusPoint[] {
+  return [
+    { id: 'at', lon: focus.lon, lat: focus.lat },
+    ...(focus.mode === 'line' && focus.to ? [{ id: 'to', ...focus.to }] : []),
+    ...(focus.more ?? []).map((point, index) => ({ id: `more:${String(index)}`, ...point })),
+  ]
+}
+
+const rebuilt = (focus: Focus, more: Point[]): Focus => {
+  const { more: _, ...rest } = focus
+  return more.length > 0 ? { ...rest, more } : rest
+}
+
+/** The focus with one of its points moved. */
+export function movePoint(focus: Focus, id: string, here: Point): Focus {
+  if (id === 'at') return { ...focus, ...here }
+  if (id === 'to') return { ...focus, to: here }
+  const index = Number(id.slice('more:'.length))
+  return rebuilt(
+    focus,
+    (focus.more ?? []).map((point, at) => (at === index ? here : point)),
   )
+}
+
+/** The focus with one more part, where it is said. */
+export function addPoint(focus: Focus, here: Point): Focus {
+  return rebuilt(focus, [...(focus.more ?? []), here])
+}
+
+/**
+ * The focus without one of its points: two parts put back together. Taking away the
+ * focus itself leaves its place to the first of the other parts; a line that loses an
+ * end is a focus on an area. Null when nothing is left.
+ */
+export function dropPoint(focus: Focus, id: string): Focus | null {
+  const more = focus.more ?? []
+  if (id.startsWith('more:')) {
+    const index = Number(id.slice('more:'.length))
+    return rebuilt(
+      focus,
+      more.filter((_, at) => at !== index),
+    )
+  }
+  if (focus.mode === 'line' && focus.to) {
+    const { to, ...rest } = focus
+    return { ...rest, mode: 'area', ...(id === 'at' ? to : {}) }
+  }
+  const [next, ...others] = more
+  return next ? rebuilt({ ...focus, ...next }, others) : null
 }
 
 const keyOf = (matchId: string) => `match.focus.${matchId}`
 
+const isPoint = (value: unknown): value is Point =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as Point).lon === 'number' &&
+  typeof (value as Point).lat === 'number'
+
+// Who is showing the focus of a match: told when it is moved from somewhere else.
+const watchers = new Set<() => void>()
+const read = new Map<string, { raw: string | null; focus: Focus | null }>()
+
+/** Follows the focus of the matches: calls back whenever one is saved. */
+export function watchFocus(callback: () => void): () => void {
+  watchers.add(callback)
+  return () => watchers.delete(callback)
+}
+
 /** The focus the player left in this match, if any. */
 export function loadFocus(matchId: string): Focus | null {
   try {
-    const stored = JSON.parse(
-      localStorage.getItem(keyOf(matchId)) ?? 'null',
-    ) as Partial<Focus> | null
+    const raw = localStorage.getItem(keyOf(matchId))
+    // The same focus as long as nothing was saved: who follows it is not told in vain.
+    const known = read.get(matchId)
+    if (known && known.raw === raw) return known.focus
+    const focus = parse(raw)
+    read.set(matchId, { raw, focus })
+    return focus
+  } catch {
+    return null
+  }
+}
+
+function parse(raw: string | null): Focus | null {
+  try {
+    const stored = JSON.parse(raw ?? 'null') as Partial<Focus> | null
     return stored &&
       typeof stored.lon === 'number' &&
       typeof stored.lat === 'number' &&
@@ -109,8 +221,14 @@ export function loadFocus(matchId: string): Focus | null {
           mode: stored.mode,
           lon: stored.lon,
           lat: stored.lat,
-          ...(typeof stored.to?.lon === 'number' && typeof stored.to.lat === 'number'
-            ? { to: { lon: stored.to.lon, lat: stored.to.lat } }
+          ...(isPoint(stored.to) ? { to: { lon: stored.to.lon, lat: stored.to.lat } } : {}),
+          ...(Array.isArray(stored.more) && stored.more.some(isPoint)
+            ? {
+                more: stored.more
+                  .filter(isPoint)
+                  .slice(0, FOCUS_PARTS - 1)
+                  .map((point) => ({ lon: point.lon, lat: point.lat })),
+              }
             : {}),
         }
       : null
@@ -127,4 +245,5 @@ export function saveFocus(matchId: string, focus: Focus | null): void {
   } catch {
     // Not remembered, that is all.
   }
+  for (const watcher of watchers) watcher()
 }

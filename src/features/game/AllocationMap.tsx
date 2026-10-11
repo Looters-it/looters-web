@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 
 import type { Amounts } from './allocation'
 import { drawEmpire } from './empire-map'
+import { useStoredFocus } from './useFocusBags'
 import {
   focusWeights,
   lineEndOf,
@@ -110,6 +111,14 @@ export function AllocationMap(props: {
   // It is remembered with the match, where the map is and not where it is drawn.
   const [focus, setFocus] = useState<Focus | null>(() => loadFocus(props.matchId))
   const [mode, setMode] = useState<FocusMode>(focus?.mode ?? 'area')
+  // Moved from the map of the game, where the same focus is a bag of money: followed.
+  const stored = useStoredFocus(props.matchId)
+  const [seenStored, setSeenStored] = useState(stored)
+  if (stored !== seenStored) {
+    setSeenStored(stored)
+    setFocus(stored)
+    if (stored) setMode(stored.mode)
+  }
   const [aiming, setAiming] = useState(false)
   const movable = shapes.filter((shape) =>
     places.some((place) => place.id === shape.id && !place.locked),
@@ -137,7 +146,12 @@ export function AllocationMap(props: {
         end.current === 'to' && focus
           ? { ...focus, mode, to: here }
           : // The other end stays where it is; the first time, opposite to this one.
-            { mode, ...here, to: focus ? lineEndOf(movable, focus) : oppositeOf(movable, here) }
+            {
+              ...focus,
+              mode,
+              ...here,
+              to: focus ? lineEndOf(movable, focus) : oppositeOf(movable, here),
+            }
     }
     setFocus(next)
     spread(next)
@@ -387,6 +401,17 @@ export function AllocationMap(props: {
                 />
               </>
             )}
+            {/* The parts the focus was split in on the map: there they are moved. */}
+            {(focus?.more ?? []).map((point, index) => (
+              <circle
+                key={index}
+                cx={xy(point).x}
+                cy={xy(point).y}
+                r={7}
+                className="fill-background pointer-events-none stroke-current opacity-80"
+                strokeWidth={2}
+              />
+            ))}
             <circle cx={at.x} cy={at.y} r={16} className="fill-transparent" />
             <circle
               cx={at.x}

@@ -169,3 +169,91 @@
 .battle-sign.battle-defend span {
   background: #1d6fd6;
 }
+
+/* A bag of money: the point the resources gather by, dragged where they should go. */
+.money-bag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  z-index: 2;
+  cursor: grab;
+  touch-action: none;
+}
+
+.money-bag span {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  background: #15803d;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  transition: transform 0.15s ease-out;
+}
+
+.money-bag svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.money-bag b {
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #14532d;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+.money-bag b:empty {
+  display: none;
+}
+
+/* Splits the bag in two: at its corner, large enough for a finger. */
+.money-bag button {
+  position: absolute;
+  right: -0.625rem;
+  bottom: -0.5rem;
+  display: flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #15803d;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #14532d;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.money-bag.money-bag-whole button,
+.money-bag.money-bag-held button {
+  display: none;
+}
+
+.money-bag.money-bag-held {
+  cursor: grabbing;
+}
+
+.money-bag.money-bag-held span {
+  transform: scale(1.15);
+}
+
+/* Not placed yet, or placed for the turn to come: there, but quieter. */
+.money-bag.money-bag-idle span {
+  border-style: dashed;
+  background: #15803dcc;
+}
+
+.money-bag.money-bag-later:not(.money-bag-held) {
+  opacity: 0.65;
+}

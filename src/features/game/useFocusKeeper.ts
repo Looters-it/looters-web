@@ -1,10 +1,10 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 import { matchApi, type MatchState } from '@/features/matches/api'
 
 import { distribute, sameAmounts, type Amounts } from './allocation'
-import { focusWeights, loadFocus } from './focus'
+import { focusWeights, loadFocus, type Focus } from './focus'
 import type { TurnPhase } from './phase'
 
 /**
@@ -25,31 +25,39 @@ export function useFocusKeeper(state: MatchState | undefined, phase: TurnPhase |
     const key = `${matchId}:${String(turn)}`
     if (!focus || kept.current === key) return
     kept.current = key
-    void (async () => {
-      const shapes = await matchApi.shapes(matchId)
-      const now = queryClient.getQueryData<MatchState>(['matches', 'state', matchId])
-      if (!now || now.match.currentTurn !== turn) return
-      // What can move: the player's own territories that are not in a battle.
-      const free = now.territories.filter(
-        (territory) =>
-          territory.ownerEmpireId === now.me?.empireId &&
-          territory.battleId === null &&
-          territory.resources !== null,
-      )
-      const placed = shapes.territories.filter((shape) =>
-        free.some((territory) => territory.id === shape.id),
-      )
-      if (free.length < 2 || placed.length !== free.length) return
-      const held: Amounts = Object.fromEntries(
-        free.map((territory) => [territory.id, territory.resources ?? 0]),
-      )
-      const total = Object.values(held).reduce((sum, amount) => sum + amount, 0)
-      const wanted = distribute(total, focusWeights(placed, focus))
-      if (sameAmounts(wanted, held)) return
-      const next = await matchApi.allocate(matchId, { amounts: wanted, turn })
-      queryClient.setQueryData(['matches', 'state', matchId], next)
-    })().catch(() => {
+    void spreadByFocus(queryClient, matchId, turn, focus).catch(() => {
       // Refused (the phase ended, a battle began): the resources stay as they are.
     })
   }, [matchId, turn, playing, phase, queryClient])
+}
+
+/** Spreads by a focus what the player's empire holds and can move, in the turn given. */
+export async function spreadByFocus(
+  queryClient: QueryClient,
+  matchId: string,
+  turn: number,
+  focus: Focus,
+): Promise<void> {
+  const shapes = await matchApi.shapes(matchId)
+  const now = queryClient.getQueryData<MatchState>(['matches', 'state', matchId])
+  if (!now || now.match.currentTurn !== turn) return
+  // What can move: the player's own territories that are not in a battle.
+  const free = now.territories.filter(
+    (territory) =>
+      territory.ownerEmpireId === now.me?.empireId &&
+      territory.battleId === null &&
+      territory.resources !== null,
+  )
+  const placed = shapes.territories.filter((shape) =>
+    free.some((territory) => territory.id === shape.id),
+  )
+  if (free.length < 2 || placed.length !== free.length) return
+  const held: Amounts = Object.fromEntries(
+    free.map((territory) => [territory.id, territory.resources ?? 0]),
+  )
+  const total = Object.values(held).reduce((sum, amount) => sum + amount, 0)
+  const wanted = distribute(total, focusWeights(placed, focus))
+  if (sameAmounts(wanted, held)) return
+  const next = await matchApi.allocate(matchId, { amounts: wanted, turn })
+  queryClient.setQueryData(['matches', 'state', matchId], next)
 }

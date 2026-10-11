@@ -43,6 +43,7 @@ import { AlliancePage } from '@/features/game/AlliancePage'
 import { BuildPage } from '@/features/game/BuildPage'
 import { historyQuery, turnQuery } from '@/features/game/history'
 import { usePhase } from '@/features/game/phase'
+import { useFocusBags } from '@/features/game/useFocusBags'
 import { useFocusKeeper } from '@/features/game/useFocusKeeper'
 import { HistoryPage } from '@/features/game/HistoryPage'
 import { colorsFor, type MapView } from '@/features/game/map-views'
@@ -416,6 +417,7 @@ export function MatchPage() {
     state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null, pausedAt: null },
   )
   useFocusKeeper(state, phase)
+  const focusBags = useFocusBags(state, phase)
   const targets = useQuery({
     // Nothing can be attacked in the preliminary part of a turn: asked again when it ends.
     queryKey: ['matches', 'targets', id, state?.match.currentTurn, phase, border],
@@ -886,6 +888,9 @@ export function MatchPage() {
             empireLabels={reviewing ? NOTHING : labels}
             markers={reviewing ? NOTHING : markers}
             onMarker={onMarker}
+            bags={reviewing ? NOTHING : focusBags.bags}
+            onBagDrop={focusBags.drop}
+            onBagSplit={focusBags.split}
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}

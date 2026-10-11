@@ -72,6 +72,21 @@ export interface MapMarker {
   text?: string
 }
 
+/** A bag of money on the map: a point the resources gather by, to drag where they should go. */
+export interface MapBag {
+  id: string
+  lon: number
+  lat: number
+  /** The resources it carries, written over it. */
+  text: string
+  /** Not yet placed by the player: it waits to be taken. */
+  idle: boolean
+  /** The resources will move at the next turn, not now. */
+  later: boolean
+  /** Whether it can be split in two. */
+  split: boolean
+}
+
 /** The tag of the owning empire, written on a municipality. */
 export interface OwnerTag {
   id: number
@@ -108,6 +123,14 @@ const armsOf = (marker: MapMarker) =>
     ? { color: marker.color, emblem: marker.emblem, logo: marker.logo ?? null }
     : null
 const NO_TAGS: readonly OwnerTag[] = []
+const NO_BAGS: readonly MapBag[] = []
+
+/** A bag of coins tied at the neck, and the button that splits it in two. */
+const BAG_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l-1.500 4h-3Z"/><path d="M10.500 7C7 9 4.500 12.500 4.500 16a4.500 4.500 0 0 0 4.500 4.500h6a4.500 4.500 0 0 0 4.500-4.500c0-3.500-2.500-7-6-9"/><path d="M14 12.500c-.500-.700-1.200-1-2-1-1.200 0-2 .600-2 1.500 0 2 4 1 4 3 0 .900-.800 1.500-2 1.500-.800 0-1.500-.300-2-1M12 10.500v1M12 17.500v1"/></svg></span>`
+/** How near, in pixels, a bag is dropped to another to be put together with it. */
+const BAG_MERGE = 30
+/** How far beside a bag, in pixels, the one split from it appears. */
+const BAG_APART = 52
 
 const PHONE = '(max-width: 767px)'
 
@@ -130,6 +153,12 @@ interface Props {
   onSelect?: (unit: MapUnit | null) => void
   /** Called with the id of a sign that works as a button (an attack sign) when it is pressed. */
   onMarker?: (id: string) => void
+  /** The bags of money the resources gather by, each one draggable. */
+  bags?: readonly MapBag[]
+  /** A bag let go: where, and the bag it was dropped on if any. */
+  onBagDrop?: (id: string, here: { lon: number; lat: number }, onto: string | null) => void
+  /** A bag split in two: where the new one goes. */
+  onBagSplit?: (here: { lon: number; lat: number }) => void
   /** Content of the box shown for the selected municipality. */
   renderInfo?: (unit: MapUnit) => ReactNode
   /** A point to bring into view when it changes. */
@@ -167,6 +196,9 @@ export function GameMap({
   attackedIds = NO_IDS,
   onSelect,
   onMarker,
+  bags = NO_BAGS,
+  onBagDrop,
+  onBagSplit,
   renderInfo,
   focus = null,
   embedded = false,
@@ -460,12 +492,103 @@ export function GameMap({
       )
     }
   }, [battles, ready])
+  // The bags of money: each stays the same element while it is there, so that the one
+  // being dragged is not taken from under the finger when the resources move.
+  const bagsRef = useRef(new Map<string, { marker: Marker; held: boolean }>())
+  const onBagDropRef = useRef(onBagDrop)
+  const onBagSplitRef = useRef(onBagSplit)
+  useEffect(() => {
+    onBagDropRef.current = onBagDrop
+    onBagSplitRef.current = onBagSplit
+  })
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const shown = bagsRef.current
+    for (const [id, bag] of shown) {
+      if (bags.some((wanted) => wanted.id === id)) continue
+      bag.marker.remove()
+      shown.delete(id)
+    }
+    for (const bag of bags) {
+      let entry = shown.get(bag.id)
+      if (!entry) {
+        const element = document.createElement('div')
+        element.innerHTML = `<b></b>${BAG_SIGN}<button type="button">+</button>`
+        element.setAttribute('role', 'button')
+        element.setAttribute('aria-label', i18next.t('game.map.bag'))
+        element.title = i18next.t('game.map.bag')
+        const marker = new Marker({ element, anchor: 'center', draggable: true })
+          .setLngLat([bag.lon, bag.lat])
+          .addTo(map)
+        const made = { marker, held: false }
+        entry = made
+        shown.set(bag.id, made)
+        // A press on a bag is not a press on the municipality under it.
+        element.addEventListener('click', (event) => event.stopPropagation())
+        const plus = element.querySelector('button')
+        plus?.setAttribute('aria-label', i18next.t('game.map.bagSplit'))
+        if (plus) plus.title = i18next.t('game.map.bagSplit')
+        // The button splits: it must not begin a drag of the bag it is on.
+        for (const type of ['mousedown', 'touchstart'] as const) {
+          plus?.addEventListener(type, (event) => event.stopPropagation())
+        }
+        plus?.addEventListener('click', () => {
+          const at = map.project(marker.getLngLat())
+          // Beside it, on the side with more room.
+          const side = at.x + BAG_APART + 24 < map.getContainer().clientWidth ? 1 : -1
+          const here = map.unproject([at.x + BAG_APART * side, at.y])
+          onBagSplitRef.current?.({ lon: here.lng, lat: here.lat })
+        })
+        marker.on('dragstart', () => {
+          made.held = true
+          element.classList.add('money-bag-held')
+          // Let go outside the map (over a panel), the map never hears of it: told here.
+          const release = () =>
+            setTimeout(() => {
+              if (!made.held) return
+              map.fire('mouseup')
+              map.fire('touchend')
+            })
+          window.addEventListener('mouseup', release, { once: true })
+          window.addEventListener('touchend', release, { once: true })
+        })
+        marker.on('dragend', () => {
+          made.held = false
+          element.classList.remove('money-bag-held')
+          const here = marker.getLngLat()
+          const at = map.project(here)
+          const onto = [...shown].find(([other, { marker: there }]) => {
+            if (other === bag.id) return false
+            const point = map.project(there.getLngLat())
+            return Math.hypot(point.x - at.x, point.y - at.y) < BAG_MERGE
+          })
+          onBagDropRef.current?.(bag.id, { lon: here.lng, lat: here.lat }, onto?.[0] ?? null)
+        })
+      }
+      const element = entry.marker.getElement()
+      // One by one: the element also carries the classes the map places it by.
+      element.classList.add('money-bag')
+      element.classList.toggle('money-bag-idle', bag.idle)
+      element.classList.toggle('money-bag-later', bag.later)
+      element.classList.toggle('money-bag-whole', !bag.split)
+      const label = element.querySelector('b')
+      if (label) label.textContent = bag.text
+      if (entry.held) continue
+      // The one still waiting stands beside the capital, not over it.
+      const at = map.project([bag.lon, bag.lat])
+      entry.marker.setLngLat(bag.idle ? map.unproject([at.x + 44, at.y]) : [bag.lon, bag.lat])
+    }
+  }, [bags, ready])
   // Gone with the map.
   useEffect(() => {
     const shown = signsRef.current
+    const carried = bagsRef.current
     return () => {
       for (const marker of shown.values()) marker.remove()
       shown.clear()
+      for (const bag of carried.values()) bag.marker.remove()
+      carried.clear()
     }
   }, [])
 

@@ -640,7 +640,7 @@
         "mirrorHint": "Le risorse si raccolgono attorno al mirino e al punto opposto.",
         "radialHint": "Le risorse si dispongono ad anello: più allontani il mirino dal centro, più vanno verso l'esterno.",
         "clear": "Togli il focus",
-        "kept": "Il focus resta memorizzato: a ogni turno le risorse si ridistribuiscono così da sole.",
+        "kept": "Il focus resta memorizzato: a ogni turno le risorse si ridistribuiscono così da sole. Sulla mappa di gioco il focus è una borsa di denaro: trascinala, dividila con il +, riuniscila lasciandola su un'altra.",
         "line": "Focus tra due punti",
         "lineHint": "Le risorse si distribuiscono in modo uniforme lungo la linea tra i due mirini: trascinali dove vuoi."
       }
@@ -774,7 +774,9 @@
       "canvas": "Mappa: frecce per spostarsi, più e meno per lo zoom",
       "tags": "Sigle degli imperi",
       "defend_one": "Difendi: costa {{count}} risorsa",
-      "defend_other": "Difendi: costa {{count}} risorse"
+      "defend_other": "Difendi: costa {{count}} risorse",
+      "bag": "Borsa delle risorse: trascinala dove vuoi concentrarle",
+      "bagSplit": "Dividi la borsa in due"
     },
     "structures": {
       "title": "Costruzioni",

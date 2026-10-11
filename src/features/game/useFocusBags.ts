@@ -1,0 +1,114 @@
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
+
+import { matchApi, type MatchState } from '@/features/matches/api'
+import type { MapBag } from '@/features/map/GameMap'
+
+import {
+  addPoint,
+  dropPoint,
+  FOCUS_PARTS,
+  loadFocus,
+  movePoint,
+  pointsOf,
+  saveFocus,
+  watchFocus,
+  type Focus,
+  type Point,
+} from './focus'
+import type { TurnPhase } from './phase'
+import { spreadByFocus } from './useFocusKeeper'
+
+/** The focus the player left in a match, followed wherever it is moved from. */
+export function useStoredFocus(matchId: string): Focus | null {
+  return useSyncExternalStore(watchFocus, () => loadFocus(matchId))
+}
+
+/**
+ * The focus of the resources as bags of money on the map of the game: dragged where
+ * the resources should gather, split in more bags, put back together by dropping one
+ * on another. In the preliminary part of a turn the resources move at once; later the
+ * focus is only remembered, and the next turn begins by it.
+ */
+export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | null) {
+  const queryClient = useQueryClient()
+  const matchId = state?.match.id ?? ''
+  const turn = state?.match.currentTurn
+  const focus = useStoredFocus(matchId)
+  const playing = state?.match.status === 'ONGOING' && state.me?.status === 'ACTIVE'
+  const empireId = state?.me?.empireId
+  const territories = state?.territories
+
+  // Before any focus is set the bag waits on the capital: there to be taken.
+  const capitalId = state?.empires.find((empire) => empire.id === empireId)?.capitalTerritoryId
+  const owned = (territories ?? [])
+    .filter((territory) => territory.ownerEmpireId === empireId)
+    .map((territory) => `${territory.id}:${String(territory.geoUnitIds.length)}`)
+    .join()
+  const many = playing && owned.includes(',')
+  // Where the player's territories lie: asked again when the empire changes.
+  const shapes = useQuery({
+    queryKey: ['matches', 'shapes', matchId, owned],
+    queryFn: () => matchApi.shapes(matchId),
+    placeholderData: keepPreviousData,
+    enabled: many,
+  })
+  const start = useMemo<Point | null>(() => {
+    const places = shapes.data?.territories ?? []
+    const capital = places.find((place) => place.id === capitalId) ?? places[0]
+    return many && capital ? { lon: capital.lon, lat: capital.lat } : null
+  }, [shapes.data, capitalId, many])
+  const movable = useMemo(
+    () =>
+      (territories ?? [])
+        .filter((territory) => territory.ownerEmpireId === empireId && territory.battleId === null)
+        .reduce((sum, territory) => sum + (territory.resources ?? 0), 0),
+    [territories, empireId],
+  )
+
+  const bags = useMemo<MapBag[]>(() => {
+    if (!start) return []
+    if (!focus) return [{ id: 'at', ...start, text: '', idle: true, later: false, split: false }]
+    const points = pointsOf(focus)
+    const parts = 1 + (focus.more?.length ?? 0)
+    return points.map((point) => ({
+      ...point,
+      // The second end of a line carries the same part as the first: said once.
+      text: point.id === 'to' ? '' : String(Math.round(movable / parts)),
+      idle: false,
+      later: phase !== 'PRELIMINARY',
+      split: parts < FOCUS_PARTS,
+    }))
+  }, [focus, start, movable, phase])
+
+  const keep = useCallback(
+    (next: Focus | null) => {
+      saveFocus(matchId, next)
+      if (!next || turn === undefined || phase !== 'PRELIMINARY') return
+      void spreadByFocus(queryClient, matchId, turn, next).catch(() => {
+        // Refused (the phase ended, a battle began): the resources stay as they are.
+      })
+    },
+    [matchId, turn, phase, queryClient],
+  )
+
+  /** A bag let go: moved there, or put together with the one it was dropped on. */
+  const drop = useCallback(
+    (id: string, here: Point, onto: string | null) => {
+      const now = loadFocus(matchId)
+      if (!now) keep({ mode: 'area', ...here })
+      else keep(onto === null ? movePoint(now, id, here) : dropPoint(now, id))
+    },
+    [matchId, keep],
+  )
+  /** A bag split in two: the new one beside it. */
+  const split = useCallback(
+    (here: Point) => {
+      const now = loadFocus(matchId) ?? (start ? { mode: 'area' as const, ...start } : null)
+      if (now && 1 + (now.more?.length ?? 0) < FOCUS_PARTS) keep(addPoint(now, here))
+    },
+    [matchId, start, keep],
+  )
+
+  return { bags, drop, split }
+}
