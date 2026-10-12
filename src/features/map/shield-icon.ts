@@ -231,3 +231,23 @@ export function ensureAirportIcon(map: MapLibreMap): void {
   )
   map.addImage(AIRPORT_ICON, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
 }
+
+/** The name the head of an arrow goes by on the map. */
+export const ARROW_ICON = 'attack-arrow'
+
+/**
+ * Makes sure the map has the head of an arrow, pointing right: placed along a line it
+ * points the way the line goes. Drawn as a mask, so that each takes the colour of its line.
+ */
+export function ensureArrowIcon(map: MapLibreMap): void {
+  if (typeof map.hasImage !== 'function' || map.hasImage(ARROW_ICON)) return
+  const side = 40
+  const canvas = document.createElement('canvas')
+  canvas.width = side
+  canvas.height = side
+  const context = typeof Path2D === 'undefined' ? null : canvas.getContext('2d')
+  if (!context) return
+  context.fillStyle = '#000000'
+  context.fill(new Path2D('M8 6 L36 20 L8 34 L14 20 Z'))
+  map.addImage(ARROW_ICON, context.getImageData(0, 0, side, side), { pixelRatio: 2, sdf: true })
+}

@@ -6,6 +6,7 @@ import {
   EXCLAVE_ICON,
   ISLAND_ICON,
   AIRPORT_ICON,
+  ARROW_ICON,
   PORT_ICON,
   SHIELD_ICON,
   SWORDS_ICON,
@@ -29,6 +30,7 @@ export const AREAS_SOURCE = 'areas'
 /** The fronts of the open battles: the border between who attacks and who is attacked. */
 export const FRONTS_SOURCE = 'fronts'
 export const RANGES_SOURCE = 'ranges'
+export const ARCS_SOURCE = 'arcs'
 /** The blue of the port, on its sign and on the edge of its range. */
 const PORT_BLUE = '#1d6fd6'
 /** The violet of the airport, likewise. */
@@ -125,6 +127,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [FRONTS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [RANGES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [ARCS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
       { id: 'ground', type: 'background', paint: { 'background-color': colors.ground } },
@@ -286,6 +289,47 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         paint: { 'icon-translate': beside(-30, -16) },
+      },
+      {
+        // Who attacks what: a soft curve from where an attack starts to its target, in
+        // the colour of the attacker over an edge of the map's own halo, with the head
+        // of an arrow halfway that points at the target.
+        id: 'arc-edges',
+        type: 'line',
+        source: ARCS_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': colors.halo,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4, 10, 7],
+          'line-opacity': 0.85,
+        },
+      },
+      {
+        id: 'arc-lines',
+        type: 'line',
+        source: ARCS_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2, 10, 4],
+        },
+      },
+      {
+        id: 'arc-heads',
+        type: 'symbol',
+        source: ARCS_SOURCE,
+        layout: {
+          'symbol-placement': 'line-center',
+          'icon-image': ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.7, 10, 1.1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: {
+          'icon-color': ['get', 'color'],
+          'icon-halo-color': colors.halo,
+          'icon-halo-width': 1.5,
+        },
       },
       {
         // An airport: a plane on the left of the port's place, so that the two stand together.

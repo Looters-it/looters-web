@@ -26,6 +26,7 @@ import {
   ANNEX_LAYER,
   ATTACK_LAYER,
   AREAS_SOURCE,
+  ARCS_SOURCE,
   FRONTS_SOURCE,
   RANGES_SOURCE,
   ATTACKED_LAYER,
@@ -44,6 +45,7 @@ import {
   ensureAnnexIcon,
   ensureIsolationIcons,
   ensureAirportIcon,
+  ensureArrowIcon,
   ensurePortIcon,
 } from './shield-icon'
 import { mapColors } from './theme'
@@ -119,6 +121,32 @@ function circleAround({ lon, lat, km }: Omit<MapRange, 'kind'>, steps = 96): [nu
     ring.push([lon2 / rad, lat2 / rad])
   }
   return ring
+}
+
+/** A curve from a point to another, with the head of an arrow towards the second. */
+export interface MapArc {
+  from: [number, number]
+  to: [number, number]
+  color: string
+}
+
+const NO_ARCS: readonly MapArc[] = []
+/**
+ * A soft curve between two points: it leaves the straight line by a part of its length,
+ * always on the same side of the way it goes, so that two attacks crossing each other
+ * bend apart.
+ */
+function curveBetween([x1, y1]: [number, number], [x2, y2]: [number, number], steps = 32) {
+  const bend = 0.22
+  const cx = (x1 + x2) / 2 - (y2 - y1) * bend
+  const cy = (y1 + y2) / 2 + (x2 - x1) * bend
+  const line: [number, number][] = []
+  for (let step = 0; step <= steps; step++) {
+    const t = step / steps
+    const u = 1 - t
+    line.push([u * u * x1 + 2 * u * t * cx + t * t * x2, u * u * y1 + 2 * u * t * cy + t * t * y2])
+  }
+  return line
 }
 
 export interface MapBag {
@@ -207,6 +235,8 @@ interface Props {
   areas?: FeatureCollection | null
   /** The fronts of the open battles: lines drawn thick and red along the border fought over. */
   fronts?: FeatureCollection | null
+  /** Who attacks what: a curve from where each open attack starts to its target. */
+  arcs?: readonly MapArc[]
   /** How far the ports reach: a circle around each, in kilometres. */
   ranges?: readonly MapRange[]
   selected?: MapUnit | null
@@ -263,6 +293,7 @@ export function GameMap({
   areas = null,
   fronts = null,
   ranges = NO_RANGES,
+  arcs = NO_ARCS,
   selected = null,
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
@@ -784,6 +815,20 @@ export function GameMap({
       })),
     })
   }, [ranges, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    if (arcs.length > 0) ensureArrowIcon(map)
+    map.getSource<GeoJSONSource>(ARCS_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: arcs.map((arc) => ({
+        type: 'Feature',
+        properties: { color: arc.color },
+        geometry: { type: 'LineString', coordinates: curveBetween(arc.from, arc.to) },
+      })),
+    })
+  }, [arcs, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
   const anchored = anchor && anchor.id === selected?.id ? anchor.at : null

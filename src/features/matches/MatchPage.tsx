@@ -59,6 +59,7 @@ import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
 import type {
   EmpireLabel,
+  MapArc,
   MapMarker,
   MapProbe,
   MapRange,
@@ -246,6 +247,7 @@ function MapFab(props: {
 
 /** The page of a match: the map on the whole screen, and over it a card and the controls. */
 const NO_RANGES: MapRange[] = []
+const NO_ARCS: MapArc[] = []
 
 export function MatchPage() {
   const { t } = useTranslation()
@@ -558,6 +560,27 @@ export function MatchPage() {
       })
     })
   }, [selectedId, state, units.data])
+
+  // Who attacks what: from every territory an open attack starts from, a curve to its
+  // target, in the colour of the attacker. It stays as long as the battle does, so a
+  // siege that goes on for turns always shows whose it is.
+  const arcs = useMemo<MapArc[]>(() => {
+    if (!state) return []
+    const points = new Map(units.data?.map((unit) => [unit.id, unit]))
+    const pointOf = (territoryId: string) =>
+      points.get(state.territories.find((t) => t.id === territoryId)?.geoUnitIds[0] ?? -1)
+    return state.battles
+      .filter((battle) => battle.status === 'OPEN')
+      .flatMap((battle) => {
+        const to = pointOf(battle.targetTerritoryId)
+        const color = state.empires.find((e) => e.id === battle.attackerEmpireId)?.color
+        if (!to || !color) return []
+        return battle.fromTerritoryIds.flatMap((sourceId): MapArc[] => {
+          const from = pointOf(sourceId)
+          return from ? [{ from: [from.lon, from.lat], to: [to.lon, to.lat], color }] : []
+        })
+      })
+  }, [state, units.data])
 
   const markers = useMemo<MapMarker[]>(() => {
     const attackable = new Set(targetIds)
@@ -1023,6 +1046,7 @@ export function MatchPage() {
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
             ranges={reviewing ? NO_RANGES : ranges}
+            arcs={reviewing ? NO_ARCS : arcs}
             selected={selected}
             highlightedIds={reviewing ? NOTHING : highlighted}
             attackedIds={reviewing ? NOTHING : attacked}
