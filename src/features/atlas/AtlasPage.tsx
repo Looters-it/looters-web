@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { MapLoader } from '@/features/map/MapLoader'
 import { empirePalette } from '@/features/map/theme'
 import { cn } from '@/lib/utils'
@@ -11,6 +13,14 @@ import { areaColors } from './colors'
 
 /** The countries of the world: the 193 members of the United Nations and its 2 observers. */
 const WORLD_COUNTRIES = 195
+
+/** A name as it is searched: without capitals or accents, so that "islanda" finds "Ísland". */
+const plain = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
 
 const MAP_FRAME = 'h-[60dvh] min-h-[22rem] rounded-md border lg:h-[75dvh]'
 
@@ -32,6 +42,8 @@ export function AtlasPage() {
   const areas = atlas.data?.areas
   const colorOf = useMemo(() => areaColors(areas ?? [], empirePalette()), [areas])
   // The areas under the geographic area they are part of, in the order they came.
+  const searchId = useId()
+  const [search, setSearch] = useState('')
   const groups = useMemo(() => {
     const byRoot = new Map<string, { id: string; name: string; areas: AtlasArea[] }>()
     for (const area of areas ?? []) {
@@ -41,6 +53,16 @@ export function AtlasPage() {
     }
     return [...byRoot.values()]
   }, [areas])
+  // What the search leaves: a country by its name, with all its areas, or the areas by theirs.
+  const found = useMemo(() => {
+    const wanted = plain(search)
+    if (wanted === '') return groups
+    return groups.flatMap((group) => {
+      if (plain(group.name).includes(wanted)) return [group]
+      const matching = group.areas.filter((area) => plain(area.name).includes(wanted))
+      return matching.length > 0 ? [{ ...group, areas: matching }] : []
+    })
+  }, [groups, search])
 
   return (
     <section
@@ -91,7 +113,18 @@ export function AtlasPage() {
                 <span className="text-muted-foreground">{t('atlas.countries')}</span>
               </p>
             </div>
-            {groups.map((group) => (
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={searchId}>{t('atlas.search')}</Label>
+              <Input
+                id={searchId}
+                type="search"
+                value={search}
+                placeholder={t('atlas.searchPlaceholder')}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+            {found.length === 0 && <p className="text-muted-foreground">{t('atlas.noMatch')}</p>}
+            {found.map((group) => (
               <div key={group.id} className="flex flex-col gap-1">
                 <h2 className="flex items-baseline justify-between gap-3 text-xl">
                   {group.name}

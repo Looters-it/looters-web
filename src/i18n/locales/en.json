@@ -1100,6 +1100,9 @@
     "units_other": "{{count}} municipalities",
     "empty": "There are no play areas yet.",
     "error": "The map did not load. Try again in a moment.",
-    "countries": "countries of the world"
+    "countries": "countries of the world",
+    "search": "Search",
+    "searchPlaceholder": "Country or area",
+    "noMatch": "No country or area with this name."
   }
 }
