@@ -1,16 +1,16 @@
 # looters-web
 
-L'interfaccia: React e TypeScript con Vite, Tailwind e shadcn/ui, mappa con MapLibre. In italiano, predisposta per altre lingue.
+The interface: React and TypeScript with Vite, Tailwind and shadcn/ui, with a MapLibre map. In Italian and English, ready for other languages.
 
-Fa parte di [Looters](https://github.com/Looters-it/looters), un gioco di conquista multigiocatore sui comuni italiani. Questo repository non si usa da solo: va clonato dentro il repository radice, che contiene `docker-compose.yml`, documentazione e istruzioni.
+It is part of [Looters](https://github.com/Looters-it/looters), an online multiplayer conquest game played on real municipalities. This repository is not used on its own: it is cloned inside the root repository, which holds `docker-compose.yml`, the documentation and the instructions.
 
 ```sh
 git clone https://github.com/Looters-it/looters.git && cd looters
 git clone https://github.com/Looters-it/looters-web.git web
 ```
 
-- Avvio, test e comandi: [README del repository radice](https://github.com/Looters-it/looters#readme)
-- Contratto tra i servizi: [`docs/ARCHITECTURE.md`](https://github.com/Looters-it/looters/blob/main/docs/ARCHITECTURE.md)
-- Regole del gioco: [`docs/SPEC.md`](https://github.com/Looters-it/looters/blob/main/docs/SPEC.md)
+- Running, testing and commands: [README of the root repository](https://github.com/Looters-it/looters#readme)
+- Contract between the services: [`docs/ARCHITECTURE.md`](https://github.com/Looters-it/looters/blob/main/docs/ARCHITECTURE.md)
+- Rules of the game: [`docs/SPEC.md`](https://github.com/Looters-it/looters/blob/main/docs/SPEC.md)
 
-Controlli in locale: `pnpm lint && pnpm typecheck && pnpm test`.
+Local checks: `pnpm lint && pnpm typecheck && pnpm test`.
