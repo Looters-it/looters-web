@@ -768,7 +768,10 @@
       "fallenText": "{{name}} has lost its capital. You can no longer play in this match, but you can follow it as a spectator until the end.",
       "fallenContinue": "Go on as a spectator",
       "award_one": "+{{count}} ELO",
-      "award_other": "+{{count}} ELO"
+      "award_other": "+{{count}} ELO",
+      "announce": "{{name}} ended at turn {{count}}.",
+      "place": "You came {{place}} of {{of}}.",
+      "seeRanking": "See the ranking"
     },
     "map": {
       "legendCapital": "Capital",
@@ -784,7 +787,11 @@
       "defend_other": "Defend: it costs {{count}} resources",
       "bag": "Bag of resources: drag it where you want them gathered",
       "bagSplit": "Split the bag in two",
-      "loading": "Loading the map…"
+      "loading": "Loading the map…",
+      "surrender": "Surrender: give the municipality away",
+      "surrenderConfirm": "Press again to give the municipality away",
+      "surrenderShort": "Surrender",
+      "surrenderAgain": "Sure?"
     },
     "structures": {
       "title": "Structures",

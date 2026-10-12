@@ -768,7 +768,10 @@
       "fallenText": "{{name}} ha perso la capitale. Non puoi più giocare in questa partita, ma puoi seguirla da spettatore fino alla fine.",
       "fallenContinue": "Continua da spettatore",
       "award_one": "+{{count}} ELO",
-      "award_other": "+{{count}} ELO"
+      "award_other": "+{{count}} ELO",
+      "announce": "{{name}} è finita al turno {{count}}.",
+      "place": "Sei arrivato {{place}}° su {{of}}.",
+      "seeRanking": "Vedi la classifica"
     },
     "map": {
       "legendCapital": "Capitale",
@@ -784,7 +787,11 @@
       "defend_other": "Difendi: costa {{count}} risorse",
       "bag": "Borsa delle risorse: trascinala dove vuoi concentrarle",
       "bagSplit": "Dividi la borsa in due",
-      "loading": "Caricamento della mappa…"
+      "loading": "Caricamento della mappa…",
+      "surrender": "Arrenditi: cedi il comune",
+      "surrenderConfirm": "Premi ancora per cedere il comune",
+      "surrenderShort": "Resa",
+      "surrenderAgain": "Confermi?"
     },
     "structures": {
       "title": "Costruzioni",

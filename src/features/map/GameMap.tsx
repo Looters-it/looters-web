@@ -61,6 +61,8 @@ export interface MapMarker {
     | 'battle'
     | 'captured'
     | 'defend'
+    | 'surrender'
+    | 'repelled'
     | 'annex'
   lon: number
   lat: number
@@ -123,6 +125,13 @@ const NO_MARKERS: readonly MapMarker[] = []
 /** A shield on a blue disc: the answer to an attack, pressed to defend. */
 const DEFEND_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.500 20 5.500v6c0 5-3.500 8.500-8 10-4.500-1.500-8-5-8-10v-6Z"/><path d="m9 12 2 2 4-4"/></svg></span>`
 const BATTLE_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5 18 3h3v3l-3.500 3.500M5 14l4 4M7 17l-3 3M3 19l2 2"/></svg></span>`
+
+/** A white flag on a grey disc: beside the shield, pressed twice to give the territory away. */
+const SURRENDER_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4"/><path d="M4 4c5-2.500 9 2.500 16 0v10c-7 2.500-11-2.500-16 0"/></svg></span>`
+/** A shield that held: what stands for a moment on a territory an attack failed on. */
+const REPELLED_SIGN = `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.500 20 5.500v6c0 5-3.500 8.500-8 10-4.500-1.500-8-5-8-10v-6Z"/><path d="m9.500 9.500 5 5"/><path d="m14.500 9.500-5 5"/></svg></span>`
+/** How long the flag of the surrender waits for its second press. */
+const SURRENDER_ARMED_MS = 6000
 
 /** What is drawn on a capital, if the marker is one and says so. */
 const armsOf = (marker: MapMarker) =>
@@ -478,7 +487,11 @@ export function GameMap({
   const battles = markers
     .filter(
       (marker) =>
-        marker.kind === 'battle' || marker.kind === 'captured' || marker.kind === 'defend',
+        marker.kind === 'battle' ||
+        marker.kind === 'captured' ||
+        marker.kind === 'defend' ||
+        marker.kind === 'surrender' ||
+        marker.kind === 'repelled',
     )
     .map((marker) => [marker.kind, marker.lon, marker.lat, marker.id, marker.text ?? ''].join('|'))
     .join(';')
@@ -498,13 +511,18 @@ export function GameMap({
     for (const sign of wanted) {
       if (shown.has(sign)) continue
       const [kind, lon, lat, id = '', text = ''] = sign.split('|')
-      const element = document.createElement(kind === 'defend' ? 'button' : 'div')
+      const pressed = kind === 'defend' || kind === 'surrender'
+      const element = document.createElement(pressed ? 'button' : 'div')
       element.className =
         kind === 'captured'
           ? 'battle-sign battle-won'
-          : kind === 'defend'
-            ? 'battle-sign battle-defend'
-            : 'battle-sign'
+          : kind === 'repelled'
+            ? 'battle-sign battle-repelled'
+            : kind === 'defend'
+              ? 'battle-sign battle-defend'
+              : kind === 'surrender'
+                ? 'battle-sign battle-defend battle-surrender'
+                : 'battle-sign'
       if (kind === 'defend') {
         element.setAttribute('type', 'button')
         element.setAttribute('aria-label', i18next.t('game.map.defend', { count: Number(text) }))
@@ -512,18 +530,50 @@ export function GameMap({
           event.stopPropagation()
           onMarkerRef.current?.(id)
         })
+      } else if (kind === 'surrender') {
+        // Giving a territory away cannot be taken back: the flag is pressed twice, the
+        // first time only to say so, and it forgets if the second does not come.
+        element.setAttribute('type', 'button')
+        element.setAttribute('aria-label', i18next.t('game.map.surrender'))
+        let armed: ReturnType<typeof setTimeout> | null = null
+        element.addEventListener('click', (event) => {
+          event.stopPropagation()
+          if (armed !== null) {
+            clearTimeout(armed)
+            onMarkerRef.current?.(id)
+            return
+          }
+          element.classList.add('battle-armed')
+          element.setAttribute('aria-label', i18next.t('game.map.surrenderConfirm'))
+          const said = element.querySelector('b')
+          if (said) said.textContent = i18next.t('game.map.surrenderAgain')
+          armed = setTimeout(() => {
+            armed = null
+            element.classList.remove('battle-armed')
+            element.setAttribute('aria-label', i18next.t('game.map.surrender'))
+            if (said) said.textContent = i18next.t('game.map.surrenderShort')
+          }, SURRENDER_ARMED_MS)
+        })
       } else {
         element.setAttribute('aria-hidden', 'true')
       }
       // What is written over the sign: the cost of defending, or what a conquest took.
       const label = document.createElement('b')
-      label.textContent = text
-      element.innerHTML = kind === 'defend' ? DEFEND_SIGN : BATTLE_SIGN
-      if (text !== '') element.prepend(label)
+      label.textContent = kind === 'surrender' ? i18next.t('game.map.surrenderShort') : text
+      element.innerHTML =
+        kind === 'defend'
+          ? DEFEND_SIGN
+          : kind === 'surrender'
+            ? SURRENDER_SIGN
+            : kind === 'repelled'
+              ? REPELLED_SIGN
+              : BATTLE_SIGN
+      if (label.textContent !== '') element.prepend(label)
       // Above the figure of the resources, which stays readable under it.
       shown.set(
         sign,
-        new Marker({ element, anchor: 'bottom', offset: [0, -30] })
+        // The flag of the surrender stands beside the shield, not over it.
+        new Marker({ element, anchor: 'bottom', offset: [kind === 'surrender' ? 54 : 0, -30] })
           .setLngLat([Number(lon), Number(lat)])
           .addTo(map),
       )

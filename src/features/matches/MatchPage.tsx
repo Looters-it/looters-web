@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
+import { EndAnnouncement } from '@/features/game/EndAnnouncement'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { AttackToasts } from '@/features/game/AttackToasts'
 import { unlockSoundOnFirstGesture } from '@/features/game/tick'
@@ -441,6 +442,9 @@ export function MatchPage() {
   const [gains, setGains] = useState<ReadonlyMap<string, number>>(new Map())
   // Territories just conquered: the sign of the battle stays on them for a moment, green.
   const [captured, setCaptured] = useState<ReadonlyMap<string, number | null>>(new Map())
+  // Territories an attack has just failed on: a shield that held, for a moment; for who
+  // attacked, with what the attempt cost.
+  const [repelled, setRepelled] = useState<ReadonlyMap<string, number | null>>(new Map())
   if (state !== seenState) {
     setSeenState(state)
     let conquered: ReadonlySet<string> = new Set()
@@ -462,6 +466,13 @@ export function MatchPage() {
           ]
         })
       if (taken.length > 0) setCaptured(new Map(taken))
+      const held = state.battles
+        .filter((b) => open.has(b.id) && b.status === 'RESOLVED' && b.outcome === 'DEFENDER_WON')
+        .map((b): [string, number | null] => [
+          b.targetTerritoryId,
+          b.role === 'attacker' ? (b.attackCost ?? null) : null,
+        ])
+      if (held.length > 0) setRepelled(new Map(held))
       conquered = new Set(taken.map(([id]) => id))
     }
     if (state && seenState && state.match.currentTurn > seenState.match.currentTurn) {
@@ -505,6 +516,11 @@ export function MatchPage() {
     const timer = setTimeout(() => setCaptured(new Map()), CAPTURED_SHOWN_MS)
     return () => clearTimeout(timer)
   }, [captured])
+  useEffect(() => {
+    if (repelled.size === 0) return
+    const timer = setTimeout(() => setRepelled(new Map()), CAPTURED_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [repelled])
   useEffect(() => {
     if (gains.size === 0) return
     const timer = setTimeout(() => setGains(new Map()), GAIN_SHOWN_MS)
@@ -620,6 +636,8 @@ export function MatchPage() {
               lon: point.lon,
               lat: point.lat,
             },
+            // Or it is given away: a white flag beside the shield.
+            { id: `surrender:${answer.id}`, kind: 'surrender', lon: point.lon, lat: point.lat },
           ]
         : [{ id: `battle:${territory.id}`, kind: 'battle', lon: point.lon, lat: point.lat }]
     })
@@ -638,8 +656,23 @@ export function MatchPage() {
           ]
         : []
     })
-    return [...signs, ...flags, ...clashes, ...conquests]
-  }, [state, targetIds, annexIds, gains, captured, canAct, units.data])
+    const failures = (state?.territories ?? []).flatMap((territory): MapMarker[] => {
+      const point = points.get(territory.geoUnitIds[0] ?? -1)
+      const cost = repelled.get(territory.id)
+      return repelled.has(territory.id) && point
+        ? [
+            {
+              id: `repelled:${territory.id}`,
+              kind: 'repelled',
+              text: cost ? `−${String(cost)}` : '',
+              lon: point.lon,
+              lat: point.lat,
+            },
+          ]
+        : []
+    })
+    return [...signs, ...flags, ...clashes, ...conquests, ...failures]
+  }, [state, targetIds, annexIds, gains, captured, repelled, canAct, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
@@ -777,6 +810,20 @@ export function MatchPage() {
       // The shield defends at once; to surrender instead, the alert of the attack is opened.
       void matchApi
         .respond(id, signId, 'DEFEND')
+        .then((next) => queryClient.setQueryData(['matches', 'state', id], next))
+        .catch(() => setAlertOpen(true))
+      return
+    }
+    if (kind === 'surrender' && signId) {
+      // The capital is the empire: giving it away is decided in the alert, which says so.
+      const battle = state.battles.find((candidate) => candidate.id === signId)
+      const capital = state.empires.find((empire) => empire.id === state.me?.empireId)
+      if (battle?.targetTerritoryId === capital?.capitalTerritoryId) {
+        setAlertOpen(true)
+        return
+      }
+      void matchApi
+        .respond(id, signId, 'SURRENDER')
         .then((next) => queryClient.setQueryData(['matches', 'state', id], next))
         .catch(() => setAlertOpen(true))
       return
@@ -1306,6 +1353,9 @@ export function MatchPage() {
           <Board state={state} onGoTo={goTo} full />
         </div>
       )}
+
+      {/* The match is over: said once, to who played it. */}
+      <EndAnnouncement state={state} onRanking={() => openSheet('leaderboard')} />
 
       {/* Everything that does not need the map beside it opens over the page. */}
       <Dialog open={sheet !== null} onOpenChange={(next) => !next && openSheet(null)}>
