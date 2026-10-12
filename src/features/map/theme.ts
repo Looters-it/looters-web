@@ -35,7 +35,8 @@ export function mapColors(): MapColors {
 /**
  * Stand-in colours for empires, taken from the three palettes of the theme.
  * They are hard to tell apart beyond a dozen empires: a dedicated palette is
- * still to be designed (PROMPT §11, BACKLOG M0-11).
+ * still to be designed (PROMPT §11, BACKLOG M0-11). The three families follow one
+ * another, shade by shade: the atlas counts on it to keep neighbours apart.
  */
 export function empirePalette(): string[] {
   const shades = ['700', '500', '300', '800', '400', '600']

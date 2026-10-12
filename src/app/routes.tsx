@@ -2,6 +2,7 @@ import { LeaderboardPage } from '@/features/leaderboard/LeaderboardPage'
 import type { RouteObject } from 'react-router'
 
 import { AdminPage } from '@/features/admin/AdminPage'
+import { AtlasPage } from '@/features/atlas/AtlasPage'
 import { AuthPage } from '@/features/auth/AuthPage'
 import { ChangePasswordPage } from '@/features/profile/ChangePasswordPage'
 import { InvitationsPage } from '@/features/profile/InvitationsPage'
@@ -39,6 +40,8 @@ export const routes: RouteObject[] = [
           { path: '/matches', element: <MatchList /> },
           { path: '/leaderboard', element: <LeaderboardPage /> },
           { path: '/classifica', element: <Redirect to="/leaderboard" /> },
+          { path: '/atlas', element: <AtlasPage /> },
+          { path: '/mappa', element: <Redirect to="/atlas" /> },
           { path: '/come-funziona', element: <HowItWorks /> },
           { path: '/match/new', element: <NewMatchPage /> },
           { path: '/match/:id', element: <MatchPage /> },

@@ -16,7 +16,8 @@
     "matches": "Vedi partite in corso",
     "newMatch": "Nuova partita",
     "leaveMatch": "Esci dalla partita",
-    "leaderboard": "Classifica"
+    "leaderboard": "Classifica",
+    "atlas": "Mappa"
   },
   "home": {
     "title": "Saccheggia i tuoi vicini!",
@@ -1088,5 +1089,15 @@
       "elo": "Punteggio",
       "turns": "Turni"
     }
+  },
+  "atlas": {
+    "title": "Mappa delle aree di gioco",
+    "intro": "Tutte le aree su cui si può giocare una partita. Ogni area ha il suo colore: scegline una dall'elenco per portarci la mappa, o tocca un comune per sapere a quale appartiene.",
+    "summary_one": "{{areas}} aree, {{count}} comune",
+    "summary_other": "{{areas}} aree, {{count}} comuni",
+    "units_one": "{{count}} comune",
+    "units_other": "{{count}} comuni",
+    "empty": "Non ci sono ancora aree di gioco.",
+    "error": "La mappa non si è caricata. Riprova tra poco."
   }
 }

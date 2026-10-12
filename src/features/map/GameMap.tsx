@@ -172,6 +172,8 @@ interface Props {
   renderInfo?: (unit: MapUnit) => ReactNode
   /** A point to bring into view when it changes. */
   focus?: { lon: number; lat: number } | null
+  /** An extent to bring into view when it changes; null goes back to the whole area. */
+  frame?: [number, number, number, number] | null
   /**
    * For a map embedded in a page that scrolls: one finger scrolls the page,
    * two fingers (or ctrl + wheel) move the map.
@@ -211,6 +213,7 @@ export function GameMap({
   onProbe,
   renderInfo,
   focus = null,
+  frame,
   embedded = false,
   attribution = 'bottom-right',
   fitPadding,
@@ -682,6 +685,18 @@ export function GameMap({
     if (!map || !ready || !focus) return
     map.easeTo({ center: [focus.lon, focus.lat], zoom: Math.max(map.getZoom(), 9) })
   }, [focus, ready])
+
+  // Fits an extent, for an area chosen from a list; untouched by a map that names none.
+  const framed = useRef(false)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || frame === undefined) return
+    const bounds = frame ?? (framed.current ? area.bounds : null)
+    framed.current = frame !== null
+    if (bounds) map.fitBounds(bounds, { padding: 24 })
+    // The area is the one the map was built on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frame, ready])
 
   const info = selected && renderInfo && (anchored || phone) ? renderInfo(selected) : null
 

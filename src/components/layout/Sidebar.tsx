@@ -69,6 +69,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             <Item to="/leaderboard" onClick={onNavigate}>
               {t('nav.leaderboard')}
             </Item>
+            <Item to="/atlas" onClick={onNavigate}>
+              {t('nav.atlas')}
+            </Item>
             {user.role === 'ADMIN' && (
               <Item to="/admin" onClick={onNavigate}>
                 {t('nav.admin')}
@@ -82,6 +85,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             </Item>
             <Item to="/matches" onClick={onNavigate}>
               {t('nav.matches')}
+            </Item>
+            <Item to="/atlas" onClick={onNavigate}>
+              {t('nav.atlas')}
             </Item>
           </>
         )}

@@ -16,7 +16,8 @@
     "matches": "See matches in progress",
     "newMatch": "New match",
     "leaveMatch": "Leave the match page",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "atlas": "Map"
   },
   "home": {
     "title": "Loot your neighbours!",
@@ -1088,5 +1089,15 @@
       "elo": "Score",
       "turns": "Turns"
     }
+  },
+  "atlas": {
+    "title": "Map of the play areas",
+    "intro": "Every area a match can be played on. Each area has its own colour: choose one from the list to bring the map there, or tap a municipality to see which one it belongs to.",
+    "summary_one": "{{areas}} areas, {{count}} municipality",
+    "summary_other": "{{areas}} areas, {{count}} municipalities",
+    "units_one": "{{count}} municipality",
+    "units_other": "{{count}} municipalities",
+    "empty": "There are no play areas yet.",
+    "error": "The map did not load. Try again in a moment."
   }
 }
