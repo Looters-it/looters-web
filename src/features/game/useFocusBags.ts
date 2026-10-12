@@ -12,6 +12,7 @@ import {
   movePoint,
   pointsOf,
   saveFocus,
+  tidied,
   watchFocus,
   type Focus,
   type Point,
@@ -117,7 +118,12 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
       // A bag is all for one territory, whatever the focus was set to elsewhere.
       const { to: _, ...now } = loadFocus(matchId) ?? { mode: 'point' as const, ...there }
       const whole: Focus = { ...now, mode: 'point' }
-      keep(onto === null ? movePoint(whole, id === 'to' ? 'at' : id, there) : dropPoint(whole, id))
+      // Left on a territory that has a bag already, it joins it: one bag for a territory.
+      keep(
+        onto === null
+          ? tidied(movePoint(whole, id === 'to' ? 'at' : id, there))
+          : dropPoint(whole, id),
+      )
     },
     [matchId, keep, territories, empireId, places],
   )

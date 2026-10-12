@@ -126,6 +126,20 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
   return weights
 }
 
+/**
+ * The focus without the parts that lie on a point another has already: two bags on
+ * one spot would show as one, carrying half of what the two do.
+ */
+export function tidied(focus: Focus): Focus {
+  const taken: Point[] = [focus]
+  const more = (focus.more ?? []).filter((point) => {
+    const twice = taken.some((other) => other.lon === point.lon && other.lat === point.lat)
+    if (!twice) taken.push(point)
+    return !twice
+  })
+  return rebuilt(focus, more)
+}
+
 /** A point of a focus that can be taken and moved: the focus, the end of its line, a part. */
 export interface FocusPoint extends Point {
   id: string
@@ -208,7 +222,8 @@ export function loadFocus(matchId: string): Focus | null {
     // The same focus as long as nothing was saved: who follows it is not told in vain.
     const known = read.get(matchId)
     if (known && known.raw === raw) return known.focus
-    const focus = parse(raw)
+    const stored = parse(raw)
+    const focus = stored && tidied(stored)
     read.set(matchId, { raw, focus })
     return focus
   } catch {
