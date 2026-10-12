@@ -63,6 +63,25 @@ const featureFlag = (name: string): ExpressionSpecification => [
  * about matches: who owns what is feature state (`color`, `selected`,
  * `highlight`, `hover`), changed per municipality without reloading anything.
  */
+/**
+ * A place around the centre of a territory, for a sign that stands beside it. The signs
+ * share the ring without touching, and leave its name free: the port on the left, island
+ * or exclave on the right, block and alert above them, shield and flag or swords below
+ * the name, the resources on top.
+ * The ring widens with the zoom, as the signs and the arms of a capital do.
+ */
+const beside = (x: number, y: number): ExpressionSpecification => [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  5,
+  ['literal', [x * 0.55, y * 0.55]],
+  10,
+  ['literal', [x, y]],
+  14,
+  ['literal', [x * 1.3, y * 1.3]],
+]
+
 export function buildStyle(area: AreaMap, colors: MapColors, origin: string): StyleSpecification {
   return {
     version: 8,
@@ -221,7 +240,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         },
       },
       {
-        // A port: an anchor beside the territory, top left, where nothing else is drawn.
+        // A port: an anchor on the left of the territory, above its name.
         id: 'port-anchors',
         type: 'symbol',
         source: MARKERS_SOURCE,
@@ -232,7 +251,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': [-14, -14] },
+        paint: { 'icon-translate': beside(-30, -16) },
       },
       {
         // Military block: a dark square-ish disc with the turns left written on it.
@@ -245,7 +264,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'circle-color': colors.ink,
           'circle-stroke-color': colors.halo,
           'circle-stroke-width': 1.5,
-          'circle-translate': [-12, -12],
+          'circle-translate': beside(-26, -36),
         },
       },
       {
@@ -257,11 +276,10 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-field': ['get', 'text'],
           'text-font': [EMPIRE_FONT],
           'text-size': 12,
-          'text-offset': [-1, -1],
           'text-allow-overlap': true,
           'text-ignore-placement': true,
         },
-        paint: { 'text-color': colors.halo },
+        paint: { 'text-color': colors.halo, 'text-translate': beside(-26, -36) },
       },
       {
         // Capitals: a ringed disc in the empire's colour, always visible to everyone.
@@ -346,7 +364,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         // Beside the name of the municipality, not over it.
-        paint: { 'icon-translate': [16, 14] },
+        paint: { 'icon-translate': beside(22, 20) },
       },
       {
         // Can be attacked now: crossed swords beside the municipality, bottom right. Drawn
@@ -361,7 +379,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': [16, 14] },
+        paint: { 'icon-translate': beside(22, 20) },
       },
       {
         // Protected until the end of the turn: a shield beside the municipality, bottom left.
@@ -375,7 +393,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': [-13, 13] },
+        paint: { 'icon-translate': beside(-22, 20) },
       },
       {
         // Accumulation alerts: a red disc with an exclamation mark, a shape and not just a colour.
@@ -388,7 +406,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'circle-color': colors.attacked,
           'circle-stroke-color': colors.halo,
           'circle-stroke-width': 1.5,
-          'circle-translate': [12, -12],
+          'circle-translate': beside(26, -36),
         },
       },
       {
@@ -400,11 +418,10 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-field': '!',
           'text-font': [EMPIRE_FONT],
           'text-size': 13,
-          'text-offset': [0.92, -0.92],
           'text-allow-overlap': true,
           'text-ignore-placement': true,
         },
-        paint: { 'text-color': colors.halo },
+        paint: { 'text-color': colors.halo, 'text-translate': beside(26, -36) },
       },
       {
         // The tag of the owning empire on its municipalities: who owns what can be read
@@ -422,7 +439,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: { 'text-color': colors.ink, 'text-halo-color': colors.halo, 'text-halo-width': 1.4 },
       },
       {
-        // Why a municipality has no neighbours: an island, or an exclave. Above its name,
+        // Why a municipality has no neighbours: an island, or an exclave. On its right,
         // drawn whatever else is there: it explains what the map cannot show.
         id: 'unit-marks',
         type: 'symbol',
@@ -432,10 +449,10 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         layout: {
           'icon-image': ['match', ['get', 'kind'], 'exclave', EXCLAVE_ICON, ISLAND_ICON],
           'icon-size': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 10, 0.65, 14, 0.85],
-          'icon-offset': [0, -22],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
+        paint: { 'icon-translate': beside(30, -16) },
       },
       {
         id: 'unit-labels',
