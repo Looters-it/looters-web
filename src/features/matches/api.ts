@@ -320,7 +320,14 @@ export interface UnitCardData {
     /** Attacks the empire can still declare this turn. */
     left: number
     blocked: 'PROTECTED' | 'BLOCKED' | 'IN_BATTLE' | 'NOT_ADJACENT' | null
-    from: { territoryId: string; name: string; resources: number; usable: boolean }[]
+    from: {
+      territoryId: string
+      name: string
+      resources: number
+      usable: boolean
+      /** How it reaches the target: across a border, from its port, or from its airport. */
+      via: 'land' | 'sea' | 'air'
+    }[]
   } | null
 }
 

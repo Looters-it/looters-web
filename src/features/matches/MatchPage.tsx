@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { AttackBar } from '@/features/game/AttackBar'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { EndAnnouncement } from '@/features/game/EndAnnouncement'
 import { BattleAlert } from '@/features/game/BattleAlert'
@@ -570,7 +571,19 @@ export function MatchPage() {
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
     const pointOf = (territoryId: string) =>
       points.get(state.territories.find((t) => t.id === territoryId)?.geoUnitIds[0] ?? -1)
-    return state.battles
+    // The attack being prepared: a curve from every territory chosen so far.
+    const target = attack ? points.get(attack.card.geoUnitId) : undefined
+    const own = state.empires.find((empire) => empire.id === state.me?.empireId)?.color
+    const prepared =
+      attack && target && own
+        ? attack.from.flatMap((sourceId): MapArc[] => {
+            const from = pointOf(sourceId)
+            return from
+              ? [{ from: [from.lon, from.lat], to: [target.lon, target.lat], color: own }]
+              : []
+          })
+        : []
+    const open = state.battles
       .filter((battle) => battle.status === 'OPEN')
       .flatMap((battle) => {
         const to = pointOf(battle.targetTerritoryId)
@@ -581,7 +594,8 @@ export function MatchPage() {
           return from ? [{ from: [from.lon, from.lat], to: [to.lon, to.lat], color }] : []
         })
       })
-  }, [state, units.data])
+    return [...open, ...prepared]
+  }, [attack, state, units.data])
 
   const markers = useMemo<MapMarker[]>(() => {
     const attackable = new Set(targetIds)
@@ -932,6 +946,14 @@ export function MatchPage() {
           onMapSelect(unit)
           return
         }
+        // An attack that could start from a port or an airport is never declared for the
+        // player: they choose on the map where it starts from, and see what it costs.
+        if (sources.some((source) => source.via !== 'land')) {
+          open('info')
+          setSelected(null)
+          setAttack({ card: target, from: [] })
+          return
+        }
         // The swords attack at once, from every own territory beside it that can: to
         // choose where from, the attack is prepared from the card.
         return matchApi
@@ -1265,6 +1287,16 @@ export function MatchPage() {
               or begins, then the attacks on the player. */}
           <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-16 md:right-auto md:left-[23rem] md:w-72 xl:top-3 xl:right-[29.5rem] xl:left-[21rem] xl:mx-auto xl:w-auto xl:max-w-[30rem]">
             {!reviewing && <TurnAnnouncer part="count" match={match} sound={sound} />}
+            {/* An attack prepared on the map itself: where from is chosen by tapping. */}
+            {!reviewing && attack && view !== 'attack' && (
+              <AttackBar
+                key={attack.card.geoUnitId}
+                state={state}
+                card={attack.card}
+                chosen={attack.from}
+                onDone={() => setAttack(null)}
+              />
+            )}
             <AttackToasts state={state} sound={sound} onRespond={() => setAlertOpen(true)} />
             {!reviewing && <SiegeToasts state={state} />}
           </div>

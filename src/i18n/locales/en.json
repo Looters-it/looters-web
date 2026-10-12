@@ -1112,6 +1112,20 @@
       "spoils_other": "+{{count}} resources of spoils",
       "more_one": "One more outcome after this.",
       "more_other": "{{count}} more outcomes after this."
+    },
+    "attackBar": {
+      "title": "Attack on {{name}}",
+      "hint": "Tap on the map your lit municipalities the attack starts from: one or more. Tap one again to take it out.",
+      "ports_one": "{{count}} port",
+      "ports_other": "{{count}} ports",
+      "airports_one": "{{count}} airport",
+      "airports_other": "{{count}} airports",
+      "borders_one": "{{count}} bordering municipality",
+      "borders_other": "{{count}} bordering municipalities",
+      "none": "No municipality chosen.",
+      "sum_one": "{{count}} municipality chosen · strength {{force}} · cost {{cost}} ({{pct}}%)",
+      "sum_other": "{{count}} municipalities chosen · strength {{force}} · cost {{cost}} ({{pct}}%)",
+      "cancel": "Cancel"
     }
   },
   "crash": {

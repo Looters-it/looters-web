@@ -1112,6 +1112,20 @@
       "spoils_other": "+{{count}} risorse di bottino",
       "more_one": "C'è un altro esito dopo questo.",
       "more_other": "Ci sono altri {{count}} esiti dopo questo."
+    },
+    "attackBar": {
+      "title": "Attacco a {{name}}",
+      "hint": "Tocca sulla mappa i tuoi comuni illuminati da cui far partire l'attacco: uno o più. Toccane uno di nuovo per toglierlo.",
+      "ports_one": "{{count}} porto",
+      "ports_other": "{{count}} porti",
+      "airports_one": "{{count}} aeroporto",
+      "airports_other": "{{count}} aeroporti",
+      "borders_one": "{{count}} comune confinante",
+      "borders_other": "{{count}} comuni confinanti",
+      "none": "Nessun comune scelto.",
+      "sum_one": "{{count}} comune scelto · forza {{force}} · costo {{cost}} ({{pct}}%)",
+      "sum_other": "{{count}} comuni scelti · forza {{force}} · costo {{cost}} ({{pct}}%)",
+      "cancel": "Annulla"
     }
   },
   "crash": {
