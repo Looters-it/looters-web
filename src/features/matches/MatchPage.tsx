@@ -35,6 +35,7 @@ import { AttackPanel } from '@/features/game/AttackPanel'
 import { EndAnnouncement } from '@/features/game/EndAnnouncement'
 import { BattleAlert } from '@/features/game/BattleAlert'
 import { AttackToasts } from '@/features/game/AttackToasts'
+import { SiegeToasts } from '@/features/game/SiegeToasts'
 import { unlockSoundOnFirstGesture } from '@/features/game/tick'
 import { TurnAnnouncer } from '@/features/game/TurnAnnouncer'
 import { Board } from '@/features/game/Board'
@@ -758,6 +759,7 @@ export function MatchPage() {
           battle.role === 'defender' &&
           battle.status === 'OPEN' &&
           !battle.response &&
+          !battle.foughtThisTurn &&
           battle.targetTerritoryId === mine.capitalTerritoryId,
       )
     : undefined
@@ -1201,6 +1203,7 @@ export function MatchPage() {
           <div className="pointer-events-none absolute inset-x-3 top-[10.5rem] z-20 flex flex-col gap-2 md:top-16 md:right-auto md:left-[23rem] md:w-72 xl:top-3 xl:right-[29.5rem] xl:left-[21rem] xl:mx-auto xl:w-auto xl:max-w-[30rem]">
             {!reviewing && <TurnAnnouncer part="count" match={match} sound={sound} />}
             <AttackToasts state={state} sound={sound} onRespond={() => setAlertOpen(true)} />
+            {!reviewing && <SiegeToasts state={state} />}
           </div>
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}
           {units.data && !reviewing && (

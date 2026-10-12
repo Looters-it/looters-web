@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 
 import type { BoardEntry } from '@/features/matches/api'
 
+import { scoreOf } from './battles'
+
 /** The text of an announcement, written from its type and the names it carries. */
 export function useEntryText() {
   const { t, i18n } = useTranslation()
@@ -16,11 +18,13 @@ export function useEntryText() {
           ? `_${entry.data.result}`
           : ''
     const key = `game.board.events.${entry.type}${suffix}`
-    return i18n.exists(key)
-      ? t(
-          key as 'game.board.events.ANNEXED',
-          entry.data as { empireName: string; territoryName: string },
-        )
-      : t('game.board.events.UNKNOWN')
+    if (!i18n.exists(key)) return t('game.board.events.UNKNOWN')
+    const text = t(
+      key as 'game.board.events.ANNEXED',
+      entry.data as { empireName: string; territoryName: string },
+    )
+    // A battle that was fought tells by how much it went.
+    const score = entry.type.startsWith('BATTLE_') ? scoreOf(entry.data.share) : null
+    return score ? `${text} ${t('game.battles.score', score)}` : text
   }
 }

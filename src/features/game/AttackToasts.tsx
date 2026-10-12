@@ -56,9 +56,13 @@ export function AttackToasts(props: {
           >
             <Swords aria-hidden="true" className="size-5 flex-none" />
             <p className="min-w-0 flex-1 font-bold">
-              {t('game.alert.title', { empire: attacker?.name ?? '', name: battle.targetName })}
+              {t(battle.round > 1 ? 'game.siege.defending' : 'game.alert.title', {
+                empire: attacker?.name ?? '',
+                name: battle.targetName,
+                round: battle.round,
+              })}
             </p>
-            {!battle.response && (
+            {!battle.response && !battle.foughtThisTurn && (
               <Button variant="inverted" size="sm" onClick={props.onRespond}>
                 {t('game.attackToast.respond')}
               </Button>

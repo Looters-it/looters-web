@@ -15,7 +15,7 @@ import {
 import { matchApi, type Battle, type MatchState } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 
-import { pendingAttacks } from './battles'
+import { pendingAttacks, scoreOf } from './battles'
 
 /**
  * The red button that appears in the navbar while an attack waits for an
@@ -59,6 +59,8 @@ export function BattleAlert(props: {
   const attacker = state.empires.find((empire) => empire.id === battle?.attackerEmpireId)
   const mine = state.empires.find((empire) => empire.id === state.me?.empireId)
   const others = pending.filter((candidate) => candidate.id !== battle?.id)
+  const score = scoreOf(battle?.share)
+  const waiting = battle?.status === 'OPEN' && !battle.response && !battle.foughtThisTurn
 
   return (
     <>
@@ -82,17 +84,28 @@ export function BattleAlert(props: {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {t('game.alert.title', { empire: attacker?.name ?? '', name: battle.targetName })}
+                {t(battle.round > 1 ? 'game.siege.defending' : 'game.alert.title', {
+                  empire: attacker?.name ?? '',
+                  name: battle.targetName,
+                  round: battle.round,
+                })}
               </DialogTitle>
               <DialogDescription>
                 {t('game.battles.from', { names: battle.fromNames.join(', ') })}{' '}
-                {battle.status === 'OPEN' && !battle.response && t('game.alert.intro')}
+                {waiting && t('game.alert.intro')}
               </DialogDescription>
             </DialogHeader>
 
             {battle.status === 'RESOLVED' && battle.outcome ? (
               <p role="status" className="text-lg">
                 {t(`game.battles.outcome.defender.${battle.outcome}`, { name: battle.targetName })}
+                {score && battle.rounds.length > 0 && (
+                  <span className="block">
+                    {t('game.battles.score', score)}
+                    {battle.rounds.length > 1 &&
+                      ` ${t('game.battles.rounds', { count: battle.rounds.length })}`}
+                  </span>
+                )}
                 {battle.spoils !== undefined && (
                   <span className="block font-bold text-[#1f9d55]">
                     {t('game.battles.spoils', { count: battle.spoils })}
@@ -101,8 +114,23 @@ export function BattleAlert(props: {
               </p>
             ) : battle.response ? (
               <p role="status">{t('game.alert.resolving')}</p>
+            ) : battle.foughtThisTurn ? (
+              <>
+                <p role="status" className="text-lg">
+                  {t('game.siege.drawn')} {score && t('game.siege.lastRound', score)}
+                </p>
+                <p className="text-muted-foreground text-base">{t('game.siege.defenderNext')}</p>
+                {respond.error && (
+                  <p role="alert" className="text-danger">
+                    {errorText(respond.error)}
+                  </p>
+                )}
+              </>
             ) : (
               <>
+                {battle.round > 1 && score && (
+                  <p className="text-base">{t('game.siege.lastRound', score)}</p>
+                )}
                 <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 [&_dd]:text-right [&_dd]:font-mono [&_dd]:font-bold">
                   <dt>{t('game.alert.resources')}</dt>
                   <dd>{battle.defenseForce}</dd>
@@ -142,15 +170,21 @@ export function BattleAlert(props: {
                   >
                     {t('game.alert.surrender')}
                   </Button>
-                  <Button
-                    disabled={respond.isPending}
-                    onClick={() => {
-                      setShownId(battle.id)
-                      respond.mutate('DEFEND')
-                    }}
-                  >
-                    {t('game.alert.defend')}
-                  </Button>
+                  {battle.foughtThisTurn ? (
+                    <Button variant="quiet" onClick={() => close(false)}>
+                      {t('game.alert.close')}
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled={respond.isPending}
+                      onClick={() => {
+                        setShownId(battle.id)
+                        respond.mutate('DEFEND')
+                      }}
+                    >
+                      {t('game.alert.defend')}
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>

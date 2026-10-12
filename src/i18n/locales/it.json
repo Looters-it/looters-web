@@ -384,7 +384,9 @@
       "attacksPerTurn": "Attacchi per turno",
       "portCost": "Porto: costo",
       "portFoundIslandPct": "Porto già presente su un'isola annessa (%)",
-      "portFoundCoastPct": "Porto già presente su un comune costiero annesso (%)"
+      "portFoundCoastPct": "Porto già presente su un comune costiero annesso (%)",
+      "siegeMarginPct": "Margine per vincere uno scontro in un round (%; sotto, diventa un assedio)",
+      "siegeCapitalMarginPct": "Margine per conquistare una capitale in un round (%)"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -559,7 +561,10 @@
       "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno.",
       "MATCH_PAUSED": "La partita è in pausa.",
       "ATTACK_LIMIT": "Hai già usato gli attacchi di questo turno.",
-      "STRUCTURE_NOT_ON_COAST": "Serve uno sbocco sul mare."
+      "STRUCTURE_NOT_ON_COAST": "Serve uno sbocco sul mare.",
+      "ROUND_FOUGHT": "Il round di questo turno è già stato combattuto: il prossimo è al prossimo turno.",
+      "NOT_A_SIEGE": "Puoi ritirarti solo da un assedio.",
+      "NOT_THE_ATTACKER": "Solo chi attacca può ritirarsi."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -733,17 +738,22 @@
           "ATTACKER_WON": "Hai conquistato {{name}}.",
           "DEFENDER_WON": "Il tuo attacco a {{name}} è stato respinto.",
           "SURRENDER": "{{name}} si è arreso: è tuo, e metà del costo ti è stata restituita.",
-          "CANCELLED": "L'attacco a {{name}} è stato annullato: il costo ti è stato restituito."
+          "CANCELLED": "L'attacco a {{name}} è stato annullato: il costo ti è stato restituito.",
+          "WITHDRAWN": "Hai tolto l'assedio a {{name}}."
         },
         "defender": {
           "ATTACKER_WON": "Hai perso {{name}}.",
           "DEFENDER_WON": "Hai difeso {{name}}.",
           "SURRENDER": "Hai ceduto {{name}}.",
-          "CANCELLED": "L'attacco a {{name}} è stato annullato."
+          "CANCELLED": "L'attacco a {{name}} è stato annullato.",
+          "WITHDRAWN": "L'assedio di {{name}} è stato tolto: il comune resta tuo."
         }
       },
       "from": "L'attacco parte da: {{names}}.",
-      "spoils": "Bottino: {{count}} risorse."
+      "spoils": "Bottino: {{count}} risorse.",
+      "score": "Attacco {{attack}}%, difesa {{defense}}%.",
+      "rounds_one": "In {{count}} round.",
+      "rounds_other": "In {{count}} round."
     },
     "alert": {
       "button_one": "Sotto attacco",
@@ -922,7 +932,9 @@
         "ALLIANCE_KEPT": "{{empireName}} ha confermato l'alleanza con {{otherName}}.",
         "ALLIANCE_ENDED": "L'alleanza tra {{empireName}} e {{otherName}} è finita.",
         "EMPIRE_WITHDRAWN": "{{empireName}} si è ritirato: {{territoryName}} è di nuovo libero.",
-        "EMPIRE_ABANDONED": "{{empireName}} ha abbandonato la partita: i suoi territori sono liberi."
+        "EMPIRE_ABANDONED": "{{empireName}} ha abbandonato la partita: i suoi territori sono liberi.",
+        "BATTLE_ROUND": "L'assedio di {{territoryName}} continua: tra {{attackerName}} e {{defenderName}} nessuno ha prevalso.",
+        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} ha tolto l'assedio a {{territoryName}}, che resta a {{defenderName}}."
       },
       "latest": "Ultime notizie della bacheca"
     },
@@ -1035,6 +1047,19 @@
       "resume": "Riprendi",
       "title": "Partita in pausa",
       "paused": "In pausa"
+    },
+    "siege": {
+      "label": "I tuoi attacchi",
+      "attacking": "Assedi {{name}} · round {{round}}",
+      "defending": "{{empire}} assedia {{name}} · round {{round}}",
+      "withdraw": "Ritirati",
+      "lastRound": "Ultimo round: attacco {{attack}}%, difesa {{defense}}%.",
+      "thisTurn_one": "Il prossimo round si combatte in questo turno e ti costa {{count}} risorsa.",
+      "thisTurn_other": "Il prossimo round si combatte in questo turno e ti costa {{count}} risorse.",
+      "nextTurn_one": "Il prossimo round è al prossimo turno: ad ora ti costerebbe {{count}} risorsa.",
+      "nextTurn_other": "Il prossimo round è al prossimo turno: ad ora ti costerebbe {{count}} risorse.",
+      "drawn": "Nessuno ha prevalso: l'assedio continua.",
+      "defenderNext": "Il prossimo round si combatte al prossimo turno, con le risorse che ci saranno nel comune. Fino ad allora puoi solo arrenderti."
     }
   },
   "crash": {

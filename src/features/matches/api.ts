@@ -191,7 +191,7 @@ export interface BoardEntry {
   territoryId: string | null
   /** A municipality of the territory it is about, to centre the map on it. */
   geoUnitId: number | null
-  data: Record<string, string>
+  data: Record<string, string> & { share?: number; round?: number; rounds?: number }
 }
 
 /** A closed turn: what happened and who owned each municipality when it ended. */
@@ -214,7 +214,8 @@ export interface MatchPreview {
 export type BoardKind =
   'messages' | 'empires' | 'annexations' | 'battles' | 'capitals' | 'areas' | 'alliances' | 'match'
 
-export type BattleOutcome = 'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER' | 'CANCELLED'
+export type BattleOutcome =
+  'ATTACKER_WON' | 'DEFENDER_WON' | 'SURRENDER' | 'CANCELLED' | 'WITHDRAWN'
 
 export interface Battle {
   id: string
@@ -230,6 +231,20 @@ export interface Battle {
   /** Where the attack starts from: public, like its target. */
   fromTerritoryIds: string[]
   fromNames: string[]
+  /**
+   * The round awaited. A round nobody wins clearly leaves the battle open as a siege:
+   * past the first, the numbers of each side are those of what is on its territories now.
+   */
+  round: number
+  /** This turn's round was fought: the next is in the next turn. */
+  foughtThisTurn: boolean
+  /** The attacker gave the siege up: it is about to end. */
+  withdrawn: boolean
+  /** The attacker's share of the two scores in the last round fought: by how much it went. */
+  share: number | null
+  rounds: { round: number; turn: number; share: number; result: 'ATTACKER' | 'DEFENDER' | 'DRAW' }[]
+  /** For the attacker of a siege: what the round awaited costs. */
+  nextCost?: number
   attackCost?: number
   attackForce?: number
   response?: 'DEFEND' | 'SURRENDER' | null
@@ -458,6 +473,8 @@ export const matchApi = {
   ) => apiPost<MatchState>(`/matches/${id}/attacks`, body),
   respond: (id: string, battleId: string, action: 'DEFEND' | 'SURRENDER') =>
     apiPost<MatchState>(`/matches/${id}/battles/${battleId}/respond`, { action }),
+  liftSiege: (id: string, battleId: string) =>
+    apiPost<MatchState>(`/matches/${id}/battles/${battleId}/withdraw`, {}),
   setAllocationRule: (
     id: string,
     body: { mode: 'EQUAL' | 'WEIGHTED'; weights?: Record<string, number> },

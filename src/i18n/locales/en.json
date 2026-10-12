@@ -384,7 +384,9 @@
       "attacksPerTurn": "Attacks per turn",
       "portCost": "Port: cost",
       "portFoundIslandPct": "Port already there on an annexed island (%)",
-      "portFoundCoastPct": "Port already there on an annexed coastal municipality (%)"
+      "portFoundCoastPct": "Port already there on an annexed coastal municipality (%)",
+      "siegeMarginPct": "Margin to win a battle in one round (%; below it, it becomes a siege)",
+      "siegeCapitalMarginPct": "Margin to take a capital in one round (%)"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -559,7 +561,10 @@
       "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn.",
       "MATCH_PAUSED": "The match is paused.",
       "ATTACK_LIMIT": "You have used the attacks of this turn.",
-      "STRUCTURE_NOT_ON_COAST": "It needs access to the sea."
+      "STRUCTURE_NOT_ON_COAST": "It needs access to the sea.",
+      "ROUND_FOUGHT": "This turn's round has been fought: the next is next turn.",
+      "NOT_A_SIEGE": "You can withdraw only from a siege.",
+      "NOT_THE_ATTACKER": "Only the attacker can withdraw."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -733,17 +738,22 @@
           "ATTACKER_WON": "You conquered {{name}}.",
           "DEFENDER_WON": "Your attack on {{name}} was repelled.",
           "SURRENDER": "{{name}} surrendered: it is yours, and half the cost has been returned to you.",
-          "CANCELLED": "The attack on {{name}} was cancelled: the cost has been returned to you."
+          "CANCELLED": "The attack on {{name}} was cancelled: the cost has been returned to you.",
+          "WITHDRAWN": "You lifted the siege of {{name}}."
         },
         "defender": {
           "ATTACKER_WON": "You lost {{name}}.",
           "DEFENDER_WON": "You defended {{name}}.",
           "SURRENDER": "You gave up {{name}}.",
-          "CANCELLED": "The attack on {{name}} was cancelled."
+          "CANCELLED": "The attack on {{name}} was cancelled.",
+          "WITHDRAWN": "The siege of {{name}} was lifted: it stays yours."
         }
       },
       "from": "The attack comes from: {{names}}.",
-      "spoils": "Spoils: {{count}} resources."
+      "spoils": "Spoils: {{count}} resources.",
+      "score": "Attack {{attack}}%, defence {{defense}}%.",
+      "rounds_one": "In {{count}} round.",
+      "rounds_other": "In {{count}} rounds."
     },
     "alert": {
       "button_one": "Under attack",
@@ -922,7 +932,9 @@
         "ALLIANCE_KEPT": "{{empireName}} confirmed its alliance with {{otherName}}.",
         "ALLIANCE_ENDED": "The alliance between {{empireName}} and {{otherName}} has ended.",
         "EMPIRE_WITHDRAWN": "{{empireName}} withdrew: {{territoryName}} is free again.",
-        "EMPIRE_ABANDONED": "{{empireName}} abandoned the match: its territories are free."
+        "EMPIRE_ABANDONED": "{{empireName}} abandoned the match: its territories are free.",
+        "BATTLE_ROUND": "The siege of {{territoryName}} goes on: neither {{attackerName}} nor {{defenderName}} prevailed.",
+        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} lifted the siege of {{territoryName}}, which stays with {{defenderName}}."
       },
       "latest": "Latest news of the board"
     },
@@ -1035,6 +1047,19 @@
       "resume": "Resume",
       "title": "Match paused",
       "paused": "Paused"
+    },
+    "siege": {
+      "label": "Your attacks",
+      "attacking": "Besieging {{name}} · round {{round}}",
+      "defending": "{{empire}} besieges {{name}} · round {{round}}",
+      "withdraw": "Withdraw",
+      "lastRound": "Last round: attack {{attack}}%, defence {{defense}}%.",
+      "thisTurn_one": "The next round is fought this turn and costs you {{count}} resource.",
+      "thisTurn_other": "The next round is fought this turn and costs you {{count}} resources.",
+      "nextTurn_one": "The next round is next turn: as things stand it would cost you {{count}} resource.",
+      "nextTurn_other": "The next round is next turn: as things stand it would cost you {{count}} resources.",
+      "drawn": "Nobody prevailed: the siege goes on.",
+      "defenderNext": "The next round is fought next turn, with what will be on the territory. Until then you can only surrender."
     }
   },
   "crash": {
