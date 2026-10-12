@@ -25,9 +25,9 @@ export function useStoredFocus(matchId: string): Focus | null {
 }
 
 /**
- * The focus of the resources as bags of money on the map of the game: dragged where
- * the resources should gather, split in more bags, put back together by dropping one
- * on another. In the preliminary part of a turn the resources move at once; later the
+ * The focus of the resources as bags of money on the map of the game: a bag gives all
+ * it carries to the territory it is left on, and to no other. It is split in more
+ * bags, each carrying an equal part, and put back together by dropping one on another. In the preliminary part of a turn the resources move at once; later the
  * focus is only remembered, and the next turn begins by it.
  */
 export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | null) {
@@ -92,19 +92,39 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
     [matchId, turn, phase, queryClient],
   )
 
-  /** A bag let go: moved there, or put together with the one it was dropped on. */
+  /**
+   * A bag let go: put on the territory it was left on (the player's own under it, or
+   * the nearest of them), or put together with the bag it was dropped on.
+   */
+  const places = shapes.data?.territories
   const drop = useCallback(
-    (id: string, here: Point, onto: string | null) => {
-      const now = loadFocus(matchId)
-      if (!now) keep({ mode: 'area', ...here })
-      else keep(onto === null ? movePoint(now, id, here) : dropPoint(now, id))
+    (id: string, here: Point, onto: string | null, unitId: number | null) => {
+      const mine = (territories ?? []).filter((territory) => territory.ownerEmpireId === empireId)
+      const under = mine.find(
+        (territory) => unitId !== null && territory.geoUnitIds.includes(unitId),
+      )
+      const own = (places ?? []).filter((place) =>
+        mine.some((territory) => territory.id === place.id),
+      )
+      const far = (place: Point) => Math.hypot(place.lon - here.lon, place.lat - here.lat)
+      const on =
+        own.find((place) => place.id === under?.id) ??
+        own.reduce<(typeof own)[number] | null>(
+          (best, place) => (best && far(best) <= far(place) ? best : place),
+          null,
+        )
+      const there = on ? { lon: on.lon, lat: on.lat } : here
+      // A bag is all for one territory, whatever the focus was set to elsewhere.
+      const { to: _, ...now } = loadFocus(matchId) ?? { mode: 'point' as const, ...there }
+      const whole: Focus = { ...now, mode: 'point' }
+      keep(onto === null ? movePoint(whole, id === 'to' ? 'at' : id, there) : dropPoint(whole, id))
     },
-    [matchId, keep],
+    [matchId, keep, territories, empireId, places],
   )
   /** A bag split in two: the new one beside it. */
   const split = useCallback(
     (here: Point) => {
-      const now = loadFocus(matchId) ?? (start ? { mode: 'area' as const, ...start } : null)
+      const now = loadFocus(matchId) ?? (start ? { mode: 'point' as const, ...start } : null)
       if (now && 1 + (now.more?.length ?? 0) < FOCUS_PARTS) keep(addPoint(now, here))
     },
     [matchId, start, keep],

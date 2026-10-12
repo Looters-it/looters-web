@@ -1,5 +1,13 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { CircleDot, Crosshair, FlipHorizontal2, Spline, X, type LucideIcon } from 'lucide-react'
+import {
+  CircleDot,
+  Crosshair,
+  FlipHorizontal2,
+  MapPin,
+  Spline,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { TerritoryShape } from '@/features/matches/api'
@@ -27,6 +35,7 @@ export interface AllocationPlace {
 }
 
 const FOCUS_MODES: readonly [FocusMode, LucideIcon][] = [
+  ['point', MapPin],
   ['area', Crosshair],
   ['mirror', FlipHorizontal2],
   ['radial', CircleDot],
@@ -110,7 +119,7 @@ export function AllocationMap(props: {
   // The focus: a point dragged over the empire, the resources gathering where it says.
   // It is remembered with the match, where the map is and not where it is drawn.
   const [focus, setFocus] = useState<Focus | null>(() => loadFocus(props.matchId))
-  const [mode, setMode] = useState<FocusMode>(focus?.mode ?? 'area')
+  const [mode, setMode] = useState<FocusMode>(focus?.mode ?? 'point')
   // Moved from the map of the game, where the same focus is a bag of money: followed.
   const stored = useStoredFocus(props.matchId)
   const [seenStored, setSeenStored] = useState(stored)

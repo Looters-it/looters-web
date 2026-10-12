@@ -4,6 +4,7 @@ import type { RouteObject } from 'react-router'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { AtlasPage } from '@/features/atlas/AtlasPage'
 import { AuthPage } from '@/features/auth/AuthPage'
+import { CreditsPage } from '@/features/credits/CreditsPage'
 import { ChangePasswordPage } from '@/features/profile/ChangePasswordPage'
 import { InvitationsPage } from '@/features/profile/InvitationsPage'
 import { PublicProfilePage } from '@/features/profile/PublicProfilePage'
@@ -41,6 +42,8 @@ export const routes: RouteObject[] = [
           { path: '/leaderboard', element: <LeaderboardPage /> },
           { path: '/classifica', element: <Redirect to="/leaderboard" /> },
           { path: '/atlas', element: <AtlasPage /> },
+          { path: '/credits', element: <CreditsPage /> },
+          { path: '/crediti', element: <Redirect to="/credits" /> },
           { path: '/mappa', element: <Redirect to="/atlas" /> },
           { path: '/come-funziona', element: <HowItWorks /> },
           { path: '/match/new', element: <NewMatchPage /> },

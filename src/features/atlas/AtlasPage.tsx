@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -73,7 +74,12 @@ export function AtlasPage() {
         <h1 id="atlas-title" className="text-3xl sm:text-4xl">
           {t('atlas.title')}
         </h1>
-        <p className="text-muted-foreground max-w-prose">{t('atlas.intro')}</p>
+        <p className="text-muted-foreground max-w-prose">
+          {t('atlas.intro')}{' '}
+          <Link to="/credits" className="underline">
+            {t('nav.credits')}
+          </Link>
+        </p>
       </div>
 
       {atlas.error && (

@@ -17,7 +17,8 @@
     "newMatch": "Nuova partita",
     "leaveMatch": "Esci dalla partita",
     "leaderboard": "Classifica",
-    "atlas": "Mappa"
+    "atlas": "Mappa",
+    "credits": "Fonti dei dati"
   },
   "home": {
     "title": "Saccheggia i tuoi vicini!",
@@ -642,9 +643,11 @@
         "mirrorHint": "Le risorse si raccolgono attorno al mirino e al punto opposto.",
         "radialHint": "Le risorse si dispongono ad anello: più allontani il mirino dal centro, più vanno verso l'esterno.",
         "clear": "Togli il focus",
-        "kept": "Il focus resta memorizzato: a ogni turno le risorse si ridistribuiscono così da sole. Sulla mappa di gioco il focus è una borsa di denaro: trascinala, dividila con il +, riuniscila lasciandola su un'altra.",
+        "kept": "Il focus resta memorizzato: a ogni turno le risorse si ridistribuiscono così da sole. Sulla mappa di gioco il focus è una borsa di denaro: tutto ciò che porta va al comune su cui la lasci. Dividila con il + per servire più comuni, riuniscila lasciandola su un'altra.",
         "line": "Focus tra due punti",
-        "lineHint": "Le risorse si distribuiscono in modo uniforme lungo la linea tra i due mirini: trascinali dove vuoi."
+        "lineHint": "Le risorse si distribuiscono in modo uniforme lungo la linea tra i due mirini: trascinali dove vuoi.",
+        "point": "Tutto in un comune",
+        "pointHint": "Tutte le risorse vanno al comune sotto il mirino."
       }
     },
     "unit": {
@@ -1104,5 +1107,12 @@
     "search": "Cerca",
     "searchPlaceholder": "Paese o area",
     "noMatch": "Nessun paese o area con questo nome."
+  },
+  "credits": {
+    "title": "Fonti dei dati",
+    "intro": "I confini su cui si gioca vengono da dati aperti, pubblicati dagli enti e dalle comunità elencati qui sotto. Ogni fonte chiede di essere citata: lo facciamo volentieri.",
+    "via": "tramite {{name}}",
+    "licence": "Licenza: {{name}}",
+    "changes": "I dati sono stati adattati al gioco: semplificati, ritagliati lungo le coste dove serviva, raggruppati in regioni e, per pochi paesi, completati con nomi presi da un'altra fonte. Gli errori che ne derivano sono nostri, non delle fonti."
   }
 }

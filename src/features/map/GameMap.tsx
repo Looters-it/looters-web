@@ -165,7 +165,13 @@ interface Props {
   /** The bags of money the resources gather by, each one draggable. */
   bags?: readonly MapBag[]
   /** A bag let go: where, and the bag it was dropped on if any. */
-  onBagDrop?: (id: string, here: { lon: number; lat: number }, onto: string | null) => void
+  onBagDrop?: (
+    id: string,
+    here: { lon: number; lat: number },
+    onto: string | null,
+    /** The municipality under the bag. */
+    unitId: number | null,
+  ) => void
   /** A bag split in two: where the new one goes. */
   onBagSplit?: (here: { lon: number; lat: number }) => void
   /** Content of the box shown for the selected municipality. */
@@ -594,7 +600,13 @@ export function GameMap({
             const point = map.project(there.getLngLat())
             return Math.hypot(point.x - at.x, point.y - at.y) < BAG_MERGE
           })
-          onBagDropRef.current?.(bag.id, { lon: here.lng, lat: here.lat }, onto?.[0] ?? null)
+          const under = map.queryRenderedFeatures(at, { layers: [FILL_LAYER] })[0]?.id
+          onBagDropRef.current?.(
+            bag.id,
+            { lon: here.lng, lat: here.lat },
+            onto?.[0] ?? null,
+            typeof under === 'number' ? under : null,
+          )
         })
       }
       const element = entry.marker.getElement()

@@ -17,7 +17,8 @@
     "newMatch": "New match",
     "leaveMatch": "Leave the match page",
     "leaderboard": "Ranking",
-    "atlas": "Map"
+    "atlas": "Map",
+    "credits": "Data sources"
   },
   "home": {
     "title": "Loot your neighbours!",
@@ -642,9 +643,11 @@
         "mirrorHint": "The resources gather around the sight and the point opposite to it.",
         "radialHint": "The resources form a ring: the further the sight from the middle, the further out they go.",
         "clear": "Remove the focus",
-        "kept": "The focus is remembered: every turn the resources spread this way by themselves. On the game map the focus is a bag of money: drag it, split it with the +, drop it on another to join them.",
+        "kept": "The focus is remembered: every turn the resources are spread this way again by themselves. On the map of the game the focus is a bag of money: all it carries goes to the municipality you leave it on. Split it with the + to serve more municipalities, put it back together by dropping it on another.",
         "line": "Focus between two points",
-        "lineHint": "The resources spread evenly along the line between the two sights: drag them where you want."
+        "lineHint": "The resources spread evenly along the line between the two sights: drag them where you want.",
+        "point": "All in one municipality",
+        "pointHint": "All the resources go to the municipality under the sight."
       }
     },
     "unit": {
@@ -1104,5 +1107,12 @@
     "search": "Search",
     "searchPlaceholder": "Country or area",
     "noMatch": "No country or area with this name."
+  },
+  "credits": {
+    "title": "Data sources",
+    "intro": "The borders the game is played on come from open data, published by the agencies and communities listed below. Each source asks to be credited: we gladly do.",
+    "via": "via {{name}}",
+    "licence": "Licence: {{name}}",
+    "changes": "The data has been adapted to the game: simplified, cut along the coasts where needed, grouped into regions and, for a few countries, completed with names from another source. Any resulting mistake is ours, not the sources'."
   }
 }

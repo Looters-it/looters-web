@@ -6,12 +6,13 @@
  */
 
 /**
- * How the focus spreads the resources: around the point it is on, around that point
- * and the one opposite to it across the empire, in a ring around the middle of the
+ * How the focus spreads the resources: all to the territory it is on, which is what a
+ * bag of money on the map of the game means; or, from the map of the resources, around
+ * the point it is on, around that point and the one opposite to it across the empire, in a ring around the middle of the
  * empire as wide as the focus is far from it, or evenly along the line between the
  * point and a second one.
  */
-export type FocusMode = 'area' | 'mirror' | 'radial' | 'line'
+export type FocusMode = 'point' | 'area' | 'mirror' | 'radial' | 'line'
 
 export interface Focus {
   mode: FocusMode
@@ -20,8 +21,8 @@ export interface Focus {
   /** The other end of a line: where it is not set, the point opposite to the first. */
   to?: Point
   /**
-   * The focus split in more parts: each further point gathers around itself a part of
-   * the resources as large as the one of the focus.
+   * The focus split in more parts: each further point gives the territory it is on a
+   * part of the resources as large as the one of the focus.
    */
   more?: Point[]
 }
@@ -88,20 +89,28 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
       length > 0 ? Math.max(0, Math.min(1, (to.x * along.x + to.y * along.y) / length)) : 0
     return Math.hypot(to.x - along.x * part, to.y - along.y * part)
   }
-  const first = (place: Placed) =>
-    focus.mode === 'area'
-      ? near(apart(place, focus))
-      : focus.mode === 'mirror'
-        ? Math.max(near(apart(place, focus)), near(apart(place, other)))
-        : focus.mode === 'line'
-          ? near(fromLine(place))
-          : near(apart(place, middle) - ring)
+  // The territory a point is on: the nearest, and it alone takes everything.
+  const onlyAt = (point: Point) => {
+    const nearest = places.reduce<Placed | null>(
+      (best, place) => (best && apart(best, point) <= apart(place, point) ? best : place),
+      null,
+    )
+    return (place: Placed) => (place.id === nearest?.id ? 1 : 0)
+  }
+  const first =
+    focus.mode === 'point'
+      ? onlyAt(focus)
+      : (place: Placed) =>
+          focus.mode === 'area'
+            ? near(apart(place, focus))
+            : focus.mode === 'mirror'
+              ? Math.max(near(apart(place, focus)), near(apart(place, other)))
+              : focus.mode === 'line'
+                ? near(fromLine(place))
+                : near(apart(place, middle) - ring)
   // Every part carries the same share of the whole, however many territories it
   // reaches: each is brought to one before they are put together.
-  const parts = [
-    first,
-    ...(focus.more ?? []).map((point) => (place: Placed) => near(apart(place, point))),
-  ]
+  const parts = [first, ...(focus.more ?? []).map(onlyAt)]
   const weights: Record<string, number> = Object.fromEntries(places.map((place) => [place.id, 0]))
   for (const part of parts) {
     const reached = places.map((place) => {
@@ -213,7 +222,8 @@ function parse(raw: string | null): Focus | null {
     return stored &&
       typeof stored.lon === 'number' &&
       typeof stored.lat === 'number' &&
-      (stored.mode === 'area' ||
+      (stored.mode === 'point' ||
+        stored.mode === 'area' ||
         stored.mode === 'mirror' ||
         stored.mode === 'radial' ||
         stored.mode === 'line')

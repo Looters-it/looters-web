@@ -96,6 +96,16 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <div className="mt-auto flex flex-col gap-3 px-3">
         {/* The language is chosen here, by guests and players alike. */}
         <LanguageSelect />
+        {/* Out of a match only: there the sidebar is for the match. */}
+        {!inMatch && (
+          <Link
+            to="/credits"
+            onClick={onNavigate}
+            className="focus-visible:outline-ring rounded-sm text-center text-sm underline focus-visible:outline-2"
+          >
+            {t('nav.credits')}
+          </Link>
+        )}
         {user ? (
           <>
             {/* The player's name is the way to their profile. */}
