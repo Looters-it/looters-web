@@ -1,59 +1,32 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { EmpireLabel, MapUnit } from '@/features/map/GameMap'
-import { LazyGameMap } from '@/features/map/LazyGameMap'
 import { empirePalette } from '@/features/map/theme'
-import { UnitCard } from '@/features/map/UnitCard'
 import { cn } from '@/lib/utils'
 
 import { atlasApi, type AtlasArea } from './api'
 import { areaColors } from './colors'
 
+const MAP_FRAME = 'h-[60dvh] min-h-[22rem] rounded-md border lg:h-[75dvh]'
+
+// MapLibre is most of the weight of the site: fetched only when the map is shown.
+const AtlasMap = lazy(() => import('./AtlasMap').then((module) => ({ default: module.AtlasMap })))
+
 /**
- * `/atlas`: the whole map, with every area a match can be played on. Each area has
- * a colour of its own, never the one of an area it touches; the list beside the map
- * names them under the geographic area they belong to, and brings the map onto the
- * one that is chosen. Open to guests too: it is what the game is played on.
+ * `/atlas`: the whole map, with every area a match can be played on. Each area is one
+ * shape with a colour of its own, never the one of an area it touches: only the
+ * outlines of the areas are loaded, not their municipalities. The list beside the map
+ * names them under the geographic area they belong to; an area is chosen from the
+ * list or on the map, and the map goes onto it. Open to guests too.
  */
 export function AtlasPage() {
   const { t } = useTranslation()
   const atlas = useQuery({ queryKey: ['geo', 'atlas'], queryFn: atlasApi.atlas })
-  const units = useQuery({
-    queryKey: ['geo', 'atlas', 'units'],
-    queryFn: atlasApi.units,
-    staleTime: Infinity,
-  })
   const [chosenId, setChosenId] = useState<string | null>(null)
-  const [selected, setSelected] = useState<MapUnit | null>(null)
 
   const areas = atlas.data?.areas
   const colorOf = useMemo(() => areaColors(areas ?? [], empirePalette()), [areas])
-  // The colour of every municipality, and the area each belongs to.
-  const { colors, areaOf } = useMemo(() => {
-    const colors = new Map<number, string>()
-    const areaOf = new Map<number, string>()
-    for (const [areaId, ids] of Object.entries(units.data ?? {})) {
-      const color = colorOf.get(areaId)
-      for (const id of ids) {
-        areaOf.set(id, areaId)
-        if (color) colors.set(id, color)
-      }
-    }
-    return { colors, areaOf }
-  }, [units.data, colorOf])
-  const labels = useMemo<EmpireLabel[]>(
-    () =>
-      (areas ?? []).map((area) => ({
-        id: area.id,
-        name: area.name,
-        lon: area.lon,
-        lat: area.lat,
-        size: area.unitCount,
-      })),
-    [areas],
-  )
   // The areas under the geographic area they are part of, in the order they came.
   const groups = useMemo(() => {
     const byRoot = new Map<string, { id: string; name: string; areas: AtlasArea[] }>()
@@ -64,7 +37,6 @@ export function AtlasPage() {
     }
     return [...byRoot.values()]
   }, [areas])
-  const chosen = areas?.find((area) => area.id === chosenId) ?? null
 
   return (
     <section
@@ -87,38 +59,22 @@ export function AtlasPage() {
 
       {atlas.data && areas && areas.length > 0 && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <LazyGameMap
-            area={atlas.data.map}
-            embedded
-            colors={colors}
-            empireLabels={labels}
-            frame={chosen?.bounds ?? null}
-            selected={selected}
-            onSelect={(unit) => {
-              setSelected(unit)
-              // The area of the municipality is marked in the list, without moving the map.
-              if (unit) setChosenId(null)
-            }}
-            renderInfo={(unit) => {
-              const area = areas.find((candidate) => candidate.id === areaOf.get(unit.id))
-              return (
-                <UnitCard name={unit.name}>
-                  {area && (
-                    <p className="text-muted-foreground">
-                      {area.rootId === area.id ? area.name : `${area.rootName} › ${area.name}`}
-                    </p>
-                  )}
-                </UnitCard>
-              )
-            }}
-            className="h-[60dvh] min-h-[22rem] rounded-md border lg:h-[75dvh]"
-          />
+          <Suspense fallback={<div className={MAP_FRAME} aria-busy="true" />}>
+            <AtlasMap
+              areas={areas}
+              colors={colorOf}
+              bounds={atlas.data.bounds}
+              chosenId={chosenId}
+              onChoose={setChosenId}
+              className={MAP_FRAME}
+            />
+          </Suspense>
 
           <div className="flex flex-col gap-4 lg:max-h-[75dvh] lg:overflow-y-auto lg:pr-1">
             <p role="status">
               {t('atlas.summary', {
                 areas: areas.length,
-                count: atlas.data.map.unitCount,
+                count: atlas.data.unitCount,
               })}
             </p>
             {groups.map((group) => (
@@ -133,18 +89,13 @@ export function AtlasPage() {
                 </h2>
                 <ul className="flex flex-col">
                   {group.areas.map((area) => {
-                    const marked =
-                      area.id === chosenId ||
-                      (selected !== null && areaOf.get(selected.id) === area.id)
+                    const marked = area.id === chosenId
                     return (
                       <li key={area.id}>
                         <button
                           type="button"
-                          aria-pressed={area.id === chosenId}
-                          onClick={() => {
-                            setSelected(null)
-                            setChosenId(area.id === chosenId ? null : area.id)
-                          }}
+                          aria-pressed={marked}
+                          onClick={() => setChosenId(marked ? null : area.id)}
                           className={cn(
                             'focus-visible:outline-ring flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left focus-visible:outline-2',
                             marked ? 'bg-muted' : 'hover:bg-muted/60',

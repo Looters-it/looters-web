@@ -1092,7 +1092,7 @@
   },
   "atlas": {
     "title": "Map of the play areas",
-    "intro": "Every area a match can be played on. Each area has its own colour: choose one from the list to bring the map there, or tap a municipality to see which one it belongs to.",
+    "intro": "Every area a match can be played on. Each area has its own colour: choose one from the list or on the map to see it up close.",
     "summary_one": "{{areas}} areas, {{count}} municipality",
     "summary_other": "{{areas}} areas, {{count}} municipalities",
     "units_one": "{{count}} municipality",

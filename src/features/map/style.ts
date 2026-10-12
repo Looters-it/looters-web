@@ -20,7 +20,7 @@ export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
 const UNIT_FONT = 'Sorts Mill Goudy'
-const EMPIRE_FONT = 'Alfa Slab One'
+export const EMPIRE_FONT = 'Alfa Slab One'
 /** The red of a front: a plain, strong red, unlike the colour of any empire's fill. */
 const FRONT_RED = '#e11d2e'
 /** The figures of the resources: yellow like coins, edged in white to stand out on any empire. */
@@ -37,7 +37,7 @@ export const EMPIRE_LABEL_MAX_ZOOM = 9
  * development; a production site must use its own tile provider
  * (https://operations.osmfoundation.org/policies/tiles/).
  */
-const BASE_TILES =
+export const BASE_TILES =
   (import.meta.env.VITE_BASE_TILES_URL as string | undefined) ??
   'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 

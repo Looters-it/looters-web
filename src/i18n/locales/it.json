@@ -1092,7 +1092,7 @@
   },
   "atlas": {
     "title": "Mappa delle aree di gioco",
-    "intro": "Tutte le aree su cui si può giocare una partita. Ogni area ha il suo colore: scegline una dall'elenco per portarci la mappa, o tocca un comune per sapere a quale appartiene.",
+    "intro": "Tutte le aree su cui si può giocare una partita. Ogni area ha il suo colore: scegline una dall'elenco o sulla mappa per vederla da vicino.",
     "summary_one": "{{areas}} aree, {{count}} comune",
     "summary_other": "{{areas}} aree, {{count}} comuni",
     "units_one": "{{count}} comune",
