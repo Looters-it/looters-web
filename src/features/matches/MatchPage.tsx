@@ -57,7 +57,14 @@ import { MergePage } from '@/features/game/MergePage'
 import { ResourcesPage } from '@/features/game/ResourcesPage'
 import { UnitPanel } from '@/features/game/UnitPanel'
 import { useMatchLive } from '@/features/game/useMatchLive'
-import type { EmpireLabel, MapMarker, MapProbe, MapUnit, OwnerTag } from '@/features/map/GameMap'
+import type {
+  EmpireLabel,
+  MapMarker,
+  MapProbe,
+  MapRange,
+  MapUnit,
+  OwnerTag,
+} from '@/features/map/GameMap'
 import { LazyGameMap } from '@/features/map/LazyGameMap'
 import { UnitCard } from '@/features/map/UnitCard'
 import { ApiError } from '@/lib/api'
@@ -238,6 +245,8 @@ function MapFab(props: {
 }
 
 /** The page of a match: the map on the whole screen, and over it a card and the controls. */
+const NO_RANGES: MapRange[] = []
+
 export function MatchPage() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
@@ -527,6 +536,28 @@ export function MatchPage() {
     const timer = setTimeout(() => setGains(new Map()), GAIN_SHOWN_MS)
     return () => clearTimeout(timer)
   }, [gains])
+
+  // How far the ports reach: the player's own, always, and the one on the municipality
+  // that is selected, whoever holds it. A circle around every municipality of the territory.
+  const portRangeKm = Number(state?.match.config.portRangeKm ?? 0)
+  const selectedId = selected?.id
+  const ranges = useMemo<MapRange[]>(() => {
+    if (!state || portRangeKm <= 0) return []
+    const points = new Map(units.data?.map((unit) => [unit.id, unit]))
+    return state.structures
+      .filter((structure) => structure.effects.includes('SEA_REACH'))
+      .flatMap((structure) => {
+        const territory = state.territories.find((t) => t.id === structure.territoryId)
+        const shown =
+          structure.empireId === state.me?.empireId ||
+          (selectedId !== undefined && territory?.geoUnitIds.includes(selectedId))
+        if (!territory || !shown) return []
+        return territory.geoUnitIds.flatMap((unitId) => {
+          const point = points.get(unitId)
+          return point ? [{ lon: point.lon, lat: point.lat, km: portRangeKm }] : []
+        })
+      })
+  }, [portRangeKm, selectedId, state, units.data])
 
   const markers = useMemo<MapMarker[]>(() => {
     const attackable = new Set(targetIds)
@@ -987,6 +1018,7 @@ export function MatchPage() {
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
+            ranges={reviewing ? NO_RANGES : ranges}
             selected={selected}
             highlightedIds={reviewing ? NOTHING : highlighted}
             attackedIds={reviewing ? NOTHING : attacked}

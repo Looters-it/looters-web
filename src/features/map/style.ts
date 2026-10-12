@@ -27,6 +27,9 @@ export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 /** The fronts of the open battles: the border between who attacks and who is attacked. */
 export const FRONTS_SOURCE = 'fronts'
+export const RANGES_SOURCE = 'ranges'
+/** The blue of the port, on its sign and on the edge of its range. */
+const PORT_BLUE = '#1d6fd6'
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
@@ -111,6 +114,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       [OWNERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [FRONTS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [RANGES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
     layers: [
       { id: 'ground', type: 'background', paint: { 'background-color': colors.ground } },
@@ -190,6 +194,26 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         source: AREAS_SOURCE,
         layout: { 'line-join': 'round' },
         paint: { 'line-color': colors.ink, 'line-width': 2.5 },
+      },
+      {
+        // How far a port reaches: a faint wash and a dashed edge, the blue of its anchor
+        // over an edge of the map's own halo.
+        id: 'range-fills',
+        type: 'fill',
+        source: RANGES_SOURCE,
+        paint: { 'fill-color': PORT_BLUE, 'fill-opacity': 0.06 },
+      },
+      {
+        id: 'range-edges',
+        type: 'line',
+        source: RANGES_SOURCE,
+        paint: { 'line-color': colors.halo, 'line-width': 3.5, 'line-opacity': 0.7 },
+      },
+      {
+        id: 'range-lines',
+        type: 'line',
+        source: RANGES_SOURCE,
+        paint: { 'line-color': PORT_BLUE, 'line-width': 2, 'line-dasharray': [3, 2] },
       },
       {
         // Where two territories are fighting: their shared border, thick and red, with an

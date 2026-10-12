@@ -62,6 +62,7 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
       'portCost',
       'portFoundIslandPct',
       'portFoundCoastPct',
+      'portRangeKm',
     ],
   ],
   ['alliances', ['allianceMaxAllies', 'allianceLeaveNoticeTurns']],

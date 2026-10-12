@@ -386,7 +386,8 @@
       "portFoundIslandPct": "Port already there on an annexed island (%)",
       "portFoundCoastPct": "Port already there on an annexed coastal municipality (%)",
       "siegeMarginPct": "Margin to win a battle in one round (%; below it, it becomes a siege)",
-      "siegeCapitalMarginPct": "Margin to take a capital in one round (%)"
+      "siegeCapitalMarginPct": "Margin to take a capital in one round (%)",
+      "portRangeKm": "Range of a port (km; 0 = no limit)"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -824,7 +825,7 @@
       "descriptions": {
         "BLOCK": "For {{turns}} turns the municipality cannot be attacked, but it cannot attack either. When it expires, {{cooldown}} turns must pass before another block on the same municipality.",
         "SECOND_CAPITAL": "If the main capital is conquered, your empire does not fall: this municipality becomes the new capital. You can only have one.",
-        "PORT": "From here you reach by sea the islands and coastal municipalities that do not border you, to attack or annex them. Built only where there is sea, and it stays with the municipality even when it is conquered."
+        "PORT": "From here you reach by sea the islands and coastal municipalities that do not border you, within the range of the port (the blue circle on the map), to attack or annex them. Built only where there is sea, and it stays with the municipality even when it is conquered."
       },
       "unknownDescription": "Lasts {{turns}} turns.",
       "permanent": "permanent",

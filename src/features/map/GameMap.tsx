@@ -27,6 +27,7 @@ import {
   ATTACK_LAYER,
   AREAS_SOURCE,
   FRONTS_SOURCE,
+  RANGES_SOURCE,
   ATTACKED_LAYER,
   buildStyle,
   EMPIRES_SOURCE,
@@ -85,6 +86,37 @@ export interface MapMarker {
 }
 
 /** A bag of money on the map: a point the resources gather by, to drag where they should go. */
+/** A circle on the map: a centre and a radius in kilometres. */
+export interface MapRange {
+  lon: number
+  lat: number
+  km: number
+}
+
+const NO_RANGES: readonly MapRange[] = []
+const EARTH_KM = 6371
+/** The ring of a circle on the globe: every point the same distance from its centre. */
+function circleAround({ lon, lat, km }: MapRange, steps = 96): [number, number][] {
+  const rad = Math.PI / 180
+  const angle = km / EARTH_KM
+  const lat1 = lat * rad
+  const ring: [number, number][] = []
+  for (let step = 0; step <= steps; step++) {
+    const bearing = (step / steps) * 2 * Math.PI
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(angle) + Math.cos(lat1) * Math.sin(angle) * Math.cos(bearing),
+    )
+    const lon2 =
+      lon * rad +
+      Math.atan2(
+        Math.sin(bearing) * Math.sin(angle) * Math.cos(lat1),
+        Math.cos(angle) - Math.sin(lat1) * Math.sin(lat2),
+      )
+    ring.push([lon2 / rad, lat2 / rad])
+  }
+  return ring
+}
+
 export interface MapBag {
   id: string
   lon: number
@@ -171,6 +203,8 @@ interface Props {
   areas?: FeatureCollection | null
   /** The fronts of the open battles: lines drawn thick and red along the border fought over. */
   fronts?: FeatureCollection | null
+  /** How far the ports reach: a circle around each, in kilometres. */
+  ranges?: readonly MapRange[]
   selected?: MapUnit | null
   highlightedIds?: readonly number[]
   /** Municipalities under attack, marked for everyone with a pulsing red border. */
@@ -224,6 +258,7 @@ export function GameMap({
   ownerTags = NO_TAGS,
   areas = null,
   fronts = null,
+  ranges = NO_RANGES,
   selected = null,
   highlightedIds = NO_IDS,
   attackedIds = NO_IDS,
@@ -731,6 +766,19 @@ export function GameMap({
       .getSource<GeoJSONSource>(FRONTS_SOURCE)
       ?.setData(fronts ?? { type: 'FeatureCollection', features: [] })
   }, [fronts, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.getSource<GeoJSONSource>(RANGES_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: ranges.map((range) => ({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [circleAround(range)] },
+      })),
+    })
+  }, [ranges, ready])
 
   // The anchored box follows the map; on a phone the sheet below is used instead.
   const anchored = anchor && anchor.id === selected?.id ? anchor.at : null
