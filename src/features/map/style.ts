@@ -1,7 +1,14 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 
 import type { AreaMap } from './api'
-import { ANNEX_ICON, EXCLAVE_ICON, ISLAND_ICON, SHIELD_ICON, SWORDS_ICON } from './shield-icon'
+import {
+  ANNEX_ICON,
+  EXCLAVE_ICON,
+  ISLAND_ICON,
+  PORT_ICON,
+  SHIELD_ICON,
+  SWORDS_ICON,
+} from './shield-icon'
 import type { MapColors } from './theme'
 
 export const UNITS_SOURCE = 'units'
@@ -212,6 +219,20 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'circle-stroke-color': ['get', 'color'],
           'circle-stroke-width': 3.5,
         },
+      },
+      {
+        // A port: an anchor beside the territory, top left, where nothing else is drawn.
+        id: 'port-anchors',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'port'],
+        layout: {
+          'icon-image': PORT_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.75, 14, 1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-translate': [-14, -14] },
       },
       {
         // Military block: a dark square-ish disc with the turns left written on it.

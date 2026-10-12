@@ -166,3 +166,35 @@ export function ensureIsolationIcons(map: MapLibreMap): void {
     map.addImage(name, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
   }
 }
+
+/** The name the sign of a port goes by on the map. */
+export const PORT_ICON = 'structure-port'
+
+/**
+ * Makes sure the map has the sign of a port: an anchor on a blue disc. The sea is
+ * reached from where it stands.
+ */
+export function ensurePortIcon(map: MapLibreMap): void {
+  if (typeof map.hasImage !== 'function' || map.hasImage(PORT_ICON)) return
+  const canvas = document.createElement('canvas')
+  canvas.width = SIZE
+  canvas.height = SIZE
+  const context = typeof Path2D === 'undefined' ? null : canvas.getContext('2d')
+  if (!context) return
+  context.scale(SIZE / 24, SIZE / 24)
+  context.lineJoin = 'round'
+  context.lineCap = 'round'
+  const disc = new Path2D('M12 1.5 a10.5 10.5 0 1 0 0.01 0')
+  context.fillStyle = '#1d6fd6'
+  context.strokeStyle = '#ffffff'
+  context.lineWidth = 1.6
+  context.fill(disc)
+  context.stroke(disc)
+  // The anchor: ring, shank, stock and the two arms.
+  context.lineWidth = 1.8
+  context.stroke(new Path2D('M12 6.2 a1.4 1.4 0 1 0 0.01 0'))
+  context.stroke(new Path2D('M12 9 V18.5'))
+  context.stroke(new Path2D('M9.3 11.3 H14.7'))
+  context.stroke(new Path2D('M6.5 13.5 C6.8 16.6 9 18.5 12 18.5 C15 18.5 17.2 16.6 17.5 13.5'))
+  map.addImage(PORT_ICON, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
+}

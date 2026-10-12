@@ -381,7 +381,10 @@
       "botsMax": "Maximum bots in a match",
       "botSpawnChancePct": "Chance of a bot appearing each turn (%)",
       "battleSpoilsPct": "Winner's spoils (% of what the two sides spent)",
-      "attacksPerTurn": "Attacks per turn"
+      "attacksPerTurn": "Attacks per turn",
+      "portCost": "Port: cost",
+      "portFoundIslandPct": "Port already there on an annexed island (%)",
+      "portFoundCoastPct": "Port already there on an annexed coastal municipality (%)"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -555,7 +558,8 @@
       "OWN_MATCH": "The match is already yours.",
       "WRONG_PHASE": "Not now: this action belongs to the other phase of the turn.",
       "MATCH_PAUSED": "The match is paused.",
-      "ATTACK_LIMIT": "You have used the attacks of this turn."
+      "ATTACK_LIMIT": "You have used the attacks of this turn.",
+      "STRUCTURE_NOT_ON_COAST": "It needs access to the sea."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -802,11 +806,13 @@
       "intro": "Structures are paid for with the resources of the municipality they are placed on.",
       "types": {
         "BLOCK": "Military block",
-        "SECOND_CAPITAL": "Second capital"
+        "SECOND_CAPITAL": "Second capital",
+        "PORT": "Port"
       },
       "descriptions": {
         "BLOCK": "For {{turns}} turns the municipality cannot be attacked, but it cannot attack either. When it expires, {{cooldown}} turns must pass before another block on the same municipality.",
-        "SECOND_CAPITAL": "If the main capital is conquered, your empire does not fall: this municipality becomes the new capital. You can only have one."
+        "SECOND_CAPITAL": "If the main capital is conquered, your empire does not fall: this municipality becomes the new capital. You can only have one.",
+        "PORT": "From here you reach by sea the islands and coastal municipalities that do not border you, to attack or annex them. Built only where there is sea, and it stays with the municipality even when it is conquered."
       },
       "unknownDescription": "Lasts {{turns}} turns.",
       "permanent": "permanent",
@@ -827,7 +833,8 @@
         "ALREADY_HERE": "There is already one on this municipality.",
         "ONE_PER_EMPIRE": "You already have one: you cannot have another.",
         "COOLDOWN": "There was one on this municipality recently: you have to wait.",
-        "NOT_ENOUGH_RESOURCES": "The municipality does not have enough resources."
+        "NOT_ENOUGH_RESOURCES": "The municipality does not have enough resources.",
+        "NOT_ON_COAST": "It needs access to the sea."
       },
       "move": "Move",
       "moveTo": "Move to another of your municipalities",

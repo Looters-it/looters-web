@@ -42,6 +42,7 @@ import {
   ensureSwordsIcon,
   ensureAnnexIcon,
   ensureIsolationIcons,
+  ensurePortIcon,
 } from './shield-icon'
 import { mapColors } from './theme'
 
@@ -60,6 +61,7 @@ export interface MapMarker {
     | 'second-capital'
     | 'alert'
     | 'block'
+    | 'port'
     | 'protected'
     | 'resources'
     | 'gain'
@@ -480,6 +482,7 @@ export function GameMap({
     if (markers.some((marker) => marker.kind === 'protected')) ensureShieldIcon(map)
     if (markers.some((marker) => marker.kind === 'attack')) ensureSwordsIcon(map)
     if (markers.some((marker) => marker.kind === 'annex')) ensureAnnexIcon(map)
+    if (markers.some((marker) => marker.kind === 'port')) ensurePortIcon(map)
     // At once with what is there, then again when the arms of the capitals are drawn.
     write(new Set())
     let cancelled = false

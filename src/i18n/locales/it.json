@@ -381,7 +381,10 @@
       "botsMax": "Bot al massimo in una partita",
       "botSpawnChancePct": "Probabilità che nasca un bot a ogni turno (%)",
       "battleSpoilsPct": "Bottino del vincitore (% di quanto speso dalle due parti)",
-      "attacksPerTurn": "Attacchi per turno"
+      "attacksPerTurn": "Attacchi per turno",
+      "portCost": "Porto: costo",
+      "portFoundIslandPct": "Porto già presente su un'isola annessa (%)",
+      "portFoundCoastPct": "Porto già presente su un comune costiero annesso (%)"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -555,7 +558,8 @@
       "OWN_MATCH": "La partita è già tua.",
       "WRONG_PHASE": "Non è il momento: questa azione appartiene all'altra fase del turno.",
       "MATCH_PAUSED": "La partita è in pausa.",
-      "ATTACK_LIMIT": "Hai già usato gli attacchi di questo turno."
+      "ATTACK_LIMIT": "Hai già usato gli attacchi di questo turno.",
+      "STRUCTURE_NOT_ON_COAST": "Serve uno sbocco sul mare."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -802,11 +806,13 @@
       "intro": "Le costruzioni si pagano con le risorse del comune su cui vengono piazzate.",
       "types": {
         "BLOCK": "Blocco militare",
-        "SECOND_CAPITAL": "Seconda capitale"
+        "SECOND_CAPITAL": "Seconda capitale",
+        "PORT": "Porto"
       },
       "descriptions": {
         "BLOCK": "Per {{turns}} turni il comune non può essere attaccato, ma non può nemmeno attaccare. Alla scadenza devono passare {{cooldown}} turni prima di un altro blocco sullo stesso comune.",
-        "SECOND_CAPITAL": "Se la capitale principale viene conquistata, il tuo impero non cade: questo comune diventa la nuova capitale. Ne puoi avere una sola."
+        "SECOND_CAPITAL": "Se la capitale principale viene conquistata, il tuo impero non cade: questo comune diventa la nuova capitale. Ne puoi avere una sola.",
+        "PORT": "Da qui raggiungi via mare isole e comuni costieri che non confinano con te, per attaccarli o annetterli. Si costruisce solo dove c'è il mare, e resta al comune anche se viene conquistato."
       },
       "unknownDescription": "Dura {{turns}} turni.",
       "permanent": "permanente",
@@ -827,7 +833,8 @@
         "ALREADY_HERE": "Su questo comune ce n'è già una.",
         "ONE_PER_EMPIRE": "Ne hai già una: non puoi averne un'altra.",
         "COOLDOWN": "Su questo comune ce n'è stata una da poco: devi aspettare.",
-        "NOT_ENOUGH_RESOURCES": "Il comune non ha abbastanza risorse."
+        "NOT_ENOUGH_RESOURCES": "Il comune non ha abbastanza risorse.",
+        "NOT_ON_COAST": "Serve uno sbocco sul mare."
       },
       "move": "Sposta",
       "moveTo": "Sposta in un altro tuo comune",

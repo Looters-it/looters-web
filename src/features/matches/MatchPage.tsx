@@ -590,6 +590,10 @@ export function MatchPage() {
         ...(state?.structures ?? [])
           .filter((structure) => structure.territoryId === territory.id)
           .flatMap((structure): MapMarker[] => [
+            // A port: the sea is reached from here.
+            ...(structure.effects.includes('SEA_REACH')
+              ? [{ id: `port:${structure.id}`, kind: 'port' as const, ...at }]
+              : []),
             ...(structure.effects.includes('NO_ATTACK_ON')
               ? [
                   {
