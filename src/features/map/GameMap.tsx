@@ -43,6 +43,7 @@ import {
   ensureSwordsIcon,
   ensureAnnexIcon,
   ensureIsolationIcons,
+  ensureAirportIcon,
   ensurePortIcon,
 } from './shield-icon'
 import { mapColors } from './theme'
@@ -63,6 +64,7 @@ export interface MapMarker {
     | 'alert'
     | 'block'
     | 'port'
+    | 'airport'
     | 'protected'
     | 'resources'
     | 'gain'
@@ -91,12 +93,14 @@ export interface MapRange {
   lon: number
   lat: number
   km: number
+  /** What reaches that far: a port by sea, an airport by air. */
+  kind: 'sea' | 'air'
 }
 
 const NO_RANGES: readonly MapRange[] = []
 const EARTH_KM = 6371
 /** The ring of a circle on the globe: every point the same distance from its centre. */
-function circleAround({ lon, lat, km }: MapRange, steps = 96): [number, number][] {
+function circleAround({ lon, lat, km }: Omit<MapRange, 'kind'>, steps = 96): [number, number][] {
   const rad = Math.PI / 180
   const angle = km / EARTH_KM
   const lat1 = lat * rad
@@ -518,6 +522,7 @@ export function GameMap({
     if (markers.some((marker) => marker.kind === 'attack')) ensureSwordsIcon(map)
     if (markers.some((marker) => marker.kind === 'annex')) ensureAnnexIcon(map)
     if (markers.some((marker) => marker.kind === 'port')) ensurePortIcon(map)
+    if (markers.some((marker) => marker.kind === 'airport')) ensureAirportIcon(map)
     // At once with what is there, then again when the arms of the capitals are drawn.
     write(new Set())
     let cancelled = false
@@ -774,7 +779,7 @@ export function GameMap({
       type: 'FeatureCollection',
       features: ranges.map((range) => ({
         type: 'Feature',
-        properties: {},
+        properties: { kind: range.kind },
         geometry: { type: 'Polygon', coordinates: [circleAround(range)] },
       })),
     })

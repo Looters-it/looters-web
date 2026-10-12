@@ -537,27 +537,27 @@ export function MatchPage() {
     return () => clearTimeout(timer)
   }, [gains])
 
-  // How far the ports reach: the player's own, always, and the one on the municipality
-  // that is selected, whoever holds it. A circle around every municipality of the territory.
-  const portRangeKm = Number(state?.match.config.portRangeKm ?? 0)
+  // How far ports and airports reach: the player's own, always, and what stands on the
+  // municipality that is selected, whoever holds it. A circle around every municipality
+  // of the territory, as wide as the level of the structure.
   const selectedId = selected?.id
   const ranges = useMemo<MapRange[]>(() => {
-    if (!state || portRangeKm <= 0) return []
+    if (!state) return []
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
-    return state.structures
-      .filter((structure) => structure.effects.includes('SEA_REACH'))
-      .flatMap((structure) => {
-        const territory = state.territories.find((t) => t.id === structure.territoryId)
-        const shown =
-          structure.empireId === state.me?.empireId ||
-          (selectedId !== undefined && territory?.geoUnitIds.includes(selectedId))
-        if (!territory || !shown) return []
-        return territory.geoUnitIds.flatMap((unitId) => {
-          const point = points.get(unitId)
-          return point ? [{ lon: point.lon, lat: point.lat, km: portRangeKm }] : []
-        })
+    return state.structures.flatMap((structure) => {
+      const km = structure.rangeKm ?? 0
+      const territory = state.territories.find((t) => t.id === structure.territoryId)
+      const shown =
+        structure.empireId === state.me?.empireId ||
+        (selectedId !== undefined && territory?.geoUnitIds.includes(selectedId))
+      if (!territory || !shown || km <= 0) return []
+      const kind = structure.effects.includes('AIR_REACH') ? ('air' as const) : ('sea' as const)
+      return territory.geoUnitIds.flatMap((unitId) => {
+        const point = points.get(unitId)
+        return point ? [{ lon: point.lon, lat: point.lat, km, kind }] : []
       })
-  }, [portRangeKm, selectedId, state, units.data])
+    })
+  }, [selectedId, state, units.data])
 
   const markers = useMemo<MapMarker[]>(() => {
     const attackable = new Set(targetIds)
@@ -625,6 +625,10 @@ export function MatchPage() {
             // A port: the sea is reached from here.
             ...(structure.effects.includes('SEA_REACH')
               ? [{ id: `port:${structure.id}`, kind: 'port' as const, ...at }]
+              : []),
+            // An airport: whatever is in its range is reached from here.
+            ...(structure.effects.includes('AIR_REACH')
+              ? [{ id: `airport:${structure.id}`, kind: 'airport' as const, ...at }]
               : []),
             ...(structure.effects.includes('NO_ATTACK_ON')
               ? [

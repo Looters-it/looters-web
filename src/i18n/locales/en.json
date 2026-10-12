@@ -387,7 +387,15 @@
       "portFoundCoastPct": "Port already there on an annexed coastal municipality (%)",
       "siegeMarginPct": "Margin to win a battle in one round (%; below it, it becomes a siege)",
       "siegeCapitalMarginPct": "Margin to take a capital in one round (%)",
-      "portRangeKm": "Range of a port (km; 0 = no limit)"
+      "portRangeKm": "Range of a port (km; 0 = no limit)",
+      "portRange2Km": "Range of a port at level 2 (km)",
+      "portRange3Km": "Range of a port at level 3 (km)",
+      "portUpgradeCost": "Cost of each upgrade of a port",
+      "airportCost": "Cost of an airport",
+      "airportRangeKm": "Range of an airport (km; 0 = no limit)",
+      "airportRange2Km": "Range of an airport at level 2 (km)",
+      "airportRange3Km": "Range of an airport at level 3 (km)",
+      "airportUpgradeCost": "Cost of each upgrade of an airport"
     },
     "info": {
       "starts": "Start: {{date}} ({{when}})",
@@ -567,7 +575,9 @@
       "NOT_A_SIEGE": "You can withdraw only from a siege.",
       "NOT_THE_ATTACKER": "Only the attacker can withdraw.",
       "NOT_A_THIRD_PARTY": "The two sides of a siege cannot support it this way.",
-      "NOT_IN_THE_SIEGE": "That territory is not part of this siege."
+      "NOT_IN_THE_SIEGE": "That territory is not part of this siege.",
+      "STRUCTURE_NOT_UPGRADABLE": "This structure cannot be upgraded.",
+      "STRUCTURE_MAX_LEVEL": "It is at its highest level already."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -820,12 +830,14 @@
       "types": {
         "BLOCK": "Military block",
         "SECOND_CAPITAL": "Second capital",
-        "PORT": "Port"
+        "PORT": "Port",
+        "AIRPORT": "Airport"
       },
       "descriptions": {
         "BLOCK": "For {{turns}} turns the municipality cannot be attacked, but it cannot attack either. When it expires, {{cooldown}} turns must pass before another block on the same municipality.",
         "SECOND_CAPITAL": "If the main capital is conquered, your empire does not fall: this municipality becomes the new capital. You can only have one.",
-        "PORT": "From here you reach by sea the islands and coastal municipalities that do not border you, within the range of the port (the blue circle on the map), to attack or annex them. Built only where there is sea, and it stays with the municipality even when it is conquered."
+        "PORT": "From here you reach by sea the islands and coastal municipalities that do not border you, within {{range}} km (the blue circle on the map), to attack or annex them. It can be upgraded twice: {{ranges}} km. Built only where there is sea, and it stays with the municipality even when it is conquered.",
+        "AIRPORT": "From here you reach by air any municipality within {{range}} km (the violet circle on the map), by the sea or not, to attack or annex it. It can be upgraded twice: {{ranges}} km. Built anywhere, and it stays with the municipality even when it is conquered."
       },
       "unknownDescription": "Lasts {{turns}} turns.",
       "permanent": "permanent",
@@ -856,7 +868,11 @@
       "moveNowhere": "To move it you need another municipality of yours that is not the capital.",
       "dragIntro": "Drag a structure from this menu onto one of your municipalities on the map: where it can be built lights up, and it is paid with the resources of that municipality.",
       "notHere": "it cannot be built here.",
-      "moveDrag": "drag it onto the map to move it"
+      "moveDrag": "drag it onto the map to move it",
+      "level": "level {{level}} of {{max}}, {{range}} km",
+      "upgrade_one": "Upgrade ({{count}} resource)",
+      "upgrade_other": "Upgrade ({{count}} resources)",
+      "upgradeTo": "Takes the range to {{range}} km."
     },
     "merge": {
       "title": "Merge territories",

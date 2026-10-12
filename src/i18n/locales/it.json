@@ -387,7 +387,15 @@
       "portFoundCoastPct": "Porto già presente su un comune costiero annesso (%)",
       "siegeMarginPct": "Margine per vincere uno scontro in un round (%; sotto, diventa un assedio)",
       "siegeCapitalMarginPct": "Margine per conquistare una capitale in un round (%)",
-      "portRangeKm": "Raggio d'azione del porto (km; 0 = senza limite)"
+      "portRangeKm": "Raggio del porto (km; 0 = senza limite)",
+      "portRange2Km": "Raggio del porto al livello 2 (km)",
+      "portRange3Km": "Raggio del porto al livello 3 (km)",
+      "portUpgradeCost": "Costo di ogni potenziamento del porto",
+      "airportCost": "Costo dell'aeroporto",
+      "airportRangeKm": "Raggio dell'aeroporto (km; 0 = senza limite)",
+      "airportRange2Km": "Raggio dell'aeroporto al livello 2 (km)",
+      "airportRange3Km": "Raggio dell'aeroporto al livello 3 (km)",
+      "airportUpgradeCost": "Costo di ogni potenziamento dell'aeroporto"
     },
     "info": {
       "starts": "Inizio: {{date}} ({{when}})",
@@ -567,7 +575,9 @@
       "NOT_A_SIEGE": "Puoi ritirarti solo da un assedio.",
       "NOT_THE_ATTACKER": "Solo chi attacca può ritirarsi.",
       "NOT_A_THIRD_PARTY": "Chi combatte l'assedio non può sostenerlo così.",
-      "NOT_IN_THE_SIEGE": "Quel comune non fa parte di questo assedio."
+      "NOT_IN_THE_SIEGE": "Quel comune non fa parte di questo assedio.",
+      "STRUCTURE_NOT_UPGRADABLE": "Questa costruzione non si può potenziare.",
+      "STRUCTURE_MAX_LEVEL": "È già al livello massimo."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -820,12 +830,14 @@
       "types": {
         "BLOCK": "Blocco militare",
         "SECOND_CAPITAL": "Seconda capitale",
-        "PORT": "Porto"
+        "PORT": "Porto",
+        "AIRPORT": "Aeroporto"
       },
       "descriptions": {
         "BLOCK": "Per {{turns}} turni il comune non può essere attaccato, ma non può nemmeno attaccare. Alla scadenza devono passare {{cooldown}} turni prima di un altro blocco sullo stesso comune.",
         "SECOND_CAPITAL": "Se la capitale principale viene conquistata, il tuo impero non cade: questo comune diventa la nuova capitale. Ne puoi avere una sola.",
-        "PORT": "Da qui raggiungi via mare isole e comuni costieri che non confinano con te, entro il raggio d'azione del porto (il cerchio blu sulla mappa), per attaccarli o annetterli. Si costruisce solo dove c'è il mare, e resta al comune anche se viene conquistato."
+        "PORT": "Da qui raggiungi via mare isole e comuni costieri che non confinano con te, entro {{range}} km (il cerchio blu sulla mappa), per attaccarli o annetterli. Si può potenziare due volte: {{ranges}} km. Si costruisce solo dove c'è il mare, e resta al comune anche se viene conquistato.",
+        "AIRPORT": "Da qui raggiungi in volo qualunque comune entro {{range}} km (il cerchio viola sulla mappa), sul mare o no, per attaccarlo o annetterlo. Si può potenziare due volte: {{ranges}} km. Si costruisce ovunque, e resta al comune anche se viene conquistato."
       },
       "unknownDescription": "Dura {{turns}} turni.",
       "permanent": "permanente",
@@ -856,7 +868,11 @@
       "moveNowhere": "Per spostarla serve un altro tuo comune che non sia la capitale.",
       "dragIntro": "Trascina una costruzione dal menu su un tuo comune nella mappa: i comuni dove puoi costruirla si illuminano e si paga con le risorse di quel comune.",
       "notHere": "qui non si può costruire.",
-      "moveDrag": "trascinala sulla mappa per spostarla"
+      "moveDrag": "trascinala sulla mappa per spostarla",
+      "level": "livello {{level}} di {{max}}, {{range}} km",
+      "upgrade_one": "Potenzia ({{count}} risorsa)",
+      "upgrade_other": "Potenzia ({{count}} risorse)",
+      "upgradeTo": "Porta il raggio a {{range}} km."
     },
     "merge": {
       "title": "Unisci territori",

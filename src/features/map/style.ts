@@ -5,6 +5,7 @@ import {
   ANNEX_ICON,
   EXCLAVE_ICON,
   ISLAND_ICON,
+  AIRPORT_ICON,
   PORT_ICON,
   SHIELD_ICON,
   SWORDS_ICON,
@@ -30,6 +31,15 @@ export const FRONTS_SOURCE = 'fronts'
 export const RANGES_SOURCE = 'ranges'
 /** The blue of the port, on its sign and on the edge of its range. */
 const PORT_BLUE = '#1d6fd6'
+/** The violet of the airport, likewise. */
+const AIRPORT_VIOLET = '#7c3aed'
+const RANGE_COLOR: ExpressionSpecification = [
+  'match',
+  ['get', 'kind'],
+  'air',
+  AIRPORT_VIOLET,
+  PORT_BLUE,
+]
 export const FILL_LAYER = 'units-fill'
 export const ATTACKED_LAYER = 'units-attacked'
 
@@ -196,12 +206,12 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: { 'line-color': colors.ink, 'line-width': 2.5 },
       },
       {
-        // How far a port reaches: a faint wash and a dashed edge, the blue of its anchor
-        // over an edge of the map's own halo.
+        // How far a port or an airport reaches: a faint wash and a dashed edge in the
+        // colour of its sign, over an edge of the map's own halo.
         id: 'range-fills',
         type: 'fill',
         source: RANGES_SOURCE,
-        paint: { 'fill-color': PORT_BLUE, 'fill-opacity': 0.06 },
+        paint: { 'fill-color': RANGE_COLOR, 'fill-opacity': 0.05 },
       },
       {
         id: 'range-edges',
@@ -213,7 +223,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         id: 'range-lines',
         type: 'line',
         source: RANGES_SOURCE,
-        paint: { 'line-color': PORT_BLUE, 'line-width': 2, 'line-dasharray': [3, 2] },
+        paint: { 'line-color': RANGE_COLOR, 'line-width': 2, 'line-dasharray': [3, 2] },
       },
       {
         // Where two territories are fighting: their shared border, thick and red, with an
@@ -276,6 +286,20 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         paint: { 'icon-translate': beside(-30, -16) },
+      },
+      {
+        // An airport: a plane on the left of the port's place, so that the two stand together.
+        id: 'airport-planes',
+        type: 'symbol',
+        source: MARKERS_SOURCE,
+        filter: ['==', ['get', 'kind'], 'airport'],
+        layout: {
+          'icon-image': AIRPORT_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.75, 14, 1],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-translate': beside(-54, -16) },
       },
       {
         // Military block: a dark square-ish disc with the turns left written on it.

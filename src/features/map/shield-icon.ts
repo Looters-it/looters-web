@@ -198,3 +198,36 @@ export function ensurePortIcon(map: MapLibreMap): void {
   context.stroke(new Path2D('M6.5 13.5 C6.8 16.6 9 18.5 12 18.5 C15 18.5 17.2 16.6 17.5 13.5'))
   map.addImage(PORT_ICON, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
 }
+
+/** The name the sign of an airport goes by on the map. */
+export const AIRPORT_ICON = 'structure-airport'
+
+/**
+ * Makes sure the map has the sign of an airport: a plane on a violet disc. Whatever is
+ * in its range is reached from where it stands.
+ */
+export function ensureAirportIcon(map: MapLibreMap): void {
+  if (typeof map.hasImage !== 'function' || map.hasImage(AIRPORT_ICON)) return
+  const canvas = document.createElement('canvas')
+  canvas.width = SIZE
+  canvas.height = SIZE
+  const context = typeof Path2D === 'undefined' ? null : canvas.getContext('2d')
+  if (!context) return
+  context.scale(SIZE / 24, SIZE / 24)
+  context.lineJoin = 'round'
+  context.lineCap = 'round'
+  const disc = new Path2D('M12 1.5 a10.5 10.5 0 1 0 0.01 0')
+  context.fillStyle = '#7c3aed'
+  context.strokeStyle = '#ffffff'
+  context.lineWidth = 1.6
+  context.fill(disc)
+  context.stroke(disc)
+  // The plane, seen from above and pointing up: body, wings and tail.
+  context.fillStyle = '#ffffff'
+  context.fill(
+    new Path2D(
+      'M12 4.5 C12.8 4.5 13.2 5.4 13.2 6.6 V10 L18.6 13.4 V15 L13.2 13.4 V16.6 L15 18 V19.2 L12 18.4 L9 19.2 V18 L10.8 16.6 V13.4 L5.4 15 V13.4 L10.8 10 V6.6 C10.8 5.4 11.2 4.5 12 4.5 Z',
+    ),
+  )
+  map.addImage(AIRPORT_ICON, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
+}

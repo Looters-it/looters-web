@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
 import { matchApi, type CatalogueEntry, type MatchState } from '@/features/matches/api'
 import { useMatchErrorText } from '@/features/matches/errors'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,12 @@ function useStructureText() {
     },
     description: (entry: CatalogueEntry) => {
       const key = `game.structures.descriptions.${entry.type}`
-      const values = { turns: entry.durationTurns ?? 0, cooldown: entry.cooldownTurns }
+      const values = {
+        turns: entry.durationTurns ?? 0,
+        cooldown: entry.cooldownTurns,
+        range: entry.rangesKm?.[0] ?? 0,
+        ranges: (entry.rangesKm ?? []).slice(1).join(', '),
+      }
       return i18n.exists(key)
         ? t(key as 'game.structures.descriptions.BLOCK', values)
         : entry.durationTurns === null
@@ -178,7 +184,12 @@ export function BuildPage(props: {
     setDragged(carried)
     onSites(own.filter((territory) => blockedOn(carried, territory.id) === null).map((t) => t.id))
   }
-  const error = build.error ?? move.error
+  const upgrade = useMutation({
+    mutationFn: (structureId: string) =>
+      matchApi.upgradeStructure(matchId, structureId, state.match.currentTurn),
+    onSuccess: done,
+  })
+  const error = build.error ?? move.error ?? upgrade.error
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="build-title">
@@ -259,6 +270,16 @@ export function BuildPage(props: {
                   type: text.name(structure.type),
                   name: nameOf(structure.territoryId),
                 })}
+                {structure.level !== null && (
+                  <span className="text-muted-foreground">
+                    {' · '}
+                    {t('game.structures.level', {
+                      level: structure.level,
+                      max: structure.maxLevel ?? structure.level,
+                      range: structure.rangeKm ?? 0,
+                    })}
+                  </span>
+                )}
               </span>
               <span className="text-muted-foreground">
                 {structure.turnsLeft === null
@@ -271,6 +292,31 @@ export function BuildPage(props: {
                       : t('game.structures.moveDrag')
                   }`}
               </span>
+              {/* A wider range, paid by the territory it stands on. */}
+              {structure.upgrade && (
+                <span className="flex basis-full flex-wrap items-center gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      !editable ||
+                      upgrade.isPending ||
+                      (own.find((territory) => territory.id === structure.territoryId)?.resources ??
+                        0) < structure.upgrade.cost
+                    }
+                    onClick={() => {
+                      build.reset()
+                      move.reset()
+                      upgrade.mutate(structure.id)
+                    }}
+                  >
+                    {t('game.structures.upgrade', { count: structure.upgrade.cost })}
+                  </Button>
+                  <span className="text-muted-foreground text-base">
+                    {t('game.structures.upgradeTo', { range: structure.upgrade.rangeKm })}
+                  </span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

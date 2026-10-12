@@ -149,6 +149,13 @@ export interface Structure {
   turnsLeft: number | null
   /** Turns before it can change territory again (0: now); null if it cannot move at all. */
   moveInTurns: number | null
+  /** For a port or an airport: its level, out of how many; null for anything else. */
+  level: number | null
+  maxLevel?: number
+  /** How far it reaches now, in kilometres; 0 is no limit. */
+  rangeKm: number | null
+  /** What the next level costs and how far it reaches; null at the last one. */
+  upgrade: { cost: number; rangeKm: number } | null
 }
 
 /** One structure of the catalogue as the player can use it now. */
@@ -158,6 +165,8 @@ export interface CatalogueEntry {
   durationTurns: number | null
   cooldownTurns: number
   effects: string[]
+  /** How far it reaches at each level, for one that reaches far; null otherwise. */
+  rangesKm: number[] | null
   sites: { territoryId: string; name: string; resources: number; blocked: string | null }[]
 }
 
@@ -449,6 +458,8 @@ export const matchApi = {
   removeMessage: (id: string, eventId: string) => apiDelete(`/matches/${id}/board/${eventId}`),
   moveStructure: (id: string, structureId: string, body: { territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/structures/${structureId}/move`, body),
+  upgradeStructure: (id: string, structureId: string, turn: number) =>
+    apiPost<MatchState>(`/matches/${id}/structures/${structureId}/upgrade`, { turn }),
   catalogue: (id: string) => apiGet<CatalogueEntry[]>(`/matches/${id}/structures/catalogue`),
   build: (id: string, body: { type: string; territoryId: string; turn: number }) =>
     apiPost<MatchState>(`/matches/${id}/structures`, body),
