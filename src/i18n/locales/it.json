@@ -1099,6 +1099,7 @@
     "units_one": "{{count}} comune",
     "units_other": "{{count}} comuni",
     "empty": "Non ci sono ancora aree di gioco.",
-    "error": "La mappa non si è caricata. Riprova tra poco."
+    "error": "La mappa non si è caricata. Riprova tra poco.",
+    "countries": "paesi del mondo"
   }
 }

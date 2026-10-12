@@ -100,6 +100,11 @@
 .curtain-fill {
   animation: curtain-fill 1s ease-in-out both;
 }
+/* The same bar for a wait of unknown length (MapLoader): it fills again and again. */
+.curtain-fill-again {
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+}
 
 /* Every animation and transition yields to the user's preference. */
 /*

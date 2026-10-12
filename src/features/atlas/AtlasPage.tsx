@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils'
 import { atlasApi, type AtlasArea } from './api'
 import { areaColors } from './colors'
 
+/** The countries of the world: the 193 members of the United Nations and its 2 observers. */
+const WORLD_COUNTRIES = 195
+
 const MAP_FRAME = 'h-[60dvh] min-h-[22rem] rounded-md border lg:h-[75dvh]'
 
 // MapLibre is most of the weight of the site: fetched only when the map is shown.
@@ -73,12 +76,21 @@ export function AtlasPage() {
           </Suspense>
 
           <div className="flex flex-col gap-4 lg:max-h-[75dvh] lg:overflow-y-auto lg:pr-1">
-            <p role="status">
-              {t('atlas.summary', {
-                areas: areas.length,
-                count: atlas.data.unitCount,
-              })}
-            </p>
+            <div role="status" className="flex flex-col gap-1">
+              <p>
+                {t('atlas.summary', {
+                  areas: areas.length,
+                  count: atlas.data.unitCount,
+                })}
+              </p>
+              {/* How much of the world can be played on. */}
+              <p className="flex items-baseline gap-2">
+                <span className="font-display text-3xl">
+                  {groups.length} / {WORLD_COUNTRIES}
+                </span>
+                <span className="text-muted-foreground">{t('atlas.countries')}</span>
+              </p>
+            </div>
             {groups.map((group) => (
               <div key={group.id} className="flex flex-col gap-1">
                 <h2 className="flex items-baseline justify-between gap-3 text-xl">

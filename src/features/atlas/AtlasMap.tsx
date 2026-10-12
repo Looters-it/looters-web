@@ -281,7 +281,7 @@ export function AtlasMap(props: {
   return (
     <div className={cn('relative isolate overflow-hidden', className)}>
       <div ref={container} className="h-full w-full" />
-      {!drawn && <MapLoader className="bg-background/70 text-foreground absolute inset-0 z-10" />}
+      {!drawn && <MapLoader className="absolute inset-0 z-10" />}
     </div>
   )
 }
