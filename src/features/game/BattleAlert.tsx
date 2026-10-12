@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Swords } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,18 @@ export function BattleAlert(props: {
     }
     props.onOpenChange(open)
   }
+
+  // Once the answer has had its outcome the dialog gives way: how the round went is
+  // said by the announcement in the middle of the map.
+  const answered = state.battles.find((candidate) => candidate.id === shownId)
+  const settled =
+    answered !== undefined && (answered.status === 'RESOLVED' || answered.foughtThisTurn)
+  const { open: isOpen, onOpenChange } = props
+  useEffect(() => {
+    if (!settled || !isOpen) return
+    setShownId(null)
+    onOpenChange(false)
+  }, [settled, isOpen, onOpenChange])
 
   const attacker = state.empires.find((empire) => empire.id === battle?.attackerEmpireId)
   const mine = state.empires.find((empire) => empire.id === state.me?.empireId)

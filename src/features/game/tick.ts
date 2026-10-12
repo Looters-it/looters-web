@@ -96,3 +96,31 @@ export function turnSound(): void {
   note(ctx, 'sine', 659.25, 0.12, 0.3, 0.22)
   note(ctx, 'sine', 783.99, 0.24, 0.5, 0.22)
 }
+
+/** A battle won: a short fanfare, four bright notes with the last one held. */
+export function victorySound(): void {
+  const ctx = audio()
+  if (!ctx || ctx.state !== 'running') return
+  note(ctx, 'triangle', 523.25, 0, 0.18, 0.28)
+  note(ctx, 'triangle', 659.25, 0.14, 0.18, 0.28)
+  note(ctx, 'triangle', 783.99, 0.28, 0.18, 0.28)
+  note(ctx, 'triangle', 1046.5, 0.44, 0.7, 0.3)
+  note(ctx, 'sine', 523.25, 0.44, 0.7, 0.18)
+}
+
+/** A battle lost: three low notes going down, the last one long. */
+export function defeatSound(): void {
+  const ctx = audio()
+  if (!ctx || ctx.state !== 'running') return
+  note(ctx, 'sawtooth', 311.13, 0, 0.28, 0.16)
+  note(ctx, 'sawtooth', 261.63, 0.24, 0.28, 0.16)
+  note(ctx, 'sawtooth', 196, 0.48, 0.8, 0.18)
+}
+
+/** Nobody won: two notes that leave the matter open. */
+export function drawSound(): void {
+  const ctx = audio()
+  if (!ctx || ctx.state !== 'running') return
+  note(ctx, 'triangle', 440, 0, 0.25, 0.22)
+  note(ctx, 'triangle', 466.16, 0.22, 0.5, 0.22)
+}

@@ -1,0 +1,225 @@
+/* The outcome of a battle, in the middle of the map: it lands, and everything on it moves once. */
+.outcome {
+  --mood: #64748b;
+  border-color: var(--mood);
+  animation: outcome-land 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  overflow: hidden;
+}
+.outcome-won {
+  --mood: #1f9d55;
+}
+.outcome-lost {
+  --mood: #e11d2e;
+  animation:
+    outcome-land 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both,
+    outcome-shake 0.5s ease-in-out 0.45s;
+}
+.outcome-draw {
+  --mood: #d97706;
+}
+
+.outcome-icon {
+  background: var(--mood);
+  animation: outcome-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both;
+}
+.outcome-won .outcome-icon {
+  animation:
+    outcome-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both,
+    outcome-cheer 1.2s ease-in-out 0.9s 3;
+}
+.outcome-draw .outcome-icon {
+  animation:
+    outcome-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both,
+    outcome-sway 1.6s ease-in-out 0.9s infinite;
+}
+.outcome-title {
+  color: var(--mood);
+  animation: outcome-rise 0.4s ease-out 0.35s both;
+}
+
+/* The two sides come in from the sides and the swords cross between them. */
+.outcome-left {
+  animation: outcome-from-left 0.45s ease-out 0.5s both;
+}
+.outcome-right {
+  animation: outcome-from-right 0.45s ease-out 0.5s both;
+}
+.outcome-swords {
+  animation: outcome-clash 0.5s ease-out 0.9s both;
+}
+
+/* The rope: even at first, then pulled to where the round ended. */
+.outcome-rope {
+  border-color: var(--color-ink, #0f172a);
+}
+.outcome-pull {
+  width: var(--share);
+  animation: outcome-pull 1.4s cubic-bezier(0.3, 1.3, 0.5, 1) 1s both;
+  box-shadow: 2px 0 0 0 #fff;
+}
+
+.outcome-spoils {
+  animation: outcome-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) 2.2s both;
+}
+
+.outcome-timer {
+  background: var(--mood);
+  transform-origin: left;
+  animation: outcome-timer linear both;
+}
+
+/* Confetti: small pieces thrown out in every direction, turning as they fall. */
+.outcome-confetti {
+  position: absolute;
+  top: 3.5rem;
+  left: 50%;
+  pointer-events: none;
+}
+.outcome-confetti i {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.8rem;
+  border-radius: 2px;
+  background: hsl(var(--hue) 85% 55%);
+  opacity: 0;
+  animation: outcome-confetti 1.6s ease-out 0.3s both;
+}
+
+@keyframes outcome-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(-2rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-0.6rem) rotate(-1deg);
+  }
+  45% {
+    transform: translateX(0.5rem) rotate(1deg);
+  }
+  70% {
+    transform: translateX(-0.3rem);
+  }
+}
+@keyframes outcome-pop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes outcome-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-0.5rem) rotate(-10deg);
+  }
+  60% {
+    transform: translateY(0) rotate(10deg);
+  }
+}
+@keyframes outcome-sway {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes outcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-3rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(3rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-clash {
+  0% {
+    opacity: 0;
+    transform: scale(2.4) rotate(-40deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.85) rotate(8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-pull {
+  from {
+    width: 50%;
+  }
+  to {
+    width: var(--share);
+  }
+}
+@keyframes outcome-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@keyframes outcome-confetti {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateY(0) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(calc(var(--far) * -1)) rotate(540deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outcome,
+  .outcome * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .outcome-timer {
+    animation-duration: 12s !important;
+  }
+}

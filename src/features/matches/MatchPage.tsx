@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button'
 import { AttackPanel } from '@/features/game/AttackPanel'
 import { EndAnnouncement } from '@/features/game/EndAnnouncement'
 import { BattleAlert } from '@/features/game/BattleAlert'
+import { BattleAnnouncer } from '@/features/game/BattleAnnouncer'
 import { AttackToasts } from '@/features/game/AttackToasts'
 import { SiegeToasts } from '@/features/game/SiegeToasts'
 import { unlockSoundOnFirstGesture } from '@/features/game/tick'
@@ -1240,6 +1241,8 @@ export function MatchPage() {
               them the turn and its clock, the player's resources and the board itself.
               On a phone the board has its own tab and the figures are in the bar on top. */}
           {!reviewing && <TurnAnnouncer part="turn" match={match} sound={sound} />}
+          {/* How a battle of the player went: in the middle of the map too, until closed. */}
+          {!reviewing && <BattleAnnouncer state={state} sound={sound} />}
           {/* Paused: said in the middle of the map, with the way back into the match. */}
           {match.status === 'ONGOING' && match.pausedAt && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">

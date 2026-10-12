@@ -1086,6 +1086,32 @@
       "supportHint": "Le risorse che mandi arrivano su questo comune e contano dal prossimo round. Non tornano indietro. Tutti sapranno chi hai aiutato, non quanto.",
       "supportSend": "Manda risorse",
       "supportSent": "Risorse inviate."
+    },
+    "outcome": {
+      "close": "Chiudi l'esito",
+      "title": {
+        "draw": "Nessun vincitore",
+        "off": "Annullato",
+        "attacker": {
+          "ATTACKER_WON": "Vittoria!",
+          "DEFENDER_WON": "Respinto!",
+          "SURRENDER": "Si arrendono!",
+          "WITHDRAWN": "Ritirata",
+          "CANCELLED": "Annullato"
+        },
+        "defender": {
+          "ATTACKER_WON": "Sconfitta",
+          "DEFENDER_WON": "Difesa riuscita!",
+          "SURRENDER": "Resa",
+          "WITHDRAWN": "Assedio tolto!",
+          "CANCELLED": "Annullato"
+        }
+      },
+      "siegeGoesOn": "L'assedio di {{name}} continua: si passa al round {{round}}.",
+      "spoils_one": "+{{count}} risorsa di bottino",
+      "spoils_other": "+{{count}} risorse di bottino",
+      "more_one": "C'è un altro esito dopo questo.",
+      "more_other": "Ci sono altri {{count}} esiti dopo questo."
     }
   },
   "crash": {

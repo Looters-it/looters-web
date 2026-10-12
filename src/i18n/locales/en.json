@@ -1086,6 +1086,32 @@
       "supportHint": "What you send lands on this territory and counts from the next round. It does not come back. Everyone will know whom you helped, not how much.",
       "supportSend": "Send resources",
       "supportSent": "Resources sent."
+    },
+    "outcome": {
+      "close": "Close the outcome",
+      "title": {
+        "draw": "Nobody won",
+        "off": "Called off",
+        "attacker": {
+          "ATTACKER_WON": "Victory!",
+          "DEFENDER_WON": "Repelled!",
+          "SURRENDER": "They surrender!",
+          "WITHDRAWN": "Retreat",
+          "CANCELLED": "Called off"
+        },
+        "defender": {
+          "ATTACKER_WON": "Defeat",
+          "DEFENDER_WON": "Held!",
+          "SURRENDER": "Surrender",
+          "WITHDRAWN": "Siege lifted!",
+          "CANCELLED": "Called off"
+        }
+      },
+      "siegeGoesOn": "The siege of {{name}} goes on: round {{round}} is next.",
+      "spoils_one": "+{{count}} resource of spoils",
+      "spoils_other": "+{{count}} resources of spoils",
+      "more_one": "One more outcome after this.",
+      "more_other": "{{count}} more outcomes after this."
     }
   },
   "crash": {
