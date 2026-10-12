@@ -473,6 +473,11 @@ export const matchApi = {
   ) => apiPost<MatchState>(`/matches/${id}/attacks`, body),
   respond: (id: string, battleId: string, action: 'DEFEND' | 'SURRENDER') =>
     apiPost<MatchState>(`/matches/${id}/battles/${battleId}/respond`, { action }),
+  supportSiege: (
+    id: string,
+    battleId: string,
+    body: { fromTerritoryId: string; toTerritoryId: string; amount: number; turn: number },
+  ) => apiPost<MatchState>(`/matches/${id}/battles/${battleId}/support`, body),
   liftSiege: (id: string, battleId: string) =>
     apiPost<MatchState>(`/matches/${id}/battles/${battleId}/withdraw`, {}),
   setAllocationRule: (

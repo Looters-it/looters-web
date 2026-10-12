@@ -123,6 +123,118 @@ function AnnexAction({ state, card }: { state: MatchState; card: UnitCardData })
   )
 }
 
+/**
+ * Sending resources to a siege the player is on neither side of, allied or not: onto the
+ * besieged territory for who defends it, onto one the siege starts from for who attacks.
+ */
+function SiegeSupport({ state, territory }: { state: MatchState; territory: Territory }) {
+  const { t } = useTranslation()
+  const errorText = useMatchErrorText()
+  const queryClient = useQueryClient()
+  const fromId = useId()
+  const amountId = useId()
+  const matchId = state.match.id
+  const [from, setFrom] = useState('')
+  const [amount, setAmount] = useState('')
+  const battle = state.battles.find(
+    (candidate) => candidate.id === territory.battleId && candidate.status === 'OPEN',
+  )
+  const mine = state.territories.filter(
+    (candidate) => candidate.ownerEmpireId === state.me?.empireId,
+  )
+  const source = mine.find((candidate) => candidate.id === from)
+  const send = useMutation({
+    mutationFn: () =>
+      matchApi.supportSiege(matchId, battle?.id ?? '', {
+        fromTerritoryId: from,
+        toTerritoryId: territory.id,
+        amount: Number(amount),
+        turn: state.match.currentTurn,
+      }),
+    onSuccess: (next) => {
+      queryClient.setQueryData(['matches', 'state', matchId], next)
+      setAmount('')
+    },
+  })
+  // Only a siege, and only for who is on neither side of it.
+  if (!battle || battle.round === 1 || battle.role !== null) return null
+  const defending = battle.targetTerritoryId === territory.id
+  const helped = state.empires.find(
+    (empire) => empire.id === (defending ? battle.defenderEmpireId : battle.attackerEmpireId),
+  )
+
+  return (
+    <form
+      className="flex flex-col gap-2 rounded-md border p-3"
+      aria-labelledby="support-box"
+      onSubmit={(event) => {
+        event.preventDefault()
+        send.mutate()
+      }}
+    >
+      <h3 id="support-box" className="text-base">
+        {t(defending ? 'game.siege.supportDefender' : 'game.siege.supportAttacker', {
+          empire: helped?.name ?? '',
+          name: battle.targetName,
+        })}
+      </h3>
+      <p className="text-muted-foreground text-base">{t('game.siege.supportHint')}</p>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor={fromId}>{t('game.alliance.transferFrom')}</Label>
+        <Select
+          value={from}
+          onValueChange={(value) => {
+            send.reset()
+            setFrom(value)
+          }}
+        >
+          <SelectTrigger id={fromId} className="w-full">
+            <SelectValue placeholder={t('game.structures.wherePlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            {mine.map((candidate) => (
+              <SelectItem
+                key={candidate.id}
+                value={candidate.id}
+                disabled={candidate.battleId !== null || (candidate.resources ?? 0) < 1}
+              >
+                {t('game.alliance.territoryOption', {
+                  name: candidate.name,
+                  count: candidate.resources ?? 0,
+                })}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor={amountId}>{t('game.alliance.amount')}</Label>
+        <Input
+          id={amountId}
+          type="number"
+          required
+          min={1}
+          max={source?.resources ?? undefined}
+          value={amount}
+          onChange={(event) => {
+            send.reset()
+            setAmount(event.target.value)
+          }}
+        />
+      </div>
+      {send.error && (
+        <p role="alert" className="text-danger">
+          {errorText(send.error)}
+        </p>
+      )}
+      {send.isSuccess && <p role="status">{t('game.siege.supportSent')}</p>}
+      <Button type="submit" className="self-start" disabled={send.isPending || from === ''}>
+        {t('game.siege.supportSend')}
+      </Button>
+    </form>
+  )
+}
+
 /** Moving the capital here: once every few turns, and never during a battle on it. */
 function CapitalAction(props: { state: MatchState; card: UnitCardData; isCapital: boolean }) {
   const phase = usePhase(props.state.match)
@@ -342,6 +454,14 @@ export function UnitPanel(props: {
               state={state}
               card={card.data}
               isCapital={owner?.capitalTerritoryId === card.data.territory.id}
+            />
+          )}
+
+          {territoryState && state.me?.status === 'ACTIVE' && (
+            <SiegeSupport
+              key={`support:${territoryState.id}`}
+              state={state}
+              territory={territoryState}
             />
           )}
 

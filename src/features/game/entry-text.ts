@@ -14,9 +14,11 @@ export function useEntryText() {
     const suffix =
       entry.type === 'BATTLE_RESOLVED'
         ? `_${entry.data.outcome}`
-        : entry.type === 'MATCH_FINISHED' && entry.data.result
-          ? `_${entry.data.result}`
-          : ''
+        : entry.type === 'SIEGE_SUPPORTED'
+          ? `_${entry.data.side ?? ''}`
+          : entry.type === 'MATCH_FINISHED' && entry.data.result
+            ? `_${entry.data.result}`
+            : ''
     const key = `game.board.events.${entry.type}${suffix}`
     if (!i18n.exists(key)) return t('game.board.events.UNKNOWN')
     const text = t(

@@ -564,7 +564,9 @@
       "STRUCTURE_NOT_ON_COAST": "It needs access to the sea.",
       "ROUND_FOUGHT": "This turn's round has been fought: the next is next turn.",
       "NOT_A_SIEGE": "You can withdraw only from a siege.",
-      "NOT_THE_ATTACKER": "Only the attacker can withdraw."
+      "NOT_THE_ATTACKER": "Only the attacker can withdraw.",
+      "NOT_A_THIRD_PARTY": "The two sides of a siege cannot support it this way.",
+      "NOT_IN_THE_SIEGE": "That territory is not part of this siege."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -934,7 +936,9 @@
         "EMPIRE_WITHDRAWN": "{{empireName}} withdrew: {{territoryName}} is free again.",
         "EMPIRE_ABANDONED": "{{empireName}} abandoned the match: its territories are free.",
         "BATTLE_ROUND": "The siege of {{territoryName}} goes on: neither {{attackerName}} nor {{defenderName}} prevailed.",
-        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} lifted the siege of {{territoryName}}, which stays with {{defenderName}}."
+        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} lifted the siege of {{territoryName}}, which stays with {{defenderName}}.",
+        "SIEGE_SUPPORTED_DEFENDER": "{{empireName}} sent resources to {{otherName}} to defend {{territoryName}}.",
+        "SIEGE_SUPPORTED_ATTACKER": "{{empireName}} sent resources to {{otherName}} for the siege of {{territoryName}}."
       },
       "latest": "Latest news of the board"
     },
@@ -1059,7 +1063,12 @@
       "nextTurn_one": "The next round is next turn: as things stand it would cost you {{count}} resource.",
       "nextTurn_other": "The next round is next turn: as things stand it would cost you {{count}} resources.",
       "drawn": "Nobody prevailed: the siege goes on.",
-      "defenderNext": "The next round is fought next turn, with what will be on the territory. Until then you can only surrender."
+      "defenderNext": "The next round is fought next turn, with what will be on the territory. Until then you can only surrender.",
+      "supportDefender": "Support {{empire}} in the defence of {{name}}",
+      "supportAttacker": "Support {{empire}} in the siege of {{name}}",
+      "supportHint": "What you send lands on this territory and counts from the next round. It does not come back. Everyone will know whom you helped, not how much.",
+      "supportSend": "Send resources",
+      "supportSent": "Resources sent."
     }
   },
   "crash": {

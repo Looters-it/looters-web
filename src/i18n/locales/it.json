@@ -564,7 +564,9 @@
       "STRUCTURE_NOT_ON_COAST": "Serve uno sbocco sul mare.",
       "ROUND_FOUGHT": "Il round di questo turno è già stato combattuto: il prossimo è al prossimo turno.",
       "NOT_A_SIEGE": "Puoi ritirarti solo da un assedio.",
-      "NOT_THE_ATTACKER": "Solo chi attacca può ritirarsi."
+      "NOT_THE_ATTACKER": "Solo chi attacca può ritirarsi.",
+      "NOT_A_THIRD_PARTY": "Chi combatte l'assedio non può sostenerlo così.",
+      "NOT_IN_THE_SIEGE": "Quel comune non fa parte di questo assedio."
     },
     "mode": {
       "SINGLEPLAYER": "Singleplayer",
@@ -934,7 +936,9 @@
         "EMPIRE_WITHDRAWN": "{{empireName}} si è ritirato: {{territoryName}} è di nuovo libero.",
         "EMPIRE_ABANDONED": "{{empireName}} ha abbandonato la partita: i suoi territori sono liberi.",
         "BATTLE_ROUND": "L'assedio di {{territoryName}} continua: tra {{attackerName}} e {{defenderName}} nessuno ha prevalso.",
-        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} ha tolto l'assedio a {{territoryName}}, che resta a {{defenderName}}."
+        "BATTLE_RESOLVED_WITHDRAWN": "{{attackerName}} ha tolto l'assedio a {{territoryName}}, che resta a {{defenderName}}.",
+        "SIEGE_SUPPORTED_DEFENDER": "{{empireName}} ha mandato risorse a {{otherName}} per difendere {{territoryName}}.",
+        "SIEGE_SUPPORTED_ATTACKER": "{{empireName}} ha mandato risorse a {{otherName}} per l'assedio di {{territoryName}}."
       },
       "latest": "Ultime notizie della bacheca"
     },
@@ -1059,7 +1063,12 @@
       "nextTurn_one": "Il prossimo round è al prossimo turno: ad ora ti costerebbe {{count}} risorsa.",
       "nextTurn_other": "Il prossimo round è al prossimo turno: ad ora ti costerebbe {{count}} risorse.",
       "drawn": "Nessuno ha prevalso: l'assedio continua.",
-      "defenderNext": "Il prossimo round si combatte al prossimo turno, con le risorse che ci saranno nel comune. Fino ad allora puoi solo arrenderti."
+      "defenderNext": "Il prossimo round si combatte al prossimo turno, con le risorse che ci saranno nel comune. Fino ad allora puoi solo arrenderti.",
+      "supportDefender": "Sostieni {{empire}} nella difesa di {{name}}",
+      "supportAttacker": "Sostieni {{empire}} nell'assedio di {{name}}",
+      "supportHint": "Le risorse che mandi arrivano su questo comune e contano dal prossimo round. Non tornano indietro. Tutti sapranno chi hai aiutato, non quanto.",
+      "supportSend": "Manda risorse",
+      "supportSent": "Risorse inviate."
     }
   },
   "crash": {
