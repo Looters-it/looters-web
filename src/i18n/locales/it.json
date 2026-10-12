@@ -780,7 +780,8 @@
       "defend_one": "Difendi: costa {{count}} risorsa",
       "defend_other": "Difendi: costa {{count}} risorse",
       "bag": "Borsa delle risorse: trascinala dove vuoi concentrarle",
-      "bagSplit": "Dividi la borsa in due"
+      "bagSplit": "Dividi la borsa in due",
+      "loading": "Caricamento della mappa…"
     },
     "structures": {
       "title": "Costruzioni",

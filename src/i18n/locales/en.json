@@ -780,7 +780,8 @@
       "defend_one": "Defend: it costs {{count}} resource",
       "defend_other": "Defend: it costs {{count}} resources",
       "bag": "Bag of resources: drag it where you want them gathered",
-      "bagSplit": "Split the bag in two"
+      "bagSplit": "Split the bag in two",
+      "loading": "Loading the map…"
     },
     "structures": {
       "title": "Structures",

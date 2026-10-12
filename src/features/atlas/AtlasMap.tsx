@@ -13,6 +13,7 @@ import '@/features/map/map.css'
 import type { FeatureCollection } from 'geojson'
 import { useEffect, useRef, useState } from 'react'
 
+import { MapLoader } from '@/features/map/MapLoader'
 import { BASE_TILES, EMPIRE_FONT } from '@/features/map/style'
 import { mapColors } from '@/features/map/theme'
 import { cn } from '@/lib/utils'
@@ -23,10 +24,14 @@ setWorkerUrl(workerUrl)
 
 const AREAS = 'areas'
 const NAMES = 'names'
+const COUNTRIES = 'countries'
+/** From this zoom the areas are named; before it, only the countries they are part of. */
+const AREA_NAMES_FROM_ZOOM = 5
 const FILL = 'areas-fill'
 
 /**
- * The map of the atlas: each area drawn as one shape in its colour, with its name.
+ * The map of the atlas: each area drawn as one shape in its colour. Seen from afar only
+ * the countries are named; the names of the areas come when the map is brought closer.
  * Only the outlines of the areas are loaded, never their municipalities. An area is
  * chosen by pressing it; the one that is chosen is brought into view.
  */
@@ -68,6 +73,7 @@ export function AtlasMap(props: {
           // The id of a feature is its place in the list: feature state needs a number.
           [AREAS]: { type: 'geojson', data: empty },
           [NAMES]: { type: 'geojson', data: empty },
+          [COUNTRIES]: { type: 'geojson', data: empty },
         },
         layers: [
           { id: 'ground', type: 'background', paint: { 'background-color': theme.ground } },
@@ -114,13 +120,32 @@ export function AtlasMap(props: {
             },
           },
           {
-            id: 'areas-names',
+            id: 'countries-names',
             type: 'symbol',
-            source: NAMES,
+            source: COUNTRIES,
+            maxzoom: AREA_NAMES_FROM_ZOOM,
             layout: {
               'text-field': ['get', 'name'],
               'text-font': [EMPIRE_FONT],
-              'text-size': ['interpolate', ['linear'], ['zoom'], 4, 10, 7, 14, 10, 18],
+              'text-size': ['interpolate', ['linear'], ['zoom'], 2, 11, 5, 17],
+              'text-max-width': 7,
+              'symbol-sort-key': ['-', ['get', 'size']],
+            },
+            paint: {
+              'text-color': theme.ink,
+              'text-halo-color': theme.halo,
+              'text-halo-width': 1.6,
+            },
+          },
+          {
+            id: 'areas-names',
+            type: 'symbol',
+            source: NAMES,
+            minzoom: AREA_NAMES_FROM_ZOOM,
+            layout: {
+              'text-field': ['get', 'name'],
+              'text-font': [EMPIRE_FONT],
+              'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 7, 14, 10, 18],
               'text-max-width': 7,
               // The larger areas are named first where names would overlap.
               'symbol-sort-key': ['-', ['get', 'size']],
@@ -136,7 +161,8 @@ export function AtlasMap(props: {
       ...(bounds
         ? { bounds, fitBoundsOptions: { padding: 24 } }
         : { center: [12.5, 42] as [number, number], zoom: 5 }),
-      minZoom: 2,
+      // Far enough to hold two continents at once.
+      minZoom: 1,
       maxZoom: 12,
       cooperativeGestures: true,
       attributionControl: false,
@@ -198,7 +224,42 @@ export function AtlasMap(props: {
         geometry: { type: 'Point', coordinates: [area.lon, area.lat] },
       })),
     })
+    // A country is named where its municipalities are: the middle of its areas, each
+    // weighing what it holds.
+    const countries = new Map<string, { name: string; lon: number; lat: number; size: number }>()
+    for (const area of areas) {
+      const country = countries.get(area.rootId) ?? { name: area.rootName, lon: 0, lat: 0, size: 0 }
+      country.lon += area.lon * area.unitCount
+      country.lat += area.lat * area.unitCount
+      country.size += area.unitCount
+      countries.set(area.rootId, country)
+    }
+    map.getSource<GeoJSONSource>(COUNTRIES)?.setData({
+      type: 'FeatureCollection',
+      features: [...countries.values()].map((country) => ({
+        type: 'Feature',
+        properties: { name: country.name, size: country.size },
+        geometry: {
+          type: 'Point',
+          coordinates: [country.lon / country.size, country.lat / country.size],
+        },
+      })),
+    })
   }, [areas, colors, ready])
+
+  // Drawn: the areas are on the map, not only handed to it.
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || areas.length === 0) return
+    const check = () => {
+      if (map.isSourceLoaded(AREAS)) setDrawn(true)
+    }
+    map.on('idle', check)
+    return () => {
+      map.off('idle', check)
+    }
+  }, [areas, ready])
 
   // The chosen area is marked and brought into view; with none, the whole map is.
   const marked = useRef<number | null>(null)
@@ -220,6 +281,7 @@ export function AtlasMap(props: {
   return (
     <div className={cn('relative isolate overflow-hidden', className)}>
       <div ref={container} className="h-full w-full" />
+      {!drawn && <MapLoader className="bg-background/70 text-foreground absolute inset-0 z-10" />}
     </div>
   )
 }

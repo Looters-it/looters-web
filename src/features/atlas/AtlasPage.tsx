@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { MapLoader } from '@/features/map/MapLoader'
 import { empirePalette } from '@/features/map/theme'
 import { cn } from '@/lib/utils'
 
@@ -55,11 +56,12 @@ export function AtlasPage() {
           {t('atlas.error')}
         </p>
       )}
+      {atlas.isPending && <MapLoader className={MAP_FRAME} />}
       {areas?.length === 0 && <p className="text-muted-foreground">{t('atlas.empty')}</p>}
 
       {atlas.data && areas && areas.length > 0 && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <Suspense fallback={<div className={MAP_FRAME} aria-busy="true" />}>
+          <Suspense fallback={<MapLoader className={MAP_FRAME} />}>
             <AtlasMap
               areas={areas}
               colors={colorOf}
