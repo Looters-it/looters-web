@@ -24,6 +24,7 @@ import { EmpireShield } from '@/features/matches/Emblem'
 import { Countdown } from './Countdown'
 import { usePhase } from './phase'
 import { StatusBadge, unitStatus } from './StatusBadge'
+import { IsolationBadge } from '@/features/map/UnitCard'
 import { useMatchErrorText } from '@/features/matches/errors'
 
 /** The action on a free municipality: annex it, paying from an adjacent own territory. */
@@ -305,6 +306,9 @@ export function UnitPanel(props: {
                 <span>{t('match.unit.capital')}</span>
               )}
               {card.data.territory.protected && <span>{t('match.unit.protected')}</span>}
+              {card.data.isolation && (
+                <IsolationBadge kind={card.data.isolation === 'ISLAND' ? 'island' : 'exclave'} />
+              )}
             </p>
             {territoryState?.alert && <p className="text-danger">{t('game.unit.alert')}</p>}
             {territoryState?.isArea && (

@@ -72,7 +72,7 @@ export function AreaPreview({ areaId }: { areaId: string }) {
         highlightedIds={highlighted}
         onSelect={setSelected}
         renderInfo={(unit) => (
-          <UnitCard name={unit.name}>
+          <UnitCard name={unit.name} isolation={unit.isolation}>
             <p className="text-muted-foreground">
               {neighbours.data
                 ? t('admin.preview.neighbours', { count: neighbours.data.length })

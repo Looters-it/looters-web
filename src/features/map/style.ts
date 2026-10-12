@@ -1,12 +1,16 @@
 import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
 
 import type { AreaMap } from './api'
-import { ANNEX_ICON, SHIELD_ICON, SWORDS_ICON } from './shield-icon'
+import { ANNEX_ICON, EXCLAVE_ICON, ISLAND_ICON, SHIELD_ICON, SWORDS_ICON } from './shield-icon'
 import type { MapColors } from './theme'
 
 export const UNITS_SOURCE = 'units'
 export const UNITS_LAYER = 'units'
 export const LABELS_LAYER = 'labels'
+/** The islands and the exclaves: a point on each, at every zoom. */
+export const MARKS_LAYER = 'marks'
+/** From this zoom the sign of an island or an exclave is drawn on it. */
+const MARKS_MIN_ZOOM = 6
 export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
 /** The signs of the territories that can be attacked: they are pressed like buttons. */
@@ -395,6 +399,22 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'text-padding': 6,
         },
         paint: { 'text-color': colors.ink, 'text-halo-color': colors.halo, 'text-halo-width': 1.4 },
+      },
+      {
+        // Why a municipality has no neighbours: an island, or an exclave. Above its name,
+        // drawn whatever else is there: it explains what the map cannot show.
+        id: 'unit-marks',
+        type: 'symbol',
+        source: UNITS_SOURCE,
+        'source-layer': MARKS_LAYER,
+        minzoom: Math.max(area.minZoom, MARKS_MIN_ZOOM),
+        layout: {
+          'icon-image': ['match', ['get', 'kind'], 'exclave', EXCLAVE_ICON, ISLAND_ICON],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 10, 0.65, 14, 0.85],
+          'icon-offset': [0, -22],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
       },
       {
         id: 'unit-labels',

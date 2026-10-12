@@ -37,12 +37,19 @@ import {
   UNITS_SOURCE,
 } from './style'
 import { capitalIconId, ensureCapitalIcons } from './capital-icon'
-import { ensureShieldIcon, ensureSwordsIcon, ensureAnnexIcon } from './shield-icon'
+import {
+  ensureShieldIcon,
+  ensureSwordsIcon,
+  ensureAnnexIcon,
+  ensureIsolationIcons,
+} from './shield-icon'
 import { mapColors } from './theme'
 
 export interface MapUnit {
   id: number
   name: string
+  /** Why it has no neighbours, when the map knows: it is an island, or an exclave. */
+  isolation?: 'island' | 'exclave'
 }
 
 /** A sign drawn on a municipality: the capital of an empire, or an accumulation alert. */
@@ -332,9 +339,17 @@ export function GameMap({
         return
       }
       setAnchor({ id: feature.id, at: [event.lngLat.lng, event.lngLat.lat] })
-      onSelectRef.current?.({ id: feature.id, name: String(feature.properties.name ?? '') })
+      const kind: unknown = feature.properties.kind
+      onSelectRef.current?.({
+        id: feature.id,
+        name: String(feature.properties.name ?? ''),
+        ...(kind === 'island' || kind === 'exclave' ? { isolation: kind } : {}),
+      })
     })
-    map.once('load', () => setReady(true))
+    map.once('load', () => {
+      ensureIsolationIcons(map)
+      setReady(true)
+    })
 
     return () => {
       popupRef.current?.remove()

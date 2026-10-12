@@ -262,6 +262,8 @@ export interface AttackPreview {
 export interface UnitCardData {
   geoUnitId: number
   name: string
+  /** Why it may have no neighbours: an island, an exclave, or neither. */
+  isolation: 'ISLAND' | 'EXCLAVE' | null
   territory: {
     id: string
     name: string

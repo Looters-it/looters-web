@@ -905,7 +905,7 @@ export function MatchPage() {
     if (reviewing) {
       const then = ownership.empires.get(reviewing.ownership[String(unit.id)] ?? '')
       return (
-        <UnitCard name={unit.name}>
+        <UnitCard name={unit.name} isolation={unit.isolation}>
           {then ? (
             <p className="flex items-center gap-2">
               <EmpireShield
@@ -925,7 +925,7 @@ export function MatchPage() {
     const territory = ownership.byUnit.get(unit.id)
     const empire = territory && ownership.empires.get(territory.ownerEmpireId)
     return (
-      <UnitCard name={unit.name}>
+      <UnitCard name={unit.name} isolation={unit.isolation}>
         {empire && territory ? (
           <>
             <p className="flex items-center gap-2">

@@ -112,3 +112,57 @@ export function ensureSwordsIcon(map: MapLibreMap): void {
   }
   map.addImage(SWORDS_ICON, context.getImageData(0, 0, side, side), { pixelRatio: 2 })
 }
+
+/** The names the signs of an island and of an exclave go by on the map. */
+export const ISLAND_ICON = 'unit-island'
+export const EXCLAVE_ICON = 'unit-exclave'
+
+/**
+ * Makes sure the map has the signs that say why a municipality has no neighbours: an
+ * island (land rising from two waves) and an exclave (a piece of land inside a broken
+ * border). Shapes on a pale disc with a dark edge, so that neither relies on a colour.
+ */
+export function ensureIsolationIcons(map: MapLibreMap): void {
+  if (typeof map.hasImage !== 'function' || typeof Path2D === 'undefined') return
+  const drawings: [string, (context: CanvasRenderingContext2D) => void][] = [
+    [
+      ISLAND_ICON,
+      (context) => {
+        // The island, and the sea under it.
+        context.fill(new Path2D('M6.5 13.5 C7.5 9.5 10 8 12 8 C14 8 16.5 9.5 17.5 13.5 Z'))
+        context.stroke(new Path2D('M5.5 16 q1.6 -1.4 3.2 0 t3.3 0 t3.3 0 t3.2 0'))
+        context.stroke(new Path2D('M7.5 19 q1.5 -1.3 3 0 t3 0 t3 0'))
+      },
+    ],
+    [
+      EXCLAVE_ICON,
+      (context) => {
+        // A border drawn in pieces all round, and the land it closes in.
+        context.setLineDash([2.6, 2.2])
+        context.stroke(new Path2D('M12 5.5 a6.5 6.5 0 1 0 0.01 0'))
+        context.setLineDash([])
+        context.fill(new Path2D('M12 9.2 a2.8 2.8 0 1 0 0.01 0'))
+      },
+    ],
+  ]
+  for (const [name, draw] of drawings) {
+    if (map.hasImage(name)) continue
+    const canvas = document.createElement('canvas')
+    canvas.width = SIZE
+    canvas.height = SIZE
+    const context = canvas.getContext('2d')
+    if (!context) return
+    context.scale(SIZE / 24, SIZE / 24)
+    context.lineJoin = 'round'
+    context.lineCap = 'round'
+    context.fillStyle = '#f3f6fb'
+    context.strokeStyle = '#072a3e'
+    context.lineWidth = 1.6
+    const disc = new Path2D('M12 1.5 a10.5 10.5 0 1 0 0.01 0')
+    context.fill(disc)
+    context.stroke(disc)
+    context.fillStyle = '#072a3e'
+    draw(context)
+    map.addImage(name, context.getImageData(0, 0, SIZE, SIZE), { pixelRatio: 2 })
+  }
+}

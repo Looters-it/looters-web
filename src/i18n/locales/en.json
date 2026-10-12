@@ -690,7 +690,11 @@
       "partOf": "Part of the area {{name}}.",
       "ally": "Allied empire: you cannot attack each other.",
       "attackNoneLeft": "You have used the attacks of this turn.",
-      "payWithCapital": "The municipality does not have enough: {{count}} come from the nearest capital."
+      "payWithCapital": "The municipality does not have enough: {{count}} come from the nearest capital.",
+      "island": "Island",
+      "exclave": "Exclave",
+      "islandHint": "An island: it has no land border with other municipalities.",
+      "exclaveHint": "An exclave: it is surrounded by the land of another country."
     },
     "attack": {
       "title": "Attack on {{name}}",

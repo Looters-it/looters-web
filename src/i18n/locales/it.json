@@ -690,7 +690,11 @@
       "partOf": "Fa parte dell'area {{name}}.",
       "ally": "Impero alleato: non potete attaccarvi.",
       "attackNoneLeft": "Hai già usato gli attacchi di questo turno.",
-      "payWithCapital": "Il comune non ne ha abbastanza: {{count}} arrivano dalla capitale più vicina."
+      "payWithCapital": "Il comune non ne ha abbastanza: {{count}} arrivano dalla capitale più vicina.",
+      "island": "Isola",
+      "exclave": "Exclave",
+      "islandHint": "Un'isola: non confina via terra con altri comuni.",
+      "exclaveHint": "Un'exclave: è circondata dal territorio di un altro paese."
     },
     "attack": {
       "title": "Attacco a {{name}}",
