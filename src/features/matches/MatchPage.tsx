@@ -11,6 +11,7 @@ import {
   Coins,
   Combine,
   Hammer,
+  LoaderCircle,
   Map as MapIcon,
   Handshake,
   ScrollText,
@@ -272,6 +273,8 @@ export function MatchPage() {
   // The port or airport whose range is drawn: the one whose sign was tapped.
   const [rangeOf, setRangeOf] = useState<string | null>(null)
   // The own territory tapped for an attack it cannot join, and why: said in the bar.
+  // The signs pressed whose order the server has not answered yet: shown as waiting.
+  const [busy, setBusy] = useState<ReadonlySet<string>>(new Set())
   const [refused, setRefused] = useState<{ name: string; why: 'far' | 'unusable' } | null>(null)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [resourcesOpen, setResourcesOpen] = useState(false)
@@ -639,7 +642,10 @@ export function MatchPage() {
     // and a tap on an own municipality must not land on a flag or on other swords.
     const flags = (preparing ? [] : (annexIds ?? [])).flatMap((unitId): MapMarker[] => {
       const point = points.get(unitId)
-      return point ? [{ id: `annex:${unitId}`, kind: 'annex', lon: point.lon, lat: point.lat }] : []
+      const flag = `annex:${String(unitId)}`
+      return point
+        ? [{ id: flag, kind: 'annex', lon: point.lon, lat: point.lat, busy: busy.has(flag) }]
+        : []
     })
     const signs = (state?.territories ?? []).flatMap((territory) => {
       const point = points.get(territory.geoUnitIds[0] ?? -1)
@@ -664,7 +670,14 @@ export function MatchPage() {
           : []),
         // It can be attacked now: crossed swords to press, to prepare the attack at once.
         ...(attackable.has(territory.id) && !preparing
-          ? [{ id: `attack:${territory.id}`, kind: 'attack' as const, ...at }]
+          ? [
+              {
+                id: `attack:${territory.id}`,
+                kind: 'attack' as const,
+                busy: busy.has(`attack:${territory.id}`),
+                ...at,
+              },
+            ]
           : []),
         ...(gains.has(territory.id)
           ? [
@@ -785,7 +798,7 @@ export function MatchPage() {
         : []
     })
     return [...signs, ...flags, ...clashes, ...conquests, ...failures]
-  }, [state, targetIds, annexIds, gains, captured, repelled, canAct, preparing, units.data])
+  }, [state, targetIds, annexIds, gains, captured, repelled, canAct, preparing, busy, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
@@ -967,6 +980,8 @@ export function MatchPage() {
       return
     }
     if (kind !== 'attack' && kind !== 'annex') return
+    // Pressed already, and still on its way: once is enough.
+    if (busy.has(markerId)) return
     // An attack is on a territory, an annexation on a free municipality.
     const unitId =
       kind === 'annex'
@@ -975,6 +990,13 @@ export function MatchPage() {
     const point = units.data?.find((unit) => unit.id === unitId)
     if (!point) return
     const unit = { id: point.id, name: point.name }
+    setBusy((now) => new Set(now).add(markerId))
+    const settle = () =>
+      setBusy((now) => {
+        const left = new Set(now)
+        left.delete(markerId)
+        return left
+      })
     if (kind === 'annex') {
       // The flag annexes at once, paid by the richest own municipality beside it. If it
       // cannot be done any more, the card of the municipality says why.
@@ -994,6 +1016,7 @@ export function MatchPage() {
           return queryClient.invalidateQueries({ queryKey: ['matches', 'unit', id] })
         })
         .catch(() => onMapSelect(unit))
+        .finally(settle)
       return
     }
     void matchApi
@@ -1028,6 +1051,7 @@ export function MatchPage() {
           })
       })
       .catch(() => onMapSelect(unit))
+      .finally(settle)
   }
 
   // From a warning to its place: the map goes to the territory, and the card of the
@@ -1151,6 +1175,19 @@ export function MatchPage() {
             onSelect={onMapSelect}
             className="h-full"
           />
+          {busy.size > 0 && (
+            <div
+              role="status"
+              className="bg-background rounded-pill pointer-events-none absolute bottom-6 left-1/2 z-10 flex h-9 -translate-x-1/2 items-center gap-2 px-3 text-sm shadow-md"
+            >
+              <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+              {t(
+                [...busy].some((sign) => sign.startsWith('annex'))
+                  ? 'game.map.annexing'
+                  : 'game.map.attacking',
+              )}
+            </div>
+          )}
           {reviewing ? (
             <div
               role="group"

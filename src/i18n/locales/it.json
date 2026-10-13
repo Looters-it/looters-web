@@ -822,7 +822,9 @@
       "surrender": "Arrenditi: cedi il comune",
       "surrenderConfirm": "Premi ancora per cedere il comune",
       "surrenderShort": "Resa",
-      "surrenderAgain": "Confermi?"
+      "surrenderAgain": "Confermi?",
+      "annexing": "Annessione in corso…",
+      "attacking": "Attacco in corso…"
     },
     "structures": {
       "title": "Costruzioni",

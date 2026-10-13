@@ -822,7 +822,9 @@
       "surrender": "Surrender: give the municipality away",
       "surrenderConfirm": "Press again to give the municipality away",
       "surrenderShort": "Surrender",
-      "surrenderAgain": "Sure?"
+      "surrenderAgain": "Sure?",
+      "annexing": "Annexing…",
+      "attacking": "Attacking…"
     },
     "structures": {
       "title": "Structures",

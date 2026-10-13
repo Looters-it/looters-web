@@ -92,6 +92,8 @@ export interface MapMarker {
   logo?: string | null
   /** Short text drawn on the sign: the turns a block still lasts, the resources of a territory. */
   text?: string
+  /** Pressed, and the server has not answered yet: drawn fainter. */
+  busy?: boolean
 }
 
 /** A bag of money on the map: a point the resources gather by, to drag where they should go. */
@@ -558,7 +560,7 @@ export function GameMap({
           .map((marker) => ({
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
-            properties: { id: marker.id, kind: marker.kind },
+            properties: { id: marker.id, kind: marker.kind, busy: marker.busy === true },
           })),
       })
       map.getSource<GeoJSONSource>(MARKERS_SOURCE)?.setData({
@@ -573,6 +575,7 @@ export function GameMap({
               kind: marker.kind,
               color: marker.color ?? '',
               text: marker.text ?? '',
+              busy: marker.busy === true,
               // Only an image the map really has: otherwise the plain disc stays.
               icon: icons.has(icon) ? icon : '',
             },

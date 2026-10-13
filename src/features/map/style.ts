@@ -498,7 +498,11 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         // Beside the name of the municipality, not over it.
-        paint: { 'icon-translate': beside(22, 20) },
+        // Fainter while the order it gave is on its way.
+        paint: {
+          'icon-translate': beside(22, 20),
+          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0.35, 1],
+        },
       },
       {
         // Can be attacked now: crossed swords beside the municipality, bottom right. Drawn
@@ -513,7 +517,11 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': beside(22, 20) },
+        // Fainter while the order it gave is on its way.
+        paint: {
+          'icon-translate': beside(22, 20),
+          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0.35, 1],
+        },
       },
       {
         // Flags too close to tell apart: one disc for the group, green like them, with
