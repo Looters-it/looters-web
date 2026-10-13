@@ -96,6 +96,16 @@ export interface MapMarker {
   busy?: boolean
 }
 
+/** Where the address of the page says the map should look, if it says it whole. */
+function viewOf(search: string): { lat: number; lng: number; zoom: number } | null {
+  const query = new URLSearchParams(search)
+  const read = (name: string) => (query.has(name) ? Number(query.get(name)) : NaN)
+  const [lat, lng, zoom] = [read('lat'), read('lng'), read('zoom')]
+  if (![lat, lng, zoom].every(Number.isFinite)) return null
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null
+  return { lat, lng, zoom: Math.min(16, Math.max(4, zoom)) }
+}
+
 /** A bag of money on the map: a point the resources gather by, to drag where they should go. */
 /** A circle on the map: a centre and a radius in kilometres. */
 export interface MapRange {
@@ -276,6 +286,11 @@ interface Props {
   /** Ranges the view must hold: the map moves back until they are all in sight. */
   frame?: readonly MapRange[] | null
   /**
+   * Keeps where the map looks in the address of the page (`lat`, `lng`, `zoom`), and
+   * begins from there: a page loaded again shows the same place.
+   */
+  viewInUrl?: boolean
+  /**
    * For a map embedded in a page that scrolls: one finger scrolls the page,
    * two fingers (or ctrl + wheel) move the map.
    */
@@ -318,6 +333,7 @@ export function GameMap({
   renderInfo,
   focus = null,
   frame = null,
+  viewInUrl = false,
   embedded = false,
   attribution = 'bottom-right',
   fitPadding,
@@ -360,12 +376,15 @@ export function GameMap({
 
   useEffect(() => {
     if (!container.current) return
+    const kept = viewInUrl ? viewOf(window.location.search) : null
     const map = new MapLibreMap({
       container: container.current,
       style: buildStyle(area, mapColors(), window.location.origin),
-      ...(area.bounds
-        ? { bounds: area.bounds, fitBoundsOptions: { padding: fitPadding ?? 24 } }
-        : { center: [12.5, 42], zoom: 5 }),
+      ...(kept
+        ? { center: [kept.lng, kept.lat] as [number, number], zoom: kept.zoom }
+        : area.bounds
+          ? { bounds: area.bounds, fitBoundsOptions: { padding: fitPadding ?? 24 } }
+          : { center: [12.5, 42], zoom: 5 }),
       minZoom: 4,
       maxZoom: 16,
       cooperativeGestures: embedded,
@@ -382,6 +401,17 @@ export function GameMap({
     map.addControl(new AttributionControl({ compact: true }), attribution)
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     mapRef.current = map
+    if (viewInUrl) {
+      // Written over the address as it is: no step back for every move of the map.
+      map.on('moveend', () => {
+        const centre = map.getCenter()
+        const url = new URL(window.location.href)
+        url.searchParams.set('lat', centre.lat.toFixed(5))
+        url.searchParams.set('lng', centre.lng.toFixed(5))
+        url.searchParams.set('zoom', map.getZoom().toFixed(2))
+        window.history.replaceState(window.history.state, '', url)
+      })
+    }
     applied.current = {
       colors: NO_COLORS,
       highlighted: new Set(),

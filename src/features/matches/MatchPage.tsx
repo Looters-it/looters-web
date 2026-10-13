@@ -1150,6 +1150,7 @@ export function MatchPage() {
         >
           <LazyGameMap
             attribution="bottom-left"
+            viewInUrl
             area={area.data}
             colors={reviewing ? pastColors : ownership.colors}
             empireLabels={reviewing ? NOTHING : labels}
