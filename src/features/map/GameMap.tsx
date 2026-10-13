@@ -277,8 +277,8 @@ interface Props {
     /** The municipality under the bag. */
     unitId: number | null,
   ) => void
-  /** A bag split in two: where the new one goes. */
-  onBagSplit?: (here: { lon: number; lat: number }) => void
+  /** A bag split in two: which, and where the new one goes. */
+  onBagSplit?: (id: string, here: { lon: number; lat: number }) => void
   /** Content of the box shown for the selected municipality. */
   renderInfo?: (unit: MapUnit) => ReactNode
   /** A point to bring into view when it changes. */
@@ -779,7 +779,7 @@ export function GameMap({
           // Beside it, on the side with more room.
           const side = at.x + BAG_APART + 24 < map.getContainer().clientWidth ? 1 : -1
           const here = map.unproject([at.x + BAG_APART * side, at.y])
-          onBagSplitRef.current?.({ lon: here.lng, lat: here.lat })
+          onBagSplitRef.current?.(bag.id, { lon: here.lng, lat: here.lat })
         })
         marker.on('dragstart', () => {
           made.held = true

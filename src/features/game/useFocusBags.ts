@@ -5,11 +5,11 @@ import { matchApi, type MatchState } from '@/features/matches/api'
 import type { MapBag } from '@/features/map/GameMap'
 
 import {
-  addPoint,
-  dropPoint,
+  joinPoint,
   loadFocus,
   movePoint,
   pointsOf,
+  splitPoint,
   saveFocus,
   tidied,
   watchFocus,
@@ -26,8 +26,9 @@ export function useStoredFocus(matchId: string): Focus | null {
 
 /**
  * The focus of the resources as bags of money on the map of the game: a bag gives all
- * it carries to the territory it is left on, and to no other. It is split in more
- * bags, each carrying an equal part, and put back together by dropping one on another. The bags are there only in the preliminary
+ * it carries to the territory it is left on, and to no other. A bag is split
+ * in two, each carrying half of what it did while the others keep theirs, and two are
+ * put back together by dropping one on the other. The bags are there only in the preliminary
  * part of a turn, when the resources move at once: during the action nothing can be moved,
  * so there is nothing to take. The focus is kept, and the next turn begins by it.
  */
@@ -73,11 +74,12 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
     // The one still waiting can be split too: it is placed on the capital by that.
     if (!focus) return [{ id: 'at', ...start, text: '', idle: true, later: false, split: true }]
     const points = pointsOf(focus)
-    const parts = 1 + (focus.more?.length ?? 0)
+    // A bag carries its share of what can move: splitting one leaves the others as they are.
+    const whole = points.reduce((sum, point) => sum + point.share, 0)
     return points.map((point) => ({
       ...point,
       // The second end of a line carries the same part as the first: said once.
-      text: point.id === 'to' ? '' : String(Math.round(movable / parts)),
+      text: point.id === 'to' ? '' : String(Math.round((movable * point.share) / whole)),
       idle: false,
       later: false,
       split: true,
@@ -125,16 +127,16 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
       keep(
         onto === null
           ? tidied(movePoint(whole, id === 'to' ? 'at' : id, there))
-          : dropPoint(whole, id),
+          : joinPoint(whole, id, onto),
       )
     },
     [matchId, keep, territories, empireId, places],
   )
   /** A bag split in two: the new one beside it. */
   const split = useCallback(
-    (here: Point) => {
+    (id: string, here: Point) => {
       const now = loadFocus(matchId) ?? (start ? { mode: 'point' as const, ...start } : null)
-      if (now) keep(addPoint(now, here))
+      if (now) keep(splitPoint(now, id === 'to' ? 'at' : id, here))
     },
     [matchId, start, keep],
   )

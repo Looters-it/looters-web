@@ -21,15 +21,33 @@ export interface Focus {
   /** The other end of a line: where it is not set, the point opposite to the first. */
   to?: Point
   /**
-   * The focus split in more parts: each further point gives the territory it is on a
-   * part of the resources as large as the one of the focus.
+   * How much of the resources the focus itself carries, against the shares of its
+   * other parts: one where it is not said.
    */
-  more?: Point[]
+  share?: number
+  /**
+   * The focus split in more parts: each further point gives the territory it is on
+   * its share of the resources.
+   */
+  more?: Part[]
 }
 
 export interface Point {
   lon: number
   lat: number
+}
+
+/** A further part of a focus: where it is, and how much it carries against the others. */
+export interface Part extends Point {
+  share?: number
+}
+
+/** The share a part carries: one where it is not said. */
+export const shareOf = (part: { share?: number }): number => part.share ?? 1
+
+const withShare = <T extends { share?: number }>(part: T, share: number): T => {
+  const { share: _, ...rest } = part
+  return (share === 1 ? rest : { ...rest, share }) as T
 }
 
 interface Placed {
@@ -105,11 +123,12 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
               : focus.mode === 'line'
                 ? near(fromLine(place))
                 : near(apart(place, middle) - ring)
-  // Every part carries the same share of the whole, however many territories it
-  // reaches: each is brought to one before they are put together.
+  // Every part carries its share of the whole, however many territories it reaches:
+  // each is brought to one before they are put together.
   const parts = [first, ...(focus.more ?? []).map(onlyAt)]
+  const shares = [shareOf(focus), ...(focus.more ?? []).map(shareOf)]
   const weights: Record<string, number> = Object.fromEntries(places.map((place) => [place.id, 0]))
-  for (const part of parts) {
+  for (const [at, part] of parts.entries()) {
     const reached = places.map((place) => {
       const weight = part(place)
       return weight < NEGLIGIBLE ? 0 : weight
@@ -117,7 +136,8 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
     const sum = reached.reduce((all, weight) => all + weight, 0)
     if (sum <= 0) continue
     places.forEach((place, index) => {
-      weights[place.id] = (weights[place.id] ?? 0) + (reached[index] ?? 0) / sum
+      weights[place.id] =
+        (weights[place.id] ?? 0) + ((reached[index] ?? 0) / sum) * (shares[at] ?? 1)
     })
   }
   return weights
@@ -125,33 +145,45 @@ export function focusWeights(places: readonly Placed[], focus: Focus): Record<st
 
 /**
  * The focus without the parts that lie on a point another has already: two bags on
- * one spot would show as one, carrying half of what the two do.
+ * one spot are one bag, carrying what the two did.
  */
 export function tidied(focus: Focus): Focus {
-  const taken: Point[] = [focus]
-  const more = (focus.more ?? []).filter((point) => {
-    const twice = taken.some((other) => other.lon === point.lon && other.lat === point.lat)
-    if (!twice) taken.push(point)
-    return !twice
-  })
-  return rebuilt(focus, more)
+  // The focus first, then its parts: each with what it has gathered so far.
+  const kept: Part[] = [{ lon: focus.lon, lat: focus.lat, share: shareOf(focus) }]
+  for (const point of focus.more ?? []) {
+    const there = kept.find((other) => other.lon === point.lon && other.lat === point.lat)
+    if (there) there.share = shareOf(there) + shareOf(point)
+    else kept.push({ ...point, share: shareOf(point) })
+  }
+  const [first, ...more] = kept
+  return rebuilt(
+    withShare(focus, shareOf(first ?? focus)),
+    more.map((part) => withShare(part, shareOf(part))),
+  )
 }
 
 /** A point of a focus that can be taken and moved: the focus, the end of its line, a part. */
 export interface FocusPoint extends Point {
   id: string
+  /** What it carries, against the other points. */
+  share: number
 }
 
 /** The points of a focus, the first being the focus itself. */
 export function pointsOf(focus: Focus): FocusPoint[] {
   return [
-    { id: 'at', lon: focus.lon, lat: focus.lat },
-    ...(focus.mode === 'line' && focus.to ? [{ id: 'to', ...focus.to }] : []),
-    ...(focus.more ?? []).map((point, index) => ({ id: `more:${String(index)}`, ...point })),
+    { id: 'at', lon: focus.lon, lat: focus.lat, share: shareOf(focus) },
+    ...(focus.mode === 'line' && focus.to ? [{ id: 'to', ...focus.to, share: 0 }] : []),
+    ...(focus.more ?? []).map((point, index) => ({
+      id: `more:${String(index)}`,
+      lon: point.lon,
+      lat: point.lat,
+      share: shareOf(point),
+    })),
   ]
 }
 
-const rebuilt = (focus: Focus, more: Point[]): Focus => {
+const rebuilt = (focus: Focus, more: Part[]): Focus => {
   const { more: _, ...rest } = focus
   return more.length > 0 ? { ...rest, more } : rest
 }
@@ -163,13 +195,49 @@ export function movePoint(focus: Focus, id: string, here: Point): Focus {
   const index = Number(id.slice('more:'.length))
   return rebuilt(
     focus,
-    (focus.more ?? []).map((point, at) => (at === index ? here : point)),
+    (focus.more ?? []).map((point, at) => (at === index ? { ...point, ...here } : point)),
   )
 }
 
 /** The focus with one more part, where it is said. */
 export function addPoint(focus: Focus, here: Point): Focus {
   return rebuilt(focus, [...(focus.more ?? []), here])
+}
+
+/**
+ * One point of a focus split in two: half of what it carried stays with it, the other
+ * half goes to a new part, where it is said. What the other points carry is not touched.
+ */
+export function splitPoint(focus: Focus, id: string, here: Point): Focus {
+  const more = focus.more ?? []
+  if (id.startsWith('more:')) {
+    const index = Number(id.slice('more:'.length))
+    const half = shareOf(more[index] ?? {}) / 2
+    return rebuilt(focus, [
+      ...more.map((point, at) => (at === index ? withShare<Part>(point, half) : point)),
+      withShare<Part>({ ...here }, half),
+    ])
+  }
+  const half = shareOf(focus) / 2
+  return rebuilt(withShare(focus, half), [...more, withShare<Part>({ ...here }, half)])
+}
+
+/** A point of a focus put together with another: the other carries what the two did. */
+export function joinPoint(focus: Focus, id: string, onto: string): Focus | null {
+  const carried = pointsOf(focus).find((point) => point.id === id)?.share ?? 0
+  const more = focus.more ?? []
+  const index = onto.startsWith('more:') ? Number(onto.slice('more:'.length)) : -1
+  const grown =
+    index < 0
+      ? withShare(focus, shareOf(focus) + carried)
+      : rebuilt(
+          focus,
+          more.map((point, at) =>
+            at === index ? withShare(point, shareOf(point) + carried) : point,
+          ),
+        )
+  // Taking away the focus itself moves the first part to its place: said before it goes.
+  return dropPoint(grown, id)
 }
 
 /**
@@ -191,7 +259,9 @@ export function dropPoint(focus: Focus, id: string): Focus | null {
     return { ...rest, mode: 'area', ...(id === 'at' ? to : {}) }
   }
   const [next, ...others] = more
-  return next ? rebuilt({ ...focus, ...next }, others) : null
+  return next
+    ? rebuilt(withShare({ ...focus, lon: next.lon, lat: next.lat }, shareOf(next)), others)
+    : null
 }
 
 const keyOf = (matchId: string) => `match.focus.${matchId}`
@@ -201,6 +271,9 @@ const isPoint = (value: unknown): value is Point =>
   value !== null &&
   typeof (value as Point).lon === 'number' &&
   typeof (value as Point).lat === 'number'
+
+const isShare = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0
 
 // Who is showing the focus of a match: told when it is moved from somewhere else.
 const watchers = new Set<() => void>()
@@ -243,12 +316,15 @@ function parse(raw: string | null): Focus | null {
           mode: stored.mode,
           lon: stored.lon,
           lat: stored.lat,
+          ...(isShare(stored.share) ? { share: stored.share } : {}),
           ...(isPoint(stored.to) ? { to: { lon: stored.to.lon, lat: stored.to.lat } } : {}),
           ...(Array.isArray(stored.more) && stored.more.some(isPoint)
             ? {
-                more: stored.more
-                  .filter(isPoint)
-                  .map((point) => ({ lon: point.lon, lat: point.lat })),
+                more: stored.more.filter(isPoint).map((point) => ({
+                  lon: point.lon,
+                  lat: point.lat,
+                  ...(isShare((point as Part).share) ? { share: (point as Part).share } : {}),
+                })),
               }
             : {}),
         }
