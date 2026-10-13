@@ -7,7 +7,6 @@ import type { MapBag } from '@/features/map/GameMap'
 import {
   addPoint,
   dropPoint,
-  FOCUS_PARTS,
   loadFocus,
   movePoint,
   pointsOf,
@@ -81,7 +80,7 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
       text: point.id === 'to' ? '' : String(Math.round(movable / parts)),
       idle: false,
       later: false,
-      split: parts < FOCUS_PARTS,
+      split: true,
     }))
   }, [focus, start, movable, phase])
 
@@ -135,7 +134,7 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
   const split = useCallback(
     (here: Point) => {
       const now = loadFocus(matchId) ?? (start ? { mode: 'point' as const, ...start } : null)
-      if (now && 1 + (now.more?.length ?? 0) < FOCUS_PARTS) keep(addPoint(now, here))
+      if (now) keep(addPoint(now, here))
     },
     [matchId, start, keep],
   )

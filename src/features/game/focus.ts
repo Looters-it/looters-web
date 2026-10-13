@@ -32,9 +32,6 @@ export interface Point {
   lat: number
 }
 
-/** How many parts a focus can be split in. */
-export const FOCUS_PARTS = 6
-
 interface Placed {
   id: string
   lon: number
@@ -251,7 +248,6 @@ function parse(raw: string | null): Focus | null {
             ? {
                 more: stored.more
                   .filter(isPoint)
-                  .slice(0, FOCUS_PARTS - 1)
                   .map((point) => ({ lon: point.lon, lat: point.lat })),
               }
             : {}),
