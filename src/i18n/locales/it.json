@@ -1125,7 +1125,11 @@
       "none": "Nessun comune scelto.",
       "sum_one": "{{count}} comune scelto · forza {{force}} · costo {{cost}} ({{pct}}%)",
       "sum_other": "{{count}} comuni scelti · forza {{force}} · costo {{cost}} ({{pct}}%)",
-      "cancel": "Annulla"
+      "cancel": "Annulla",
+      "refused": {
+        "far": "{{name}} non arriva fin lì: non confina e non ha un porto o un aeroporto a portata.",
+        "unusable": "{{name}} non può attaccare ora: è senza risorse, in uno scontro o bloccato."
+      }
     }
   },
   "crash": {

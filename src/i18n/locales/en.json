@@ -1125,7 +1125,11 @@
       "none": "No municipality chosen.",
       "sum_one": "{{count}} municipality chosen · strength {{force}} · cost {{cost}} ({{pct}}%)",
       "sum_other": "{{count}} municipalities chosen · strength {{force}} · cost {{cost}} ({{pct}}%)",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "refused": {
+        "far": "{{name}} cannot get there: no border, and no port or airport in range.",
+        "unusable": "{{name}} cannot attack now: no resources, in a battle or blocked."
+      }
     }
   },
   "crash": {

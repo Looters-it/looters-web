@@ -16,6 +16,8 @@ export function AttackBar(props: {
   state: MatchState
   card: UnitCardData
   chosen: string[]
+  /** An own territory that was tapped and cannot join, and why. */
+  refused?: { name: string; why: 'far' | 'unusable' } | null
   onDone: () => void
 }) {
   const { t } = useTranslation()
@@ -91,6 +93,11 @@ export function AttackBar(props: {
       ) : (
         <p role="status" className="text-lg">
           {t('game.attackBar.none')}
+        </p>
+      )}
+      {props.refused && (
+        <p role="status" className="text-danger text-base">
+          {t(`game.attackBar.refused.${props.refused.why}`, { name: props.refused.name })}
         </p>
       )}
       {error && (

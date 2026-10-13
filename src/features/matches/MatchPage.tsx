@@ -271,6 +271,8 @@ export function MatchPage() {
   const [alertOpen, setAlertOpen] = useState(false)
   // The port or airport whose range is drawn: the one whose sign was tapped.
   const [rangeOf, setRangeOf] = useState<string | null>(null)
+  // The own territory tapped for an attack it cannot join, and why: said in the bar.
+  const [refused, setRefused] = useState<{ name: string; why: 'far' | 'unusable' } | null>(null)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [resourcesOpen, setResourcesOpen] = useState(false)
   // The structures open beside the map too: they are dragged from there onto it.
@@ -611,7 +613,9 @@ export function MatchPage() {
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
     const empireOf = new Map(state?.empires.map((empire) => [empire.capitalTerritoryId, empire]))
     // Free municipalities that can be annexed now: a flag to press, to annex at once.
-    const flags = (annexIds ?? []).flatMap((unitId): MapMarker[] => {
+    // Not while an attack is prepared: the map is then for choosing where it starts from,
+    // and a tap on an own municipality must not land on a flag or on other swords.
+    const flags = (preparing ? [] : (annexIds ?? [])).flatMap((unitId): MapMarker[] => {
       const point = points.get(unitId)
       return point ? [{ id: `annex:${unitId}`, kind: 'annex', lon: point.lon, lat: point.lat }] : []
     })
@@ -637,7 +641,7 @@ export function MatchPage() {
           ? [{ id: `alert:${territory.id}`, kind: 'alert' as const, ...at }]
           : []),
         // It can be attacked now: crossed swords to press, to prepare the attack at once.
-        ...(attackable.has(territory.id)
+        ...(attackable.has(territory.id) && !preparing
           ? [{ id: `attack:${territory.id}`, kind: 'attack' as const, ...at }]
           : []),
         ...(gains.has(territory.id)
@@ -759,7 +763,7 @@ export function MatchPage() {
         : []
     })
     return [...signs, ...flags, ...clashes, ...conquests, ...failures]
-  }, [state, targetIds, annexIds, gains, captured, repelled, canAct, units.data])
+  }, [state, targetIds, annexIds, gains, captured, repelled, canAct, preparing, units.data])
 
   const mineId = state?.me?.empireId
   // What is lit on the map: the empire pointed at in the ranking, or the free
@@ -875,12 +879,16 @@ export function MatchPage() {
       const territory = unit ? ownership.byUnit.get(unit.id) : undefined
       const source = attack.card.attack?.from.find((s) => s.territoryId === territory?.id)
       if (source?.usable) {
+        setRefused(null)
         setAttack({
           ...attack,
           from: attack.from.includes(source.territoryId)
             ? attack.from.filter((id) => id !== source.territoryId)
             : [...attack.from, source.territoryId],
         })
+      } else if (territory && territory.ownerEmpireId === mineId) {
+        // An own territory that cannot join: said, or the tap would seem lost.
+        setRefused({ name: territory.name, why: source ? 'unusable' : 'far' })
       }
       return
     }
@@ -980,6 +988,7 @@ export function MatchPage() {
         if (sources.some((source) => source.via !== 'land')) {
           open('info')
           setSelected(null)
+          setRefused(null)
           setAttack({ card: target, from: [] })
           return
         }
@@ -1324,6 +1333,7 @@ export function MatchPage() {
                 state={state}
                 card={attack.card}
                 chosen={attack.from}
+                refused={refused}
                 onDone={() => setAttack(null)}
               />
             )}
