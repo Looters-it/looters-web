@@ -1030,6 +1030,18 @@ export function MatchPage() {
       .catch(() => onMapSelect(unit))
   }
 
+  // From a warning to its place: the map goes to the territory, and the card of the
+  // municipality opens. Not while an attack is prepared, when a tap on a territory means
+  // something else.
+  const locate = (territoryId: string) => {
+    const unitId = state.territories.find((t) => t.id === territoryId)?.geoUnitIds[0]
+    const point = units.data?.find((unit) => unit.id === unitId)
+    if (!point) return
+    setFocus({ lon: point.lon, lat: point.lat })
+    setPhoneTab('map')
+    if (!attack) onMapSelect({ id: point.id, name: point.name })
+  }
+
   const matchView = (
     // Only the way in, a step at a time: the match is managed from the empire, once there is one.
     <JoinPanel
@@ -1364,18 +1376,9 @@ export function MatchPage() {
               state={state}
               sound={sound}
               onRespond={() => setAlertOpen(true)}
-              onLocate={(territoryId) => {
-                const unitId = state.territories.find((t) => t.id === territoryId)?.geoUnitIds[0]
-                const point = units.data?.find((unit) => unit.id === unitId)
-                if (!point) return
-                // The map goes there, and the card of the municipality opens: not while
-                // an attack is prepared, when a tap on an own territory means something else.
-                setFocus({ lon: point.lon, lat: point.lat })
-                setPhoneTab('map')
-                if (!attack) onMapSelect({ id: point.id, name: point.name })
-              }}
+              onLocate={locate}
             />
-            {!reviewing && <SiegeToasts state={state} />}
+            {!reviewing && <SiegeToasts state={state} onLocate={locate} />}
           </div>
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}
           {units.data && !reviewing && (

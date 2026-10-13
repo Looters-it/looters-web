@@ -13,7 +13,11 @@ import { scoreOf } from './battles'
  * next costs, and the way out. Each stays until it is over; how it ends is said by the
  * announcement in the middle of the map.
  */
-export function SiegeToasts(props: { state: MatchState }) {
+export function SiegeToasts(props: {
+  state: MatchState
+  /** Takes the map to the territory under siege. */
+  onLocate: (territoryId: string) => void
+}) {
   const { t } = useTranslation()
   const errorText = useMatchErrorText()
   const queryClient = useQueryClient()
@@ -38,9 +42,14 @@ export function SiegeToasts(props: { state: MatchState }) {
           >
             <div className="flex items-center gap-3">
               <Castle aria-hidden="true" className="size-5 flex-none" />
-              <p className="min-w-0 flex-1 font-bold">
+              <button
+                type="button"
+                title={t('game.attackToast.locate')}
+                onClick={() => props.onLocate(battle.targetTerritoryId)}
+                className="min-w-0 flex-1 cursor-pointer text-left font-bold underline-offset-4 hover:underline"
+              >
                 {t('game.siege.attacking', { name: battle.targetName, round: battle.round })}
-              </p>
+              </button>
               <Button
                 variant="outline"
                 size="sm"
