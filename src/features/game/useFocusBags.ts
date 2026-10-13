@@ -71,7 +71,8 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
   const bags = useMemo<MapBag[]>(() => {
     // No moving during the action: no bags, the focus waits for the next turn.
     if (!start || phase !== 'PRELIMINARY') return []
-    if (!focus) return [{ id: 'at', ...start, text: '', idle: true, later: false, split: false }]
+    // The one still waiting can be split too: it is placed on the capital by that.
+    if (!focus) return [{ id: 'at', ...start, text: '', idle: true, later: false, split: true }]
     const points = pointsOf(focus)
     const parts = 1 + (focus.more?.length ?? 0)
     return points.map((point) => ({
