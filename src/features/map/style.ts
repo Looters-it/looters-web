@@ -498,10 +498,10 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         // Beside the name of the municipality, not over it.
-        // Fainter while the order it gave is on its way.
+        // Not drawn while the order it gave is on its way: a wheel turns in its place.
         paint: {
           'icon-translate': beside(22, 20),
-          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0.35, 1],
+          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0, 1],
         },
       },
       {
@@ -517,10 +517,10 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        // Fainter while the order it gave is on its way.
+        // Not drawn while the order it gave is on its way: a wheel turns in its place.
         paint: {
           'icon-translate': beside(22, 20),
-          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0.35, 1],
+          'icon-opacity': ['case', ['==', ['get', 'busy'], true], 0, 1],
         },
       },
       {

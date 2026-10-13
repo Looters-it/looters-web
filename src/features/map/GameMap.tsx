@@ -92,7 +92,7 @@ export interface MapMarker {
   logo?: string | null
   /** Short text drawn on the sign: the turns a block still lasts, the resources of a territory. */
   text?: string
-  /** Pressed, and the server has not answered yet: drawn fainter. */
+  /** Pressed, and the server has not answered yet: a wheel turns in its place. */
   busy?: boolean
 }
 
@@ -827,6 +827,49 @@ export function GameMap({
       entry.marker.setLngLat(bag.idle ? map.unproject([at.x + 44, at.y]) : [bag.lon, bag.lat])
     }
   }, [bags, ready])
+  // A flag or swords that were pressed, while the server has not answered: a wheel
+  // turning in their place, of their colour. Kept where the sign is drawn at each zoom.
+  const waiting = markers
+    .filter((marker) => marker.busy === true)
+    .map((marker) => [marker.kind, marker.lon, marker.lat].join('|'))
+    .join(';')
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || waiting === '') return
+    const wheels = waiting.split(';').map((sign) => {
+      const [kind = '', lon, lat] = sign.split('|')
+      const element = document.createElement('div')
+      element.className = `sign-wait sign-wait-${kind}`
+      element.setAttribute('role', 'status')
+      element.setAttribute('aria-label', i18next.t('game.map.waiting'))
+      element.innerHTML = '<i></i>'
+      return new Marker({ element, anchor: 'center' }).setLngLat([Number(lon), Number(lat)])
+    })
+    // The same steps the style draws the signs by: place and size follow the zoom.
+    const between = (zoom: number, low: number, at: number, high: number) =>
+      zoom <= 5
+        ? low
+        : zoom <= 10
+          ? low + ((at - low) * (zoom - 5)) / 5
+          : zoom <= 14
+            ? at + ((high - at) * (zoom - 10)) / 4
+            : high
+    const place = () => {
+      const zoom = map.getZoom()
+      const far = between(zoom, 0.55, 1, 1.3)
+      for (const wheel of wheels) {
+        wheel.setOffset([22 * far, 20 * far])
+        wheel.getElement().style.setProperty('--sign-wait', String(between(zoom, 0.5, 0.85, 1.1)))
+      }
+    }
+    place()
+    for (const wheel of wheels) wheel.addTo(map)
+    map.on('zoom', place)
+    return () => {
+      map.off('zoom', place)
+      for (const wheel of wheels) wheel.remove()
+    }
+  }, [waiting, ready])
   // Gone with the map.
   useEffect(() => {
     const shown = signsRef.current

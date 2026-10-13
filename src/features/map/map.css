@@ -329,3 +329,40 @@
 .money-bag.money-bag-later:not(.money-bag-held) {
   opacity: 0.65;
 }
+
+/* A flag or swords that were pressed: a wheel turning where they stood, until answered. */
+.sign-wait {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sign-wait i {
+  display: block;
+  width: calc(2.25rem * var(--sign-wait, 1));
+  height: calc(2.25rem * var(--sign-wait, 1));
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  background: #1f9d55;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  position: relative;
+}
+
+.sign-wait.sign-wait-attack i {
+  background: #ee4266;
+}
+
+.sign-wait i::after {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border: 3px solid rgb(255 255 255 / 0.35);
+  border-top-color: #ffffff;
+  border-radius: 9999px;
+  animation: sign-wait-turn 0.7s linear infinite;
+}
+
+@keyframes sign-wait-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
