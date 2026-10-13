@@ -36,6 +36,8 @@ import {
   EMPIRES_SOURCE,
   FILL_LAYER,
   MARKERS_SOURCE,
+  SIGN_GROUPS_LAYER,
+  SIGNS_SOURCE,
   OWNERS_SOURCE,
   UNITS_LAYER,
   UNITS_SOURCE,
@@ -396,7 +398,7 @@ export function GameMap({
     })
     map.on('mouseleave', FILL_LAYER, () => setHover(null))
 
-    for (const layer of [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER]) {
+    for (const layer of [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER, SIGN_GROUPS_LAYER]) {
       map.on('mouseenter', layer, () => {
         map.getCanvas().style.cursor = 'pointer'
       })
@@ -404,8 +406,18 @@ export function GameMap({
     map.on('click', (event) => {
       // A sign that is a button comes before the municipality under it.
       const sign = map.queryRenderedFeatures(event.point, {
-        layers: [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER],
+        layers: [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER, SIGN_GROUPS_LAYER],
       })[0]
+      // A group of flags opens: the map goes in until they stand apart.
+      const groupId: unknown = sign?.properties.cluster_id
+      if (sign && typeof groupId === 'number' && sign.geometry.type === 'Point') {
+        const center = sign.geometry.coordinates as [number, number]
+        void map
+          .getSource<GeoJSONSource>(SIGNS_SOURCE)
+          ?.getClusterExpansionZoom(groupId)
+          .then((zoom) => map.easeTo({ center, zoom: zoom + 0.3 }))
+        return
+      }
       if (sign && onMarkerRef.current) {
         onMarkerRef.current(String(sign.properties.id ?? ''))
         return
@@ -534,6 +546,17 @@ export function GameMap({
     const map = mapRef.current
     if (!map || !ready) return
     const write = (icons: Set<string>) => {
+      // The flags go to the source that groups them.
+      map.getSource<GeoJSONSource>(SIGNS_SOURCE)?.setData({
+        type: 'FeatureCollection',
+        features: markers
+          .filter((marker) => marker.kind === 'annex')
+          .map((marker) => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [marker.lon, marker.lat] },
+            properties: { id: marker.id, kind: marker.kind },
+          })),
+      })
       map.getSource<GeoJSONSource>(MARKERS_SOURCE)?.setData({
         type: 'FeatureCollection',
         features: markers.map((marker) => {

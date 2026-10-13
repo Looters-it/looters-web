@@ -22,6 +22,9 @@ export const MARKS_LAYER = 'marks'
 const MARKS_MIN_ZOOM = 6
 export const EMPIRES_SOURCE = 'empires'
 export const MARKERS_SOURCE = 'markers'
+/** The flags of annexation: grouped when they stand too close to tell apart. */
+export const SIGNS_SOURCE = 'signs'
+export const SIGN_GROUPS_LAYER = 'sign-groups'
 /** The signs of the territories that can be attacked: they are pressed like buttons. */
 export const ATTACK_LAYER = 'attack-swords'
 export const ANNEX_LAYER = 'annex-flags'
@@ -125,6 +128,16 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       },
       [EMPIRES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [MARKERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      // Flags come by the hundreds once an empire reaches far: those within a fingertip
+      // of each other are one disc with their number, opened by zooming in. The swords
+      // are never grouped: what can be attacked is always in sight.
+      [SIGNS_SOURCE]: {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterRadius: 44,
+        clusterMaxZoom: 13,
+      },
       [OWNERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [FRONTS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
@@ -449,8 +462,8 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         // Can be annexed now: a flag beside the free municipality, pressed like a button.
         id: ANNEX_LAYER,
         type: 'symbol',
-        source: MARKERS_SOURCE,
-        filter: ['==', ['get', 'kind'], 'annex'],
+        source: SIGNS_SOURCE,
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'kind'], 'annex']],
         layout: {
           'icon-image': ANNEX_ICON,
           'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 0.85, 14, 1.1],
@@ -474,6 +487,34 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
           'icon-ignore-placement': true,
         },
         paint: { 'icon-translate': beside(22, 20) },
+      },
+      {
+        // Flags too close to tell apart: one disc for the group, green like them, with
+        // how many they are. Pressed, it opens.
+        id: SIGN_GROUPS_LAYER,
+        type: 'circle',
+        source: SIGNS_SOURCE,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#1f9d55',
+          'circle-radius': ['step', ['get', 'point_count'], 15, 10, 19, 50, 23],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2.5,
+        },
+      },
+      {
+        id: 'sign-group-counts',
+        type: 'symbol',
+        source: SIGNS_SOURCE,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': [EMPIRE_FONT],
+          'text-size': 14,
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: { 'text-color': '#ffffff' },
       },
       {
         // Protected until the end of the turn: a shield beside the municipality, bottom left.

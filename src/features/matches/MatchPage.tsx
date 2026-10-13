@@ -551,6 +551,17 @@ export function MatchPage() {
   // around every municipality of the territory, as wide as the level of the structure.
   const selectedId = selected?.id
   const preparing = attack !== null
+  // An attack is prepared within the action of one turn: when that ends, so does it,
+  // or its bar would stay over a map that no longer lets it be declared.
+  const moment = `${String(state?.match.currentTurn)}:${String(phase)}`
+  const [attackMoment, setAttackMoment] = useState(moment)
+  if (attackMoment !== moment) {
+    setAttackMoment(moment)
+    if (attack) {
+      setAttack(null)
+      if (chosenView === 'attack') setView('unit')
+    }
+  }
   const ranges = useMemo<(MapRange & { tapped: boolean })[]>(() => {
     if (!state) return []
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
