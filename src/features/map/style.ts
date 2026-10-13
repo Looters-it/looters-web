@@ -25,6 +25,8 @@ export const MARKERS_SOURCE = 'markers'
 /** The signs of the territories that can be attacked: they are pressed like buttons. */
 export const ATTACK_LAYER = 'attack-swords'
 export const ANNEX_LAYER = 'annex-flags'
+export const PORT_LAYER = 'port-anchors'
+export const AIRPORT_LAYER = 'airport-planes'
 export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 /** The fronts of the open battles: the border between who attacks and who is attacked. */
@@ -278,7 +280,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       },
       {
         // A port: an anchor on the left of the territory, above its name.
-        id: 'port-anchors',
+        id: PORT_LAYER,
         type: 'symbol',
         source: MARKERS_SOURCE,
         filter: ['==', ['get', 'kind'], 'port'],
@@ -333,7 +335,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       },
       {
         // An airport: a plane on the left of the port's place, so that the two stand together.
-        id: 'airport-planes',
+        id: AIRPORT_LAYER,
         type: 'symbol',
         source: MARKERS_SOURCE,
         filter: ['==', ['get', 'kind'], 'airport'],

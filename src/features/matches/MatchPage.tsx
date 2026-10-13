@@ -269,6 +269,8 @@ export function MatchPage() {
   // The attack being prepared: its target and the own territories chosen so far.
   const [attack, setAttack] = useState<{ card: UnitCardData; from: string[] } | null>(null)
   const [alertOpen, setAlertOpen] = useState(false)
+  // The port or airport whose range is drawn: the one whose sign was tapped.
+  const [rangeOf, setRangeOf] = useState<string | null>(null)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [resourcesOpen, setResourcesOpen] = useState(false)
   // The structures open beside the map too: they are dragged from there onto it.
@@ -541,27 +543,34 @@ export function MatchPage() {
     return () => clearTimeout(timer)
   }, [gains])
 
-  // How far ports and airports reach: the player's own, always, and what stands on the
-  // municipality that is selected, whoever holds it. A circle around every municipality
-  // of the territory, as wide as the level of the structure.
+  // How far a port or an airport reaches, drawn when it is asked for: its sign was tapped,
+  // or the municipality it stands on is selected, whoever holds it. While an attack is
+  // prepared the player's own are all drawn, to see what can start from where. A circle
+  // around every municipality of the territory, as wide as the level of the structure.
   const selectedId = selected?.id
-  const ranges = useMemo<MapRange[]>(() => {
+  const preparing = attack !== null
+  const ranges = useMemo<(MapRange & { tapped: boolean })[]>(() => {
     if (!state) return []
     const points = new Map(units.data?.map((unit) => [unit.id, unit]))
     return state.structures.flatMap((structure) => {
       const km = structure.rangeKm ?? 0
       const territory = state.territories.find((t) => t.id === structure.territoryId)
+      const tapped = structure.id === rangeOf
       const shown =
-        structure.empireId === state.me?.empireId ||
+        tapped ||
+        (preparing && structure.empireId === state.me?.empireId) ||
         (selectedId !== undefined && territory?.geoUnitIds.includes(selectedId))
       if (!territory || !shown || km <= 0) return []
       const kind = structure.effects.includes('AIR_REACH') ? ('air' as const) : ('sea' as const)
       return territory.geoUnitIds.flatMap((unitId) => {
         const point = points.get(unitId)
-        return point ? [{ lon: point.lon, lat: point.lat, km, kind }] : []
+        return point ? [{ lon: point.lon, lat: point.lat, km, kind, tapped }] : []
       })
     })
-  }, [selectedId, state, units.data])
+  }, [preparing, rangeOf, selectedId, state, units.data])
+
+  // The range of the sign that was tapped: the map moves back until it is all in sight.
+  const frame = useMemo(() => ranges.filter((range) => range.tapped), [ranges])
 
   // Who attacks what: from every territory an open attack starts from, a curve to its
   // target, in the colour of the attacker. It stays as long as the battle does, so a
@@ -876,6 +885,7 @@ export function MatchPage() {
       return
     }
     setSelected(unit)
+    setRangeOf(null)
     // A player who taps a municipality gets its card; someone registering keeps the form.
     if (unit && !joining) setView('unit')
     if (!unit && view === 'unit') setView('info')
@@ -885,6 +895,25 @@ export function MatchPage() {
   // flag annexes that municipality, at once and without passing through its card.
   const onMarker = (markerId: string) => {
     const [kind, signId] = markerId.split(':')
+    if ((kind === 'port' || kind === 'airport') && signId) {
+      // While an attack is prepared the sign stands for its territory: it joins or leaves.
+      const territoryId = state.structures.find((s) => s.id === signId)?.territoryId
+      const source = attack?.card.attack?.from.find((s) => s.territoryId === territoryId)
+      if (attack) {
+        if (source?.usable) {
+          setAttack({
+            ...attack,
+            from: attack.from.includes(source.territoryId)
+              ? attack.from.filter((id) => id !== source.territoryId)
+              : [...attack.from, source.territoryId],
+          })
+        }
+        return
+      }
+      // The anchor and the plane show how far they reach; a second tap hides it again.
+      setRangeOf((shown) => (shown === signId ? null : signId))
+      return
+    }
     if (kind === 'defend' && signId) {
       // The shield defends at once; to surrender instead, the alert of the attack is opened.
       void matchApi
@@ -1069,6 +1098,7 @@ export function MatchPage() {
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
             ranges={reviewing ? NO_RANGES : ranges}
+            frame={reviewing ? null : frame}
             arcs={reviewing ? NO_ARCS : arcs}
             selected={selected}
             highlightedIds={reviewing ? NOTHING : highlighted}

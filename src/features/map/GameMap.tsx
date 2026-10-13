@@ -23,11 +23,13 @@ import { cn } from '@/lib/utils'
 import type { AreaMap } from './api'
 import { diffFlags, diffState } from './feature-state'
 import {
+  AIRPORT_LAYER,
   ANNEX_LAYER,
   ATTACK_LAYER,
   AREAS_SOURCE,
   ARCS_SOURCE,
   FRONTS_SOURCE,
+  PORT_LAYER,
   RANGES_SOURCE,
   ATTACKED_LAYER,
   buildStyle,
@@ -264,6 +266,8 @@ interface Props {
   renderInfo?: (unit: MapUnit) => ReactNode
   /** A point to bring into view when it changes. */
   focus?: { lon: number; lat: number } | null
+  /** Ranges the view must hold: the map moves back until they are all in sight. */
+  frame?: readonly MapRange[] | null
   /**
    * For a map embedded in a page that scrolls: one finger scrolls the page,
    * two fingers (or ctrl + wheel) move the map.
@@ -305,6 +309,7 @@ export function GameMap({
   onProbe,
   renderInfo,
   focus = null,
+  frame = null,
   embedded = false,
   attribution = 'bottom-right',
   fitPadding,
@@ -391,7 +396,7 @@ export function GameMap({
     })
     map.on('mouseleave', FILL_LAYER, () => setHover(null))
 
-    for (const layer of [ATTACK_LAYER, ANNEX_LAYER]) {
+    for (const layer of [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER]) {
       map.on('mouseenter', layer, () => {
         map.getCanvas().style.cursor = 'pointer'
       })
@@ -399,7 +404,7 @@ export function GameMap({
     map.on('click', (event) => {
       // A sign that is a button comes before the municipality under it.
       const sign = map.queryRenderedFeatures(event.point, {
-        layers: [ATTACK_LAYER, ANNEX_LAYER],
+        layers: [ATTACK_LAYER, ANNEX_LAYER, PORT_LAYER, AIRPORT_LAYER],
       })[0]
       if (sign && onMarkerRef.current) {
         onMarkerRef.current(String(sign.properties.id ?? ''))
@@ -860,6 +865,28 @@ export function GameMap({
     if (!map || !ready || !focus) return
     map.easeTo({ center: [focus.lon, focus.lat], zoom: Math.max(map.getZoom(), 9) })
   }, [focus, ready])
+
+  // A range that was asked for is shown whole: one wider than the view would not be seen.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !frame || frame.length === 0) return
+    const ring = frame.flatMap((range) => circleAround(range, 24))
+    const lons = ring.map(([lon]) => lon)
+    const lats = ring.map(([, lat]) => lat)
+    const west = Math.min(...lons)
+    const east = Math.max(...lons)
+    const south = Math.min(...lats)
+    const north = Math.max(...lats)
+    const view = map.getBounds()
+    if (view.contains([west, south]) && view.contains([east, north])) return
+    map.fitBounds(
+      [
+        [west, south],
+        [east, north],
+      ],
+      { padding: 48 },
+    )
+  }, [frame, ready])
 
   const info = selected && renderInfo && (anchored || phone) ? renderInfo(selected) : null
 
