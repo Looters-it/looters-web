@@ -326,11 +326,11 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         filter: ['==', ['get', 'kind'], 'port'],
         layout: {
           'icon-image': PORT_ICON,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.75, 14, 1],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.7, 10, 1.1, 14, 1.4],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': beside(-30, -16) },
+        paint: { 'icon-translate': beside(-34, -18) },
       },
       {
         // Who attacks what: a soft curve from where an attack starts to its target, in
@@ -381,11 +381,11 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         filter: ['==', ['get', 'kind'], 'airport'],
         layout: {
           'icon-image': AIRPORT_ICON,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.75, 14, 1],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.7, 10, 1.1, 14, 1.4],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
         },
-        paint: { 'icon-translate': beside(-54, -16) },
+        paint: { 'icon-translate': beside(-68, -18) },
       },
       {
         // Military block: a dark square-ish disc with the turns left written on it.
