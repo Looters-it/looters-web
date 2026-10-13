@@ -28,8 +28,9 @@ export function useStoredFocus(matchId: string): Focus | null {
 /**
  * The focus of the resources as bags of money on the map of the game: a bag gives all
  * it carries to the territory it is left on, and to no other. It is split in more
- * bags, each carrying an equal part, and put back together by dropping one on another. In the preliminary part of a turn the resources move at once; later the
- * focus is only remembered, and the next turn begins by it.
+ * bags, each carrying an equal part, and put back together by dropping one on another. The bags are there only in the preliminary
+ * part of a turn, when the resources move at once: during the action nothing can be moved,
+ * so there is nothing to take. The focus is kept, and the next turn begins by it.
  */
 export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | null) {
   const queryClient = useQueryClient()
@@ -68,7 +69,8 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
   )
 
   const bags = useMemo<MapBag[]>(() => {
-    if (!start) return []
+    // No moving during the action: no bags, the focus waits for the next turn.
+    if (!start || phase !== 'PRELIMINARY') return []
     if (!focus) return [{ id: 'at', ...start, text: '', idle: true, later: false, split: false }]
     const points = pointsOf(focus)
     const parts = 1 + (focus.more?.length ?? 0)
@@ -77,15 +79,16 @@ export function useFocusBags(state: MatchState | undefined, phase: TurnPhase | n
       // The second end of a line carries the same part as the first: said once.
       text: point.id === 'to' ? '' : String(Math.round(movable / parts)),
       idle: false,
-      later: phase !== 'PRELIMINARY',
+      later: false,
       split: parts < FOCUS_PARTS,
     }))
   }, [focus, start, movable, phase])
 
   const keep = useCallback(
     (next: Focus | null) => {
+      if (phase !== 'PRELIMINARY') return
       saveFocus(matchId, next)
-      if (!next || turn === undefined || phase !== 'PRELIMINARY') return
+      if (!next || turn === undefined) return
       void spreadByFocus(queryClient, matchId, turn, next).catch(() => {
         // Refused (the phase ended, a battle began): the resources stay as they are.
       })
