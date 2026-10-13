@@ -17,18 +17,33 @@ const keyOf = (matchId: string) => `match.endSeen.${matchId}`
 /**
  * The announcement that a match is over, to who played it: who won, where the player
  * came and what it left them. It opens by itself when the match ends under the
- * player's eyes, or the first time its page is opened afterwards, and once only.
+ * player's eyes, or the first time its page is opened afterwards, and once only. It
+ * waits while something else is being said (`hold`): how the last battle went comes
+ * before what it decided.
  */
-export function EndAnnouncement(props: { state: MatchState; onRanking: () => void }) {
+export function EndAnnouncement(props: {
+  state: MatchState
+  hold?: boolean
+  onRanking: () => void
+}) {
   const { t } = useTranslation()
   const { state } = props
   const { match } = state
   const finished = match.status === 'FINISHED'
   const mine = state.empires.find((empire) => empire.id === state.me?.empireId)
   const [open, setOpen] = useState(false)
+  const hold = props.hold === true
 
   useEffect(() => {
-    if (!finished || !mine) return
+    if (!finished || !mine || hold) return
+    // A moment, for the outcome of a battle that came with the end to ask for its turn.
+    const timer = setTimeout(announce, 400)
+    return () => clearTimeout(timer)
+    // Once for each match that ends.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished, match.id, hold])
+
+  function announce() {
     try {
       if (localStorage.getItem(keyOf(match.id)) !== null) return
       localStorage.setItem(keyOf(match.id), '1')
@@ -36,9 +51,7 @@ export function EndAnnouncement(props: { state: MatchState; onRanking: () => voi
       // Not remembered: it is announced again, that is all.
     }
     setOpen(true)
-    // Once for each match that ends.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finished, match.id])
+  }
 
   if (!finished || !mine) return null
   const winners = state.empires.filter((empire) => match.winnerEmpireIds.includes(empire.id))

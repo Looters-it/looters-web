@@ -272,6 +272,8 @@ export function MatchPage() {
   // The port or airport whose range is drawn: the one whose sign was tapped.
   const [rangeOf, setRangeOf] = useState<string | null>(null)
   // The own territory tapped for an attack it cannot join, and why: said in the bar.
+  // Outcomes of battles still being shown: the end of the match is announced after them.
+  const [outcomesPending, setOutcomesPending] = useState(false)
   // The signs pressed whose order the server has not answered yet: shown as waiting.
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set())
   const [refused, setRefused] = useState<{ name: string; why: 'far' | 'unusable' } | null>(null)
@@ -1362,7 +1364,9 @@ export function MatchPage() {
               On a phone the board has its own tab and the figures are in the bar on top. */}
           {!reviewing && <TurnAnnouncer part="turn" match={match} sound={sound} />}
           {/* How a battle of the player went: in the middle of the map too, until closed. */}
-          {!reviewing && <BattleAnnouncer state={state} sound={sound} />}
+          {!reviewing && (
+            <BattleAnnouncer state={state} sound={sound} onPending={setOutcomesPending} />
+          )}
           {/* Paused: said in the middle of the map, with the way back into the match. */}
           {match.status === 'ONGOING' && match.pausedAt && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
@@ -1561,7 +1565,11 @@ export function MatchPage() {
       )}
 
       {/* The match is over: said once, to who played it. */}
-      <EndAnnouncement state={state} onRanking={() => openSheet('leaderboard')} />
+      <EndAnnouncement
+        state={state}
+        hold={outcomesPending}
+        onRanking={() => openSheet('leaderboard')}
+      />
 
       {/* Everything that does not need the map beside it opens over the page. */}
       <Dialog open={sheet !== null} onOpenChange={(next) => !next && openSheet(null)}>

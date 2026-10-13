@@ -48,7 +48,16 @@ const newsOf = (state: MatchState): News[] =>
  * the side that won by as much as it won, what it paid, confetti for a victory. It goes
  * by itself after a while, or at once with its X; several outcomes come one after another.
  */
-export function BattleAnnouncer({ state, sound }: { state: MatchState; sound: boolean }) {
+export function BattleAnnouncer({
+  state,
+  sound,
+  onPending,
+}: {
+  state: MatchState
+  sound: boolean
+  /** Told whether outcomes are still to be shown: what comes after them waits. */
+  onPending?: (pending: boolean) => void
+}) {
   const { t } = useTranslation()
   // What was already so when the page opened is not news.
   const seen = useRef<Set<string> | null>(null)
@@ -65,6 +74,14 @@ export function BattleAnnouncer({ state, sound }: { state: MatchState; sound: bo
     for (const news of fresh) seen.current?.add(news.key)
     setQueue((current) => [...current, ...fresh])
   }, [state])
+
+  const pending = queue.length > 0
+  useEffect(() => {
+    onPending?.(pending)
+    return () => onPending?.(false)
+    // The one who listens is the same for as long as this is there.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending])
 
   const shown = queue[0]
   const shownKey = shown?.key
