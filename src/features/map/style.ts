@@ -57,7 +57,7 @@ export const EMPIRE_FONT = 'Alfa Slab One'
 /** The red of a front: a plain, strong red, unlike the colour of any empire's fill. */
 const FRONT_RED = '#e11d2e'
 const OWN_EDGE = '#072a3e'
-const OWN_DASH = '#ffffff'
+const OWN_DASH = '#4ade80'
 /** The figures of the resources: yellow like coins, edged in white to stand out on any empire. */
 const RESOURCE_INK = '#f5b800'
 const RESOURCE_EDGE = '#ffffff'
@@ -249,7 +249,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: { 'line-color': RANGE_COLOR, 'line-width': 2, 'line-dasharray': [3, 2] },
       },
       {
-        // What is the viewer's: the edge of their whole empire, white dashes over a dark
+        // What is the viewer's: the edge of their whole empire, green dashes over a dark
         // line, so that it reads on any colour and beside any colour like its own.
         id: 'own-edges',
         type: 'line',
