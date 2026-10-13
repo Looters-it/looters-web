@@ -14,7 +14,7 @@ import {
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './map.css'
-import type { FeatureCollection } from 'geojson'
+import type { FeatureCollection, Geometry } from 'geojson'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -36,6 +36,7 @@ import {
   EMPIRES_SOURCE,
   FILL_LAYER,
   MARKERS_SOURCE,
+  OWN_SOURCE,
   SIGN_GROUPS_LAYER,
   SIGNS_SOURCE,
   OWNERS_SOURCE,
@@ -241,6 +242,8 @@ interface Props {
   fronts?: FeatureCollection | null
   /** Who attacks what: a curve from where each open attack starts to its target. */
   arcs?: readonly MapArc[]
+  /** The border of the viewer's own empire: dashed, over everything that is coloured. */
+  outline?: Geometry | null
   /** How far the ports reach: a circle around each, in kilometres. */
   ranges?: readonly MapRange[]
   selected?: MapUnit | null
@@ -298,6 +301,7 @@ export function GameMap({
   ownerTags = NO_TAGS,
   areas = null,
   fronts = null,
+  outline = null,
   ranges = NO_RANGES,
   arcs = NO_ARCS,
   selected = null,
@@ -830,6 +834,15 @@ export function GameMap({
       .getSource<GeoJSONSource>(FRONTS_SOURCE)
       ?.setData(fronts ?? { type: 'FeatureCollection', features: [] })
   }, [fronts, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    map.getSource<GeoJSONSource>(OWN_SOURCE)?.setData({
+      type: 'FeatureCollection',
+      features: outline ? [{ type: 'Feature', properties: {}, geometry: outline }] : [],
+    })
+  }, [outline, ready])
 
   useEffect(() => {
     const map = mapRef.current

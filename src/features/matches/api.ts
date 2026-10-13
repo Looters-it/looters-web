@@ -475,6 +475,8 @@ export const matchApi = {
   /** The outlines of the viewer's own territories, each with a point inside it. */
   shapes: (id: string) => apiGet<{ territories: TerritoryShape[] }>(`/matches/${id}/shapes`),
   fronts: (id: string) => apiGet<AreaOutlines>(`/matches/${id}/fronts`),
+  /** The border of the viewer's empire, as lines; null for who has none. */
+  outline: (id: string) => apiGet<{ geometry: Geometry | null }>(`/matches/${id}/outline`),
   previewMerge: (id: string, territoryIds: string[]) =>
     apiPost<MergePreview>(`/matches/${id}/merge/preview`, { territoryIds }),
   merge: (id: string, body: { territoryIds: string[]; name: string; turn: number }) =>

@@ -34,6 +34,8 @@ export const OWNERS_SOURCE = 'owners'
 export const AREAS_SOURCE = 'areas'
 /** The fronts of the open battles: the border between who attacks and who is attacked. */
 export const FRONTS_SOURCE = 'fronts'
+/** The border of the viewer's own empire. */
+export const OWN_SOURCE = 'own'
 export const RANGES_SOURCE = 'ranges'
 export const ARCS_SOURCE = 'arcs'
 /** The blue of the port, on its sign and on the edge of its range. */
@@ -54,6 +56,8 @@ const UNIT_FONT = 'Sorts Mill Goudy'
 export const EMPIRE_FONT = 'Alfa Slab One'
 /** The red of a front: a plain, strong red, unlike the colour of any empire's fill. */
 const FRONT_RED = '#e11d2e'
+const OWN_EDGE = '#072a3e'
+const OWN_DASH = '#ffffff'
 /** The figures of the resources: yellow like coins, edged in white to stand out on any empire. */
 const RESOURCE_INK = '#f5b800'
 const RESOURCE_EDGE = '#ffffff'
@@ -141,6 +145,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
       [OWNERS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [AREAS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [FRONTS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      [OWN_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [RANGES_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       [ARCS_SOURCE]: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
     },
@@ -242,6 +247,29 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         type: 'line',
         source: RANGES_SOURCE,
         paint: { 'line-color': RANGE_COLOR, 'line-width': 2, 'line-dasharray': [3, 2] },
+      },
+      {
+        // What is the viewer's: the edge of their whole empire, white dashes over a dark
+        // line, so that it reads on any colour and beside any colour like its own.
+        id: 'own-edges',
+        type: 'line',
+        source: OWN_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'butt' },
+        paint: {
+          'line-color': OWN_EDGE,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2.5, 8, 4, 13, 6],
+        },
+      },
+      {
+        id: 'own-lines',
+        type: 'line',
+        source: OWN_SOURCE,
+        layout: { 'line-join': 'round', 'line-cap': 'butt' },
+        paint: {
+          'line-color': OWN_DASH,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.2, 8, 2.2, 13, 3.5],
+          'line-dasharray': [2.5, 2],
+        },
       },
       {
         // Where two territories are fighting: their shared border, thick and red, with an

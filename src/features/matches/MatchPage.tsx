@@ -441,6 +441,17 @@ export function MatchPage() {
     state?.match ?? { status: 'PLANNED', preliminaryEndsAt: null, pausedAt: null },
   )
   useFocusKeeper(state, phase)
+  // The border of the player's empire: asked again whenever what it holds changes.
+  const holdings = (state?.territories ?? [])
+    .filter((territory) => territory.ownerEmpireId === state?.me?.empireId)
+    .map((territory) => `${territory.id}:${String(territory.geoUnitIds.length)}`)
+    .join()
+  const outline = useQuery({
+    queryKey: ['matches', 'outline', id, holdings],
+    queryFn: () => matchApi.outline(id),
+    enabled: holdings !== '',
+    placeholderData: keepPreviousData,
+  })
   const focusBags = useFocusBags(state, phase)
   const targets = useQuery({
     // Nothing can be attacked in the preliminary part of a turn: asked again when it ends.
@@ -1116,6 +1127,7 @@ export function MatchPage() {
             }}
             ownerTags={ownerTags}
             areas={hasAreas && !reviewing ? (areas.data ?? null) : null}
+            outline={reviewing || holdings === '' ? null : (outline.data?.geometry ?? null)}
             fronts={openBattles !== '' && !reviewing ? (fronts.data ?? null) : null}
             ranges={reviewing ? NO_RANGES : ranges}
             frame={reviewing ? null : frame}
