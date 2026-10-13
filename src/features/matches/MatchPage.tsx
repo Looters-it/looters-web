@@ -11,7 +11,6 @@ import {
   Coins,
   Combine,
   Hammer,
-  LoaderCircle,
   Map as MapIcon,
   Handshake,
   ScrollText,
@@ -1176,19 +1175,6 @@ export function MatchPage() {
             onSelect={onMapSelect}
             className="h-full"
           />
-          {busy.size > 0 && (
-            <div
-              role="status"
-              className="bg-background rounded-pill pointer-events-none absolute bottom-6 left-1/2 z-10 flex h-9 -translate-x-1/2 items-center gap-2 px-3 text-sm shadow-md"
-            >
-              <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
-              {t(
-                [...busy].some((sign) => sign.startsWith('annex'))
-                  ? 'game.map.annexing'
-                  : 'game.map.attacking',
-              )}
-            </div>
-          )}
           {reviewing ? (
             <div
               role="group"
