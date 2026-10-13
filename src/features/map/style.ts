@@ -249,7 +249,7 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: { 'line-color': RANGE_COLOR, 'line-width': 2, 'line-dasharray': [3, 2] },
       },
       {
-        // What is the viewer's: the edge of their whole empire, green dashes over a dark
+        // What is the viewer's: the edge of their whole empire, a green line over a dark
         // line, so that it reads on any colour and beside any colour like its own.
         id: 'own-edges',
         type: 'line',
@@ -268,7 +268,6 @@ export function buildStyle(area: AreaMap, colors: MapColors, origin: string): St
         paint: {
           'line-color': OWN_DASH,
           'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.2, 8, 2.2, 13, 3.5],
-          'line-dasharray': [2.5, 2],
         },
       },
       {

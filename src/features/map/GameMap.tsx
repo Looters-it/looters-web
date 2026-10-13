@@ -242,7 +242,7 @@ interface Props {
   fronts?: FeatureCollection | null
   /** Who attacks what: a curve from where each open attack starts to its target. */
   arcs?: readonly MapArc[]
-  /** The border of the viewer's own empire: dashed, over everything that is coloured. */
+  /** The border of the viewer's own empire: a green line over everything that is coloured. */
   outline?: Geometry | null
   /** How far the ports reach: a circle around each, in kilometres. */
   ranges?: readonly MapRange[]
