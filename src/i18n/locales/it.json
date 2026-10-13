@@ -1036,7 +1036,8 @@
     "attackToast": {
       "label": "Attacchi ai tuoi comuni",
       "respond": "Rispondi",
-      "close": "Chiudi l'avviso"
+      "close": "Chiudi l'avviso",
+      "locate": "Vai al territorio sulla mappa"
     },
     "turn": {
       "begins": "Turno {{turn}}",

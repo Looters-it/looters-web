@@ -1360,7 +1360,21 @@ export function MatchPage() {
                 onDone={() => setAttack(null)}
               />
             )}
-            <AttackToasts state={state} sound={sound} onRespond={() => setAlertOpen(true)} />
+            <AttackToasts
+              state={state}
+              sound={sound}
+              onRespond={() => setAlertOpen(true)}
+              onLocate={(territoryId) => {
+                const unitId = state.territories.find((t) => t.id === territoryId)?.geoUnitIds[0]
+                const point = units.data?.find((unit) => unit.id === unitId)
+                if (!point) return
+                // The map goes there, and the card of the municipality opens: not while
+                // an attack is prepared, when a tap on an own territory means something else.
+                setFocus({ lon: point.lon, lat: point.lat })
+                setPhoneTab('map')
+                if (!attack) onMapSelect({ id: point.id, name: point.name })
+              }}
+            />
             {!reviewing && <SiegeToasts state={state} />}
           </div>
           {/* Top left, beside the button of the menu: finding a municipality by its name. */}

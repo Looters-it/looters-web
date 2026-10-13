@@ -1036,7 +1036,8 @@
     "attackToast": {
       "label": "Attacks on your municipalities",
       "respond": "Answer",
-      "close": "Close the warning"
+      "close": "Close the warning",
+      "locate": "Go to the territory on the map"
     },
     "turn": {
       "begins": "Turn {{turn}}",
