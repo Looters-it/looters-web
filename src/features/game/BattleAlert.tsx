@@ -73,6 +73,18 @@ export function BattleAlert(props: {
   const others = pending.filter((candidate) => candidate.id !== battle?.id)
   const score = scoreOf(battle?.share)
   const waiting = battle?.status === 'OPEN' && !battle.response && !battle.foughtThisTurn
+  // What each answer means in numbers: the garrison every municipality adds to a defence
+  // for free, and what a surrender takes away. A match older than these rules plays by
+  // their defaults.
+  const rule = (key: string, fallback: number) => {
+    const value = state.match.config[key]
+    return typeof value === 'number' ? value : fallback
+  }
+  const units =
+    state.territories.find((territory) => territory.id === battle?.targetTerritoryId)?.geoUnitIds
+      .length ?? 1
+  const garrison = Math.max(1, units) * rule('garrisonPerUnit', 10)
+  const saved = Math.floor(((battle?.defenseForce ?? 0) * rule('retreatPct', 100)) / 100)
 
   return (
     <>
@@ -146,6 +158,8 @@ export function BattleAlert(props: {
                 <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 [&_dd]:text-right [&_dd]:font-mono [&_dd]:font-bold">
                   <dt>{t('game.alert.resources')}</dt>
                   <dd>{battle.defenseForce}</dd>
+                  <dt>{t('game.alert.garrison')}</dt>
+                  <dd>{garrison}</dd>
                   <dt>{t('game.alert.defenseCost')}</dt>
                   <dd>{battle.defenseCost}</dd>
                 </dl>
@@ -156,10 +170,15 @@ export function BattleAlert(props: {
                   <li>
                     {t('game.alert.defendHint', {
                       count: battle.defenseCost ?? 0,
+                      garrison,
                       pct: state.match.config.battleSpoilsPct,
                     })}
                   </li>
-                  <li>{t('game.alert.surrenderHint')}</li>
+                  <li>
+                    {saved > 0
+                      ? t('game.alert.surrenderSaves', { count: saved })
+                      : t('game.alert.surrenderHint')}
+                  </li>
                 </ul>
                 {respond.error && (
                   <p role="alert" className="text-danger">

@@ -44,6 +44,8 @@ const RULE_GROUPS: [group: string, keys: string[]][] = [
       'attackMaxPct',
       'defensePct',
       'surrenderRefundPct',
+      'retreatPct',
+      'garrisonPerUnit',
       'battleSpoilsPct',
       'siegeMarginPct',
       'siegeCapitalMarginPct',
